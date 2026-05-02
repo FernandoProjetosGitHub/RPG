@@ -248,6 +248,11 @@ p {
   gap: 14px;
 }
 
+.sheet-action-grid {
+  display: grid;
+  gap: 10px;
+}
+
 .edit-form {
   display: grid;
   gap: 12px;
@@ -328,9 +333,19 @@ p {
 }
 
 .action-button--edit,
-.action-button--save {
+.action-button--save,
+.action-button--restore {
   width: 100%;
+}
+
+.action-button--edit,
+.action-button--save {
   background: linear-gradient(180deg, #b98936, #6a441b);
+}
+
+.action-button--restore {
+  color: #ead8c1;
+  background: linear-gradient(180deg, #3e3444, #211923);
 }
 
 .attributes-grid {
@@ -504,5 +519,9 @@ p {
     right: 50%;
     left: auto;
     transform: translateX(50%);
+  }
+
+  .sheet-action-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }

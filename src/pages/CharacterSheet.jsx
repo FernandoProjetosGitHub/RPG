@@ -8,6 +8,8 @@ import Inventory from '../components/Inventory.jsx'
 import QuickActions from '../components/QuickActions.jsx'
 import StatBar from '../components/StatBar.jsx'
 
+const STORAGE_KEY = 'rpg-legends-character-sheet'
+
 function getRollMessage(value, characterName) {
   if (value === 20) return `Critico! ${characterName} rasga a noite com precisao lendaria.`
   if (value === 1) return 'Falha critica. A sombra cobra seu preco.'
@@ -20,11 +22,59 @@ function toNumber(value) {
   return Number.isFinite(parsedValue) ? parsedValue : 0
 }
 
+function getStoredCharacter(defaultCharacter) {
+  try {
+    const storedCharacter = localStorage.getItem(STORAGE_KEY)
+    return storedCharacter ? normalizeCharacter(JSON.parse(storedCharacter)) : defaultCharacter
+  } catch {
+    localStorage.removeItem(STORAGE_KEY)
+    return defaultCharacter
+  }
+}
+
+function persistCharacter(character) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(character))
+}
+
+function normalizeCharacter(character) {
+  const healthMax = Math.max(1, character.stats.health.max)
+  const manaMax = Math.max(1, character.stats.mana.max)
+  const energyMax = Math.max(1, character.stats.energy.max)
+
+  return {
+    ...character,
+    portrait: character.name.trim().slice(0, 1).toUpperCase() || 'K',
+    level: Math.max(1, character.level),
+    stats: {
+      ...character.stats,
+      health: {
+        ...character.stats.health,
+        current: Math.min(character.stats.health.current, healthMax),
+        max: healthMax,
+      },
+      mana: {
+        ...character.stats.mana,
+        current: Math.min(character.stats.mana.current, manaMax),
+        max: manaMax,
+      },
+      energy: {
+        ...character.stats.energy,
+        current: Math.min(character.stats.energy.current, energyMax),
+        max: energyMax,
+      },
+    },
+    attributes: character.attributes.map((attribute) => ({
+      ...attribute,
+      value: Math.max(0, attribute.value),
+    })),
+  }
+}
+
 export default function CharacterSheet({ character }) {
-  const [sheetCharacter, setSheetCharacter] = useState(character)
-  const [draftCharacter, setDraftCharacter] = useState(character)
+  const [sheetCharacter, setSheetCharacter] = useState(() => getStoredCharacter(character))
+  const [draftCharacter, setDraftCharacter] = useState(sheetCharacter)
   const [isEditing, setIsEditing] = useState(false)
-  const [health, setHealth] = useState(character.stats.health.current)
+  const [health, setHealth] = useState(sheetCharacter.stats.health.current)
   const [roll, setRoll] = useState(null)
 
   const currentStats = {
@@ -79,33 +129,20 @@ export default function CharacterSheet({ character }) {
   }
 
   function saveCharacter() {
-    const normalizedCharacter = {
-      ...draftCharacter,
-      portrait: draftCharacter.name.trim().slice(0, 1).toUpperCase() || 'K',
-      level: Math.max(1, draftCharacter.level),
-      stats: {
-        ...draftCharacter.stats,
-        health: {
-          ...draftCharacter.stats.health,
-          max: Math.max(1, draftCharacter.stats.health.max),
-        },
-        mana: {
-          ...draftCharacter.stats.mana,
-          max: Math.max(1, draftCharacter.stats.mana.max),
-        },
-        energy: {
-          ...draftCharacter.stats.energy,
-          max: Math.max(1, draftCharacter.stats.energy.max),
-        },
-      },
-      attributes: draftCharacter.attributes.map((attribute) => ({
-        ...attribute,
-        value: Math.max(0, attribute.value),
-      })),
-    }
+    const normalizedCharacter = normalizeCharacter(draftCharacter)
 
+    persistCharacter(normalizedCharacter)
     setSheetCharacter(normalizedCharacter)
     setHealth((current) => Math.min(current, normalizedCharacter.stats.health.max))
+    setIsEditing(false)
+  }
+
+  function restoreDefaultCharacter() {
+    localStorage.removeItem(STORAGE_KEY)
+    setSheetCharacter(character)
+    setDraftCharacter(character)
+    setHealth(character.stats.health.current)
+    setRoll(null)
     setIsEditing(false)
   }
 
@@ -204,22 +241,40 @@ export default function CharacterSheet({ character }) {
                   </label>
                 ))}
               </div>
-              <button
-                className="action-button action-button--save"
-                type="button"
-                onClick={saveCharacter}
-              >
-                Salvar
-              </button>
+              <div className="sheet-action-grid">
+                <button
+                  className="action-button action-button--save"
+                  type="button"
+                  onClick={saveCharacter}
+                >
+                  Salvar
+                </button>
+                <button
+                  className="action-button action-button--restore"
+                  type="button"
+                  onClick={restoreDefaultCharacter}
+                >
+                  Restaurar ficha padrão
+                </button>
+              </div>
             </form>
           ) : (
-            <button
-              className="action-button action-button--edit"
-              type="button"
-              onClick={startEditing}
-            >
-              Editar ficha
-            </button>
+            <div className="sheet-action-grid">
+              <button
+                className="action-button action-button--edit"
+                type="button"
+                onClick={startEditing}
+              >
+                Editar ficha
+              </button>
+              <button
+                className="action-button action-button--restore"
+                type="button"
+                onClick={restoreDefaultCharacter}
+              >
+                Restaurar ficha padrão
+              </button>
+            </div>
           )}
         </section>
 
