@@ -15,30 +15,213 @@ function getRollMessage(value, characterName) {
   return 'Falha. A ameaca resiste por enquanto.'
 }
 
+function toNumber(value) {
+  const parsedValue = Number(value)
+  return Number.isFinite(parsedValue) ? parsedValue : 0
+}
+
 export default function CharacterSheet({ character }) {
+  const [sheetCharacter, setSheetCharacter] = useState(character)
+  const [draftCharacter, setDraftCharacter] = useState(character)
+  const [isEditing, setIsEditing] = useState(false)
   const [health, setHealth] = useState(character.stats.health.current)
   const [roll, setRoll] = useState(null)
 
   const currentStats = {
-    ...character.stats,
-    health: { ...character.stats.health, current: health },
+    ...sheetCharacter.stats,
+    health: { ...sheetCharacter.stats.health, current: health },
   }
 
   function adjustHealth(amount) {
     setHealth((current) =>
-      Math.min(character.stats.health.max, Math.max(0, current + amount)),
+      Math.min(sheetCharacter.stats.health.max, Math.max(0, current + amount)),
     )
   }
 
   function rollD20() {
     const value = Math.floor(Math.random() * 20) + 1
-    setRoll({ value, message: getRollMessage(value, character.name) })
+    setRoll({ value, message: getRollMessage(value, sheetCharacter.name) })
+  }
+
+  function startEditing() {
+    setDraftCharacter(sheetCharacter)
+    setIsEditing(true)
+  }
+
+  function updateDraftField(field, value) {
+    setDraftCharacter((current) => ({ ...current, [field]: value }))
+  }
+
+  function updateDraftNumber(field, value) {
+    updateDraftField(field, toNumber(value))
+  }
+
+  function updateDraftAttribute(label, value) {
+    setDraftCharacter((current) => ({
+      ...current,
+      attributes: current.attributes.map((attribute) =>
+        attribute.label === label ? { ...attribute, value: toNumber(value) } : attribute,
+      ),
+    }))
+  }
+
+  function updateDraftStatMax(statKey, value) {
+    setDraftCharacter((current) => ({
+      ...current,
+      stats: {
+        ...current.stats,
+        [statKey]: {
+          ...current.stats[statKey],
+          max: toNumber(value),
+        },
+      },
+    }))
+  }
+
+  function saveCharacter() {
+    const normalizedCharacter = {
+      ...draftCharacter,
+      portrait: draftCharacter.name.trim().slice(0, 1).toUpperCase() || 'K',
+      level: Math.max(1, draftCharacter.level),
+      stats: {
+        ...draftCharacter.stats,
+        health: {
+          ...draftCharacter.stats.health,
+          max: Math.max(1, draftCharacter.stats.health.max),
+        },
+        mana: {
+          ...draftCharacter.stats.mana,
+          max: Math.max(1, draftCharacter.stats.mana.max),
+        },
+        energy: {
+          ...draftCharacter.stats.energy,
+          max: Math.max(1, draftCharacter.stats.energy.max),
+        },
+      },
+      attributes: draftCharacter.attributes.map((attribute) => ({
+        ...attribute,
+        value: Math.max(0, attribute.value),
+      })),
+    }
+
+    setSheetCharacter(normalizedCharacter)
+    setHealth((current) => Math.min(current, normalizedCharacter.stats.health.max))
+    setIsEditing(false)
   }
 
   return (
     <main className="app-shell">
       <div className="app-frame">
-        <CharacterHeader character={character} />
+        <CharacterHeader character={sheetCharacter} />
+
+        <section className="panel sheet-actions" aria-label="Edicao da ficha">
+          <div className="section-heading">
+            <span>Ficha</span>
+            <strong>{isEditing ? 'Editando' : 'Pronta'}</strong>
+          </div>
+          {isEditing ? (
+            <form className="edit-form" onSubmit={(event) => event.preventDefault()}>
+              <label>
+                Nome
+                <input
+                  type="text"
+                  value={draftCharacter.name}
+                  onChange={(event) => updateDraftField('name', event.target.value)}
+                />
+              </label>
+              <label>
+                Titulo
+                <input
+                  type="text"
+                  value={draftCharacter.title}
+                  onChange={(event) => updateDraftField('title', event.target.value)}
+                />
+              </label>
+              <label>
+                Raca
+                <input
+                  type="text"
+                  value={draftCharacter.race}
+                  onChange={(event) => updateDraftField('race', event.target.value)}
+                />
+              </label>
+              <label>
+                Classe
+                <input
+                  type="text"
+                  value={draftCharacter.className}
+                  onChange={(event) => updateDraftField('className', event.target.value)}
+                />
+              </label>
+              <label>
+                Nivel
+                <input
+                  min="1"
+                  type="number"
+                  value={draftCharacter.level}
+                  onChange={(event) => updateDraftNumber('level', event.target.value)}
+                />
+              </label>
+              <label>
+                Vida maxima
+                <input
+                  min="1"
+                  type="number"
+                  value={draftCharacter.stats.health.max}
+                  onChange={(event) => updateDraftStatMax('health', event.target.value)}
+                />
+              </label>
+              <label>
+                Mana maxima
+                <input
+                  min="1"
+                  type="number"
+                  value={draftCharacter.stats.mana.max}
+                  onChange={(event) => updateDraftStatMax('mana', event.target.value)}
+                />
+              </label>
+              <label>
+                Energia maxima
+                <input
+                  min="1"
+                  type="number"
+                  value={draftCharacter.stats.energy.max}
+                  onChange={(event) => updateDraftStatMax('energy', event.target.value)}
+                />
+              </label>
+              <div className="edit-attributes">
+                {draftCharacter.attributes.map((attribute) => (
+                  <label key={attribute.label}>
+                    {attribute.label}
+                    <input
+                      min="0"
+                      type="number"
+                      value={attribute.value}
+                      onChange={(event) =>
+                        updateDraftAttribute(attribute.label, event.target.value)
+                      }
+                    />
+                  </label>
+                ))}
+              </div>
+              <button
+                className="action-button action-button--save"
+                type="button"
+                onClick={saveCharacter}
+              >
+                Salvar
+              </button>
+            </form>
+          ) : (
+            <button
+              className="action-button action-button--edit"
+              type="button"
+              onClick={startEditing}
+            >
+              Editar ficha
+            </button>
+          )}
+        </section>
 
         <section className="panel stats-panel" aria-label="Recursos do personagem">
           <StatBar stat={currentStats.health} />
@@ -47,10 +230,10 @@ export default function CharacterSheet({ character }) {
           <QuickActions onHeal={() => adjustHealth(5)} onDamage={() => adjustHealth(-5)} />
         </section>
 
-        <AttributesGrid attributes={character.attributes} />
+        <AttributesGrid attributes={sheetCharacter.attributes} />
         <DiceRoller roll={roll} onRoll={rollD20} />
-        <Inventory items={character.inventory} />
-        <Abilities abilities={character.abilities} />
+        <Inventory items={sheetCharacter.inventory} />
+        <Abilities abilities={sheetCharacter.abilities} />
       </div>
       <BottomNav />
     </main>

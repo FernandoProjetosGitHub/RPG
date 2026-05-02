@@ -243,6 +243,55 @@ p {
   margin-top: 2px;
 }
 
+.sheet-actions {
+  display: grid;
+  gap: 14px;
+}
+
+.edit-form {
+  display: grid;
+  gap: 12px;
+}
+
+.edit-form label {
+  display: grid;
+  gap: 7px;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.edit-form input {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid rgba(217, 180, 106, 0.2);
+  border-radius: 14px;
+  outline: none;
+  color: #f6efe3;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.015)),
+    rgba(0, 0, 0, 0.24);
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 800;
+  padding: 0 13px;
+  box-shadow: inset 0 1px 5px rgba(0, 0, 0, 0.32);
+}
+
+.edit-form input:focus {
+  border-color: rgba(248, 223, 157, 0.58);
+  box-shadow:
+    inset 0 1px 5px rgba(0, 0, 0, 0.32),
+    0 0 0 3px rgba(217, 180, 106, 0.12);
+}
+
+.edit-attributes {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
 .action-button,
 .dice-button,
 .bottom-nav button {
@@ -276,6 +325,12 @@ p {
 
 .action-button--heal {
   background: linear-gradient(180deg, #35915f, #1b5036);
+}
+
+.action-button--edit,
+.action-button--save {
+  width: 100%;
+  background: linear-gradient(180deg, #b98936, #6a441b);
 }
 
 .attributes-grid {
@@ -440,6 +495,7 @@ p {
   }
 
   .character-header,
+  .sheet-actions,
   .stats-panel {
     grid-column: span 2;
   }
