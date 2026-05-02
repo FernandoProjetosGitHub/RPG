@@ -74,17 +74,31 @@ export default function CharacterSheet({ character }) {
   const [sheetCharacter, setSheetCharacter] = useState(() => getStoredCharacter(character))
   const [draftCharacter, setDraftCharacter] = useState(sheetCharacter)
   const [isEditing, setIsEditing] = useState(false)
+  const [viewMode, setViewMode] = useState('player')
   const [health, setHealth] = useState(sheetCharacter.stats.health.current)
+  const [mana, setMana] = useState(sheetCharacter.stats.mana.current)
+  const [conditionInput, setConditionInput] = useState('')
+  const [conditions, setConditions] = useState([])
+  const [secretNotes, setSecretNotes] = useState('')
   const [roll, setRoll] = useState(null)
 
   const currentStats = {
     ...sheetCharacter.stats,
     health: { ...sheetCharacter.stats.health, current: health },
+    mana: { ...sheetCharacter.stats.mana, current: mana },
   }
+
+  const isMasterMode = viewMode === 'master'
 
   function adjustHealth(amount) {
     setHealth((current) =>
       Math.min(sheetCharacter.stats.health.max, Math.max(0, current + amount)),
+    )
+  }
+
+  function adjustMana(amount) {
+    setMana((current) =>
+      Math.min(sheetCharacter.stats.mana.max, Math.max(0, current + amount)),
     )
   }
 
@@ -134,7 +148,20 @@ export default function CharacterSheet({ character }) {
     persistCharacter(normalizedCharacter)
     setSheetCharacter(normalizedCharacter)
     setHealth((current) => Math.min(current, normalizedCharacter.stats.health.max))
+    setMana((current) => Math.min(current, normalizedCharacter.stats.mana.max))
     setIsEditing(false)
+  }
+
+  function addCondition(event) {
+    event.preventDefault()
+    const normalizedCondition = conditionInput.trim()
+
+    if (!normalizedCondition) return
+
+    setConditions((current) =>
+      current.includes(normalizedCondition) ? current : [...current, normalizedCondition],
+    )
+    setConditionInput('')
   }
 
   function restoreDefaultCharacter() {
@@ -142,6 +169,10 @@ export default function CharacterSheet({ character }) {
     setSheetCharacter(character)
     setDraftCharacter(character)
     setHealth(character.stats.health.current)
+    setMana(character.stats.mana.current)
+    setConditionInput('')
+    setConditions([])
+    setSecretNotes('')
     setRoll(null)
     setIsEditing(false)
   }
@@ -149,6 +180,23 @@ export default function CharacterSheet({ character }) {
   return (
     <main className="app-shell">
       <div className="app-frame">
+        <section className="panel mode-switcher" aria-label="Modo de visualizacao">
+          <button
+            className={viewMode === 'player' ? 'is-active' : ''}
+            type="button"
+            onClick={() => setViewMode('player')}
+          >
+            Modo Jogador
+          </button>
+          <button
+            className={viewMode === 'master' ? 'is-active' : ''}
+            type="button"
+            onClick={() => setViewMode('master')}
+          >
+            Modo Mestre
+          </button>
+        </section>
+
         <CharacterHeader character={sheetCharacter} />
 
         <section className="panel sheet-actions" aria-label="Edicao da ficha">
@@ -282,8 +330,20 @@ export default function CharacterSheet({ character }) {
           <StatBar stat={currentStats.health} />
           <StatBar stat={currentStats.mana} />
           <StatBar stat={currentStats.energy} />
-          <QuickActions onHeal={() => adjustHealth(5)} onDamage={() => adjustHealth(-5)} />
         </section>
+
+        {isMasterMode && (
+          <QuickActions
+            conditionInput={conditionInput}
+            conditions={conditions}
+            secretNotes={secretNotes}
+            onAddCondition={addCondition}
+            onConditionInputChange={setConditionInput}
+            onHealthChange={adjustHealth}
+            onManaChange={adjustMana}
+            onSecretNotesChange={setSecretNotes}
+          />
+        )}
 
         <AttributesGrid attributes={sheetCharacter.attributes} />
         <DiceRoller roll={roll} onRoll={rollD20} />

@@ -248,17 +248,45 @@ p {
   gap: 14px;
 }
 
+.mode-switcher {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  padding: 8px;
+}
+
+.mode-switcher button {
+  min-height: 48px;
+  border: 0;
+  border-radius: 14px;
+  color: #a99e96;
+  background: transparent;
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.mode-switcher button.is-active {
+  color: #f8df9d;
+  background:
+    linear-gradient(180deg, rgba(217, 180, 106, 0.18), rgba(217, 180, 106, 0.06));
+  box-shadow: inset 0 0 0 1px rgba(217, 180, 106, 0.16);
+}
+
 .sheet-action-grid {
   display: grid;
   gap: 10px;
 }
 
-.edit-form {
+.edit-form,
+.master-controls,
+.condition-form {
   display: grid;
   gap: 12px;
 }
 
-.edit-form label {
+.edit-form label,
+.condition-form label,
+.secret-notes {
   display: grid;
   gap: 7px;
   color: var(--text-muted);
@@ -267,7 +295,9 @@ p {
   text-transform: uppercase;
 }
 
-.edit-form input {
+.edit-form input,
+.condition-form input,
+.secret-notes textarea {
   width: 100%;
   min-height: 48px;
   border: 1px solid rgba(217, 180, 106, 0.2);
@@ -284,7 +314,15 @@ p {
   box-shadow: inset 0 1px 5px rgba(0, 0, 0, 0.32);
 }
 
-.edit-form input:focus {
+.secret-notes textarea {
+  min-height: 108px;
+  padding: 12px 13px;
+  resize: vertical;
+}
+
+.edit-form input:focus,
+.condition-form input:focus,
+.secret-notes textarea:focus {
   border-color: rgba(248, 223, 157, 0.58);
   box-shadow:
     inset 0 1px 5px rgba(0, 0, 0, 0.32),
@@ -295,6 +333,22 @@ p {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 10px;
+}
+
+.status-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.status-list span {
+  border: 1px solid rgba(217, 180, 106, 0.18);
+  border-radius: 999px;
+  color: #f1d28d;
+  background: rgba(217, 180, 106, 0.08);
+  font-size: 0.78rem;
+  font-weight: 900;
+  padding: 7px 10px;
 }
 
 .action-button,
@@ -330,6 +384,14 @@ p {
 
 .action-button--heal {
   background: linear-gradient(180deg, #35915f, #1b5036);
+}
+
+.action-button--mana-down {
+  background: linear-gradient(180deg, #36549b, #1c2b57);
+}
+
+.action-button--mana-up {
+  background: linear-gradient(180deg, #5578d6, #28458f);
 }
 
 .action-button--edit,
@@ -510,6 +572,8 @@ p {
   }
 
   .character-header,
+  .mode-switcher,
+  .master-controls,
   .sheet-actions,
   .stats-panel {
     grid-column: span 2;
