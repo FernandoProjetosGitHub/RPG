@@ -11,6 +11,11 @@ export default function CharacterHeader({ character }) {
         <div className="character-tags">
           <span>Nivel {character.level}</span>
           <span>{character.className}</span>
+          <span>{character.race}</span>
+          <span>{character.alignment}</span>
+          <span>
+            XP {character.xp.current}/{character.xp.total}
+          </span>
         </div>
       </div>
     </header>
