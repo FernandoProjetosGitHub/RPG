@@ -7,6 +7,7 @@ import DiceRoller from '../components/DiceRoller.jsx'
 import Inventory from '../components/Inventory.jsx'
 import QuickActions from '../components/QuickActions.jsx'
 import StatBar from '../components/StatBar.jsx'
+import { nobleHouses } from '../data/gotOptions.js'
 
 const STORAGE_KEY = 'rpg-legends-character-sheet'
 
@@ -22,10 +23,43 @@ function toNumber(value) {
   return Number.isFinite(parsedValue) ? parsedValue : 0
 }
 
+function mergeStoredCharacter(defaultCharacter, storedCharacter) {
+  const storedAttributes = storedCharacter.attributes ?? []
+
+  return {
+    ...defaultCharacter,
+    ...storedCharacter,
+    house: storedCharacter.house ?? defaultCharacter.house,
+    reputation: storedCharacter.reputation ?? defaultCharacter.reputation,
+    loyalty: storedCharacter.loyalty ?? defaultCharacter.loyalty,
+    stats: {
+      health: {
+        ...defaultCharacter.stats.health,
+        ...storedCharacter.stats?.health,
+      },
+      mana: {
+        ...defaultCharacter.stats.mana,
+        ...storedCharacter.stats?.mana,
+      },
+      energy: {
+        ...defaultCharacter.stats.energy,
+        ...storedCharacter.stats?.energy,
+      },
+    },
+    attributes: defaultCharacter.attributes.map((attribute, index) => ({
+      ...attribute,
+      value: toNumber(storedAttributes[index]?.value ?? attribute.value),
+    })),
+    abilities: defaultCharacter.abilities,
+  }
+}
+
 function getStoredCharacter(defaultCharacter) {
   try {
     const storedCharacter = localStorage.getItem(STORAGE_KEY)
-    return storedCharacter ? normalizeCharacter(JSON.parse(storedCharacter)) : defaultCharacter
+    return storedCharacter
+      ? normalizeCharacter(mergeStoredCharacter(defaultCharacter, JSON.parse(storedCharacter)))
+      : defaultCharacter
   } catch {
     localStorage.removeItem(STORAGE_KEY)
     return defaultCharacter
@@ -231,11 +265,40 @@ export default function CharacterSheet({ character }) {
                 />
               </label>
               <label>
+                Casa
+                <select
+                  value={draftCharacter.house}
+                  onChange={(event) => updateDraftField('house', event.target.value)}
+                >
+                  {nobleHouses.map((house) => (
+                    <option value={house} key={house}>
+                      {house}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
                 Classe
                 <input
                   type="text"
                   value={draftCharacter.className}
                   onChange={(event) => updateDraftField('className', event.target.value)}
+                />
+              </label>
+              <label>
+                Reputação
+                <input
+                  type="text"
+                  value={draftCharacter.reputation}
+                  onChange={(event) => updateDraftField('reputation', event.target.value)}
+                />
+              </label>
+              <label>
+                Lealdade
+                <input
+                  type="text"
+                  value={draftCharacter.loyalty}
+                  onChange={(event) => updateDraftField('loyalty', event.target.value)}
                 />
               </label>
               <label>

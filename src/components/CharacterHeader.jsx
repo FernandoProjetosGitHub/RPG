@@ -10,9 +10,11 @@ export default function CharacterHeader({ character }) {
         <p>{character.title}</p>
         <div className="character-tags">
           <span>Nivel {character.level}</span>
+          <span>Casa {character.house}</span>
           <span>{character.className}</span>
           <span>{character.race}</span>
-          <span>{character.alignment}</span>
+          <span>{character.reputation}</span>
+          <span>Lealdade: {character.loyalty}</span>
           <span>
             XP {character.xp.current}/{character.xp.total}
           </span>

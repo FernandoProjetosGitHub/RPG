@@ -1,13 +1,13 @@
 :root {
   color: #f6efe3;
-  background: #08070b;
-  --gold: #d9b46a;
-  --gold-soft: rgba(217, 180, 106, 0.24);
-  --gold-faint: rgba(217, 180, 106, 0.1);
-  --ink: rgba(13, 10, 18, 0.92);
-  --panel: rgba(23, 18, 31, 0.9);
-  --panel-raised: rgba(33, 24, 39, 0.92);
-  --text-muted: #b7a99b;
+  background: #0b0a08;
+  --gold: #c2a15b;
+  --gold-soft: rgba(194, 161, 91, 0.22);
+  --gold-faint: rgba(194, 161, 91, 0.1);
+  --ink: rgba(15, 13, 11, 0.94);
+  --panel: rgba(30, 27, 22, 0.92);
+  --panel-raised: rgba(43, 36, 28, 0.92);
+  --text-muted: #b8aa94;
   font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
@@ -25,9 +25,9 @@ body {
   background:
     linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.014) 1px, transparent 1px),
-    radial-gradient(circle at 18% -8%, rgba(122, 23, 43, 0.42), transparent 24rem),
-    radial-gradient(circle at 92% 10%, rgba(217, 180, 106, 0.2), transparent 24rem),
-    linear-gradient(180deg, #18111f 0%, #0d0a12 46%, #07060a 100%);
+    radial-gradient(circle at 18% -8%, rgba(86, 35, 25, 0.38), transparent 24rem),
+    radial-gradient(circle at 92% 10%, rgba(194, 161, 91, 0.16), transparent 24rem),
+    linear-gradient(180deg, #181511 0%, #0f0d0b 46%, #070604 100%);
   background-size: 34px 34px, 34px 34px, auto, auto, auto;
 }
 
@@ -60,9 +60,9 @@ button {
   border: 1px solid var(--gold-soft);
   border-radius: 22px;
   background:
-    linear-gradient(160deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.015) 42%),
-    radial-gradient(circle at 88% 18%, rgba(217, 180, 106, 0.18), transparent 15rem),
-    linear-gradient(145deg, rgba(66, 35, 50, 0.98), rgba(17, 13, 25, 0.98));
+    linear-gradient(160deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.015) 42%),
+    radial-gradient(circle at 88% 18%, rgba(150, 105, 48, 0.18), transparent 15rem),
+    linear-gradient(145deg, rgba(54, 42, 31, 0.98), rgba(18, 15, 12, 0.98));
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.1),
     inset 0 -1px 0 rgba(0, 0, 0, 0.34),
@@ -89,7 +89,7 @@ button {
   color: #f8df9d;
   background:
     linear-gradient(145deg, rgba(255, 255, 255, 0.18), transparent 46%),
-    radial-gradient(circle, rgba(173, 42, 57, 0.64), rgba(24, 16, 28, 0.96) 70%);
+    radial-gradient(circle, rgba(126, 76, 35, 0.64), rgba(24, 20, 16, 0.96) 70%);
   box-shadow:
     inset 0 0 28px rgba(0, 0, 0, 0.48),
     0 0 26px rgba(217, 180, 106, 0.12);
@@ -296,6 +296,7 @@ p {
 }
 
 .edit-form input,
+.edit-form select,
 .condition-form input,
 .secret-notes textarea {
   width: 100%;
@@ -305,8 +306,8 @@ p {
   outline: none;
   color: #f6efe3;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.015)),
-    rgba(0, 0, 0, 0.24);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.015)),
+    rgba(0, 0, 0, 0.26);
   font: inherit;
   font-size: 1rem;
   font-weight: 800;
@@ -321,6 +322,7 @@ p {
 }
 
 .edit-form input:focus,
+.edit-form select:focus,
 .condition-form input:focus,
 .secret-notes textarea:focus {
   border-color: rgba(248, 223, 157, 0.58);
@@ -461,9 +463,9 @@ p {
   border: 1px solid rgba(248, 223, 157, 0.36);
   border-radius: 22px;
   background:
-    radial-gradient(circle at 34% 24%, rgba(248, 223, 157, 0.3), transparent 28%),
-    linear-gradient(145deg, rgba(248, 223, 157, 0.16), transparent),
-    linear-gradient(180deg, #681d3a, #211225);
+    radial-gradient(circle at 34% 24%, rgba(219, 188, 121, 0.24), transparent 28%),
+    linear-gradient(145deg, rgba(194, 161, 91, 0.14), transparent),
+    linear-gradient(180deg, #5b3b24, #211b15);
   box-shadow:
     inset 0 0 26px rgba(0, 0, 0, 0.38),
     0 14px 24px rgba(0, 0, 0, 0.32),
