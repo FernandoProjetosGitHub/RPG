@@ -241,7 +241,9 @@ p {
 .reader,
 .page-grid,
 .play-aid,
-.class-manual {
+.class-manual,
+.move-reference,
+.spellbook {
   width: min(1180px, calc(100% - 32px));
   margin: 0 auto;
 }
@@ -462,6 +464,11 @@ dd {
   padding: clamp(70px, 11vw, 140px) 0 0;
 }
 
+.move-reference,
+.spellbook {
+  padding: clamp(70px, 11vw, 140px) 0 0;
+}
+
 .section-title {
   display: grid;
   gap: 18px;
@@ -479,7 +486,16 @@ dd {
   gap: 14px;
 }
 
-.class-card {
+.move-grid,
+.spell-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+.class-card,
+.move-card,
+.spell-card {
   position: relative;
   display: grid;
   gap: 12px;
@@ -499,7 +515,42 @@ dd {
     background 180ms ease;
 }
 
-.class-card::before {
+.move-card,
+.spell-card {
+  min-height: 248px;
+}
+
+.move-card:nth-child(4n + 1),
+.spell-card:nth-child(4n + 1) {
+  background:
+    linear-gradient(150deg, rgba(170, 38, 61, 0.22), transparent 48%),
+    rgba(15, 15, 13, 0.94);
+}
+
+.move-card:nth-child(4n + 2),
+.spell-card:nth-child(4n + 2) {
+  background:
+    linear-gradient(150deg, rgba(36, 112, 109, 0.22), transparent 48%),
+    rgba(15, 15, 13, 0.94);
+}
+
+.move-card:nth-child(4n + 3),
+.spell-card:nth-child(4n + 3) {
+  background:
+    linear-gradient(150deg, rgba(111, 140, 84, 0.22), transparent 48%),
+    rgba(15, 15, 13, 0.94);
+}
+
+.move-card:nth-child(4n + 4),
+.spell-card:nth-child(4n + 4) {
+  background:
+    linear-gradient(150deg, rgba(197, 155, 75, 0.2), transparent 48%),
+    rgba(15, 15, 13, 0.94);
+}
+
+.class-card::before,
+.move-card::before,
+.spell-card::before {
   position: absolute;
   inset: 12px;
   border: 1px solid rgba(217, 200, 159, 0.08);
@@ -507,7 +558,9 @@ dd {
   pointer-events: none;
 }
 
-.class-card:hover {
+.class-card:hover,
+.move-card:hover,
+.spell-card:hover {
   border-color: rgba(255, 238, 190, 0.46);
   background:
     linear-gradient(150deg, rgba(170, 38, 61, 0.24), transparent 44%),
@@ -516,7 +569,9 @@ dd {
   transform: translateY(-5px);
 }
 
-.class-card span {
+.class-card span,
+.move-card span,
+.spell-card span {
   color: var(--gold);
   font-family: Inter, ui-sans-serif, system-ui, sans-serif;
   font-size: 0.72rem;
@@ -529,15 +584,58 @@ dd {
   line-height: 0.9;
 }
 
-.class-card small {
+.move-card h3,
+.spell-card h3 {
+  margin: 0;
+  color: #fff2d6;
+  font-size: clamp(1.35rem, 2vw, 2rem);
+  line-height: 1;
+}
+
+.move-card strong {
+  color: #f2dfb8;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  line-height: 1.45;
+}
+
+.class-card small,
+.move-card small {
   color: #d7c59d;
   font-weight: 900;
 }
 
-.class-card p {
+.class-card p,
+.move-card p,
+.spell-card p {
   margin-top: auto;
   font-family: Inter, ui-sans-serif, system-ui, sans-serif;
   font-size: 0.95rem;
+}
+
+.spell-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0 0 18px;
+}
+
+.spell-filters button {
+  min-height: 44px;
+  border: 1px solid rgba(217, 200, 159, 0.2);
+  color: #f5e9cf;
+  background: rgba(11, 11, 9, 0.78);
+  cursor: pointer;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  font-weight: 900;
+  padding: 10px 16px;
+  text-transform: uppercase;
+}
+
+.spell-filters button.is-active {
+  color: #fff7e6;
+  background:
+    linear-gradient(180deg, rgba(197, 155, 75, 0.28), rgba(170, 38, 61, 0.14)),
+    rgba(11, 11, 9, 0.9);
 }
 
 .play-aid {
@@ -689,7 +787,9 @@ dd {
   .page-grid,
   .play-aid,
   .play-aid__columns,
-  .class-grid {
+  .class-grid,
+  .move-grid,
+  .spell-grid {
     grid-template-columns: 1fr;
   }
 
@@ -730,7 +830,9 @@ dd {
   .reader,
   .page-grid,
   .play-aid,
-  .class-manual {
+  .class-manual,
+  .move-reference,
+  .spellbook {
     width: min(100% - 24px, 1180px);
   }
 
@@ -762,6 +864,11 @@ dd {
 
   .class-card {
     min-height: 230px;
+  }
+
+  .move-card,
+  .spell-card {
+    min-height: 220px;
   }
 
   .modal {
