@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import heroImage from './assets/zine-hero.png'
 import frontierImage from './assets/zine-frontier.png'
 import tableImage from './assets/zine-table.png'
+import CharacterAppPage from './pages/CharacterAppPage'
 
 type ZinePage = {
   id: string
@@ -359,6 +360,7 @@ const rituals = [
 ]
 
 export default function App() {
+  const [currentView, setCurrentView] = useState<'codex' | 'characterApp'>('codex')
   const [activePageId, setActivePageId] = useState(pages[0].id)
   const [isCodexOpen, setIsCodexOpen] = useState(false)
   const [codexMode, setCodexMode] = useState<'page' | 'class'>('page')
@@ -394,6 +396,10 @@ export default function App() {
     setIsCodexOpen(true)
   }
 
+  if (currentView === 'characterApp') {
+    return <CharacterAppPage onBackToCodex={() => setCurrentView('codex')} />
+  }
+
   return (
     <main className="zine-shell">
       <nav className="site-menu" aria-label="Menu principal">
@@ -402,6 +408,9 @@ export default function App() {
         <a href="#classes">Classes</a>
         <a href="#magias">Magias</a>
         <a href="#mesa">Mesa</a>
+        <button type="button" onClick={() => setCurrentView('characterApp')}>
+          App
+        </button>
       </nav>
 
       <section className="hero" style={{ backgroundImage: `url(${heroImage})` }}>
@@ -414,6 +423,9 @@ export default function App() {
             formato de zine jogavel para uso direto na mesa.
           </p>
           <div className="hero__actions" aria-label="Acoes principais">
+            <button type="button" onClick={() => setCurrentView('characterApp')}>
+              Abrir app de personagem
+            </button>
             <a href="#movimentos">Movimentos</a>
             <a href="#classes">Classes</a>
             <a href="#magias">Magias</a>
@@ -585,7 +597,9 @@ export default function App() {
       </section>
 
       <nav className="mobile-dock" aria-label="Menu mobile">
-        <a href="#inicio">Inicio</a>
+        <button type="button" onClick={() => setCurrentView('characterApp')}>
+          App
+        </button>
         <a href="#movimentos">Moves</a>
         <a href="#classes">Classes</a>
         <a href="#magias">Magias</a>

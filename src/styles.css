@@ -92,9 +92,14 @@ img {
 }
 
 .site-menu a,
-.mobile-dock a {
+.site-menu button,
+.mobile-dock a,
+.mobile-dock button {
   flex: 1;
+  border: 0;
   color: #f5e9cf;
+  background: transparent;
+  cursor: pointer;
   font-family: Inter, ui-sans-serif, system-ui, sans-serif;
   font-size: 0.76rem;
   font-weight: 900;
@@ -105,7 +110,9 @@ img {
 }
 
 .site-menu a:hover,
-.mobile-dock a:hover {
+.site-menu button:hover,
+.mobile-dock a:hover,
+.mobile-dock button:hover {
   background: rgba(197, 155, 75, 0.16);
 }
 
@@ -844,7 +851,8 @@ dd {
     display: grid;
   }
 
-  .mobile-dock a {
+  .mobile-dock a,
+  .mobile-dock button {
     min-width: 0;
     padding: 13px 4px;
     font-size: 0.68rem;
