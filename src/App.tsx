@@ -6,6 +6,7 @@ import frontierImage from "./assets/zine-frontier.png";
 import tableImage from "./assets/zine-table.png";
 import CharacterAppPage from "./pages/CharacterAppPage";
 import MasterAppPage from "./pages/MasterAppPage";
+import { initialCharacter } from "./types/character";
 
 type CurrentView =
   | "codex"
@@ -50,37 +51,7 @@ type Spell = {
   level: string;
   summary: string;
 };
-const [character, setCharacter] = useState({
-  name: "Alyn",
-  classLocked: false,
-  classId: "guerreiro",
-  hp: { current: 0 },
-  attributes: {
-    forca: 16,
-    destreza: 13,
-    constituicao: 15,
-    inteligencia: 10,
-    sabedoria: 12,
-    carisma: 9,
-  },
-  modifiers: {
-    attributes: {
-      forca: 0,
-      destreza: 0,
-      constituicao: 0,
-      inteligencia: 0,
-      sabedoria: 0,
-      carisma: 0,
-    },
-    hp: 0,
-    armor: 0,
-  },
-  availableItems: [] as string[],
-  equippedItems: [] as string[],
-  skillPoints: 2,
-  selectedSkillIds: [] as string[],
-  skillsLocked: false,
-});
+
 const pages: ZinePage[] = [
   {
     id: "mesa",
@@ -329,7 +300,7 @@ export default function App() {
         : spells.filter((spell) => spell.tradition === spellTradition),
     [spellTradition],
   );
-
+const [character, setCharacter] = useState(initialCharacter);
   function openClass(classId: string) {
     setSelectedClassId(classId);
     setCodexMode("class");
@@ -352,27 +323,27 @@ export default function App() {
     );
   }
 
-  if (currentView === "masterPanel") {
-    return (
-      <CharacterAppPage
-  mode="master"
-  character={character}
-  setCharacter={setCharacter}
-  onBackToMaster={() => setCurrentView("masterPanel")}
-/>
-    );
-  }
+if (currentView === "masterPanel") {
+  return (
+    <MasterAppPage
+      character={character}
+      setCharacter={setCharacter}
+      onBackToCodex={() => setCurrentView("codex")}
+      onOpenCharacter={() => setCurrentView("masterCharacter")}
+    />
+  );
+}
 
-  if (currentView === "masterCharacter") {
-    return (
-      <MasterAppPage
-  character={character}
-  setCharacter={setCharacter}
-  onBackToCodex={() => setCurrentView("codex")}
-  onOpenCharacter={() => setCurrentView("masterCharacter")}
-/>
-    );
-  }
+if (currentView === "masterCharacter") {
+  return (
+    <CharacterAppPage
+      mode="master"
+      character={character}
+      setCharacter={setCharacter}
+      onBackToMaster={() => setCurrentView("masterPanel")}
+    />
+  );
+}
 
   return (
     <Box

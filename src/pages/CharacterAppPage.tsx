@@ -24,12 +24,19 @@ import type { ReactNode } from "react";
 import { useMemo, useState, useEffect } from "react";
 import { dwClasses } from "../data/dwClasses";
 import { items } from "../data/items";
+import AttributeDistributionDrawer from "../components/AttributeDistributionDrawer";
+import {
+  attributeKeys,
+  attributeLabels,
+  type Character,
+} from "../types/character";
+import { formatModifier } from "../utils/attributes";
 type AppTab = "personagem" | "descricao" | "skills" | "inventario";
 
 type CharacterAppPageProps = {
   mode: "player" | "master";
-  character: typeof initialCharacter;
-  setCharacter: React.Dispatch<React.SetStateAction<typeof initialCharacter>>;
+  character: Character;
+  setCharacter: React.Dispatch<React.SetStateAction<Character>>;
   onBackToCodex?: () => void;
   onBackToMaster?: () => void;
 };
@@ -85,6 +92,7 @@ export default function CharacterAppPage({
     const [pendingClassId, setPendingClassId] = useState("");
 const [isClassDialogOpen, setIsClassDialogOpen] = useState(false);
 const [classSelectPulse, setClassSelectPulse] = useState(false);
+const [isAttributeDrawerOpen, setIsAttributeDrawerOpen] = useState(false);
   const selectedClass = useMemo(() => {
     return (
       dwClasses.find((dwClass) => dwClass.id === character.classId) ??
@@ -161,16 +169,19 @@ const [classSelectPulse, setClassSelectPulse] = useState(false);
   const hpPercent = Math.round((character.hp.current / maxHp) * 100);
   const isBloodied = hpPercent <= 35;
   const isCritical = hpPercent <= 15;
+function confirmAttributes(attributes: Character["attributes"]) {
+  setCharacter((current) => ({
+    ...current,
+    attributes,
+    attributesLocked: true,
+    hp: {
+      ...current.hp,
+      current: selectedClass.baseHp + attributes.constituicao,
+    },
+  }));
 
-  function damageHp(amount: number) {
-    setCharacter((current) => ({
-      ...current,
-      hp: {
-        ...current.hp,
-        current: Math.max(0, current.hp.current - amount),
-      },
-    }));
-  }
+  setIsAttributeDrawerOpen(false);
+}
   function playClassSelectSound() {
     const audioContext = new AudioContext();
     const oscillator = audioContext.createOscillator();
@@ -227,34 +238,14 @@ const [classSelectPulse, setClassSelectPulse] = useState(false);
       setClassSelectPulse(false);
     }, 700);
   }
-  function addConstitutionBonus(amount: number) {
-    setCharacter((current) => ({
-      ...current,
-      modifiers: {
-        ...current.modifiers,
-        attributes: {
-          ...current.modifiers.attributes,
-          constituicao: current.modifiers.attributes.constituicao + amount,
-        },
-      },
-    }));
-  }
+  
   function removeItem(itemId: string) {
     setCharacter((current) => ({
       ...current,
       equippedItems: current.equippedItems.filter((id) => id !== itemId),
     }));
   }
-  function restoreResources() {
-    setCharacter((current) => ({
-      ...current,
-      hp: {
-        ...current.hp,
-        current: maxHp,
-      },
-    }));
-  }
-
+  
   return (
     <Box
       component="main"
@@ -328,6 +319,13 @@ const [classSelectPulse, setClassSelectPulse] = useState(false);
                   <Typography sx={{ color: "#d7c59d", mt: 0.5 }}>
                     {selectedClass.name}
                   </Typography>
+                  <Button
+  variant="outlined"
+  disabled={character.attributesLocked}
+  onClick={() => setIsAttributeDrawerOpen(true)}
+>
+  {character.attributesLocked ? "Atributos definidos" : "Distribuir atributos"}
+</Button>
                   <Fade in timeout={500}>
                     <Box
                       sx={{
