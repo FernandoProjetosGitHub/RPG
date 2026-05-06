@@ -8,22 +8,46 @@ export type AttributeKey =
 
 export type CharacterAttributes = Record<AttributeKey, number>;
 
+export type EquipmentSlot =
+  | "arma"
+  | "armadura"
+  | "capacete"
+  | "acessorio1"
+  | "acessorio2";
+
 export type Character = {
   name: string;
-  classLocked: boolean;
-  attributesLocked: boolean;
+
   classId: string;
+  classLocked: boolean;
+
+  raceId: string;
+  raceLocked: boolean;
+
+  attributesLocked: boolean;
+
   hp: {
     current: number;
   };
+
   attributes: CharacterAttributes;
+
   modifiers: {
     attributes: CharacterAttributes;
     hp: number;
     armor: number;
   };
+
   availableItems: string[];
-  equippedItems: string[];
+
+  equipment: {
+    arma: string | null;
+    armadura: string | null;
+    capacete: string | null;
+    acessorio1: string | null;
+    acessorio2: string | null;
+  };
+
   skillPoints: number;
   selectedSkillIds: string[];
   skillsLocked: boolean;
@@ -51,12 +75,19 @@ export const attributePool = [16, 15, 13, 12, 9, 8];
 
 export const initialCharacter: Character = {
   name: "Alyn",
+
+  classId: "",
   classLocked: false,
+
+  raceId: "",
+  raceLocked: false,
+
   attributesLocked: false,
-  classId: "guerreiro",
+
   hp: {
     current: 0,
   },
+
   attributes: {
     forca: 0,
     destreza: 0,
@@ -65,6 +96,7 @@ export const initialCharacter: Character = {
     sabedoria: 0,
     carisma: 0,
   },
+
   modifiers: {
     attributes: {
       forca: 0,
@@ -74,12 +106,24 @@ export const initialCharacter: Character = {
       sabedoria: 0,
       carisma: 0,
     },
+
     hp: 0,
     armor: 0,
   },
+
   availableItems: [],
-  equippedItems: [],
+
+  equipment: {
+    arma: null,
+    armadura: null,
+    capacete: null,
+    acessorio1: null,
+    acessorio2: null,
+  },
+
   skillPoints: 2,
+
   selectedSkillIds: [],
+
   skillsLocked: false,
 };

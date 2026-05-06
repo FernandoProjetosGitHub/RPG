@@ -31,6 +31,7 @@ import {
   type Character,
 } from "../types/character";
 import { formatModifier } from "../utils/attributes";
+
 type AppTab = "personagem" | "descricao" | "skills" | "inventario";
 
 type CharacterAppPageProps = {
@@ -39,39 +40,6 @@ type CharacterAppPageProps = {
   setCharacter: React.Dispatch<React.SetStateAction<Character>>;
   onBackToCodex?: () => void;
   onBackToMaster?: () => void;
-};
-const initialCharacter = {
-  name: "Alyn",
-  classLocked: false,
-  classId: "guerreiro",
-  hp: {
-    current: 0,
-  },
-  attributes: {
-    forca: 16,
-    destreza: 13,
-    constituicao: 15,
-    inteligencia: 10,
-    sabedoria: 12,
-    carisma: 9,
-  },
-  modifiers: {
-    attributes: {
-      forca: 0,
-      destreza: 0,
-      constituicao: 0,
-      inteligencia: 0,
-      sabedoria: 0,
-      carisma: 0,
-    },
-    hp: 0,
-    armor: 0,
-  },
-  availableItems: [] as string[],
-  equippedItems: [] as string[],
-  skillPoints: 2,
-  selectedSkillIds: [] as string[],
-  skillsLocked: false,
 };
 
 const tabLabels: Record<AppTab, string> = {
@@ -89,10 +57,11 @@ export default function CharacterAppPage({
   onBackToMaster,
 }: CharacterAppPageProps) {
   const [activeTab, setActiveTab] = useState<AppTab>("personagem");
-    const [pendingClassId, setPendingClassId] = useState("");
-const [isClassDialogOpen, setIsClassDialogOpen] = useState(false);
-const [classSelectPulse, setClassSelectPulse] = useState(false);
-const [isAttributeDrawerOpen, setIsAttributeDrawerOpen] = useState(false);
+  const [pendingClassId, setPendingClassId] = useState("");
+  const [isClassDialogOpen, setIsClassDialogOpen] = useState(false);
+  const [classSelectPulse, setClassSelectPulse] = useState(false);
+  const [isAttributeDrawerOpen, setIsAttributeDrawerOpen] = useState(false);
+
   const selectedClass = useMemo(() => {
     return (
       dwClasses.find((dwClass) => dwClass.id === character.classId) ??
@@ -100,9 +69,15 @@ const [isAttributeDrawerOpen, setIsAttributeDrawerOpen] = useState(false);
     );
   }, [character.classId]);
 
-  const equippedItemsData = items.filter((item) =>
-    character.equippedItems.includes(item.id),
+  const selectedRace = selectedClass.races.find(
+    (race) => race.id === character.raceId,
   );
+
+  const equippedItemsData = Object.values(character.equipment)
+    .filter((itemId): itemId is string => Boolean(itemId))
+    .map((itemId) => items.find((item) => item.id === itemId))
+    .filter((item): item is (typeof items)[number] => Boolean(item));
+
   const finalAttributes = {
     forca:
       character.attributes.forca +
@@ -146,15 +121,16 @@ const [isAttributeDrawerOpen, setIsAttributeDrawerOpen] = useState(false);
         0,
       ),
   };
+
   const bonusHp = equippedItemsData.reduce(
     (acc, item) => acc + (item.modifiers.hp ?? 0),
     0,
   );
 
   const maxHp = selectedClass.baseHp + finalAttributes.constituicao + bonusHp;
+
   useEffect(() => {
     setCharacter((current) => {
-      // evita sobrescrever se já tiver valor válido
       if (current.hp.current > 0) return current;
 
       return {
@@ -165,23 +141,29 @@ const [isAttributeDrawerOpen, setIsAttributeDrawerOpen] = useState(false);
         },
       };
     });
-  }, [maxHp]);
-  const hpPercent = Math.round((character.hp.current / maxHp) * 100);
+  }, [maxHp, setCharacter]);
+
+  const hpPercent = maxHp > 0
+    ? Math.round((character.hp.current / maxHp) * 100)
+    : 0;
+
   const isBloodied = hpPercent <= 35;
   const isCritical = hpPercent <= 15;
-function confirmAttributes(attributes: Character["attributes"]) {
-  setCharacter((current) => ({
-    ...current,
-    attributes,
-    attributesLocked: true,
-    hp: {
-      ...current.hp,
-      current: selectedClass.baseHp + attributes.constituicao,
-    },
-  }));
 
-  setIsAttributeDrawerOpen(false);
-}
+  function confirmAttributes(attributes: Character["attributes"]) {
+    setCharacter((current) => ({
+      ...current,
+      attributes,
+      attributesLocked: true,
+      hp: {
+        ...current.hp,
+        current: selectedClass.baseHp + attributes.constituicao,
+      },
+    }));
+
+    setIsAttributeDrawerOpen(false);
+  }
+
   function playClassSelectSound() {
     const audioContext = new AudioContext();
     const oscillator = audioContext.createOscillator();
@@ -216,13 +198,17 @@ function confirmAttributes(attributes: Character["attributes"]) {
 
   function confirmClassChange() {
     const newClass =
-      dwClasses.find((c) => c.id === pendingClassId) ?? dwClasses[0];
+      dwClasses.find((dwClass) => dwClass.id === pendingClassId) ??
+      dwClasses[0];
+
     const newMaxHp = newClass.baseHp + character.attributes.constituicao;
 
     setCharacter((current) => ({
       ...current,
       classId: pendingClassId,
       classLocked: true,
+      raceId: "",
+      raceLocked: false,
       hp: {
         ...current.hp,
         current: newMaxHp,
@@ -238,14 +224,24 @@ function confirmAttributes(attributes: Character["attributes"]) {
       setClassSelectPulse(false);
     }, 700);
   }
-  
+
   function removeItem(itemId: string) {
-    setCharacter((current) => ({
-      ...current,
-      equippedItems: current.equippedItems.filter((id) => id !== itemId),
-    }));
+    setCharacter((current) => {
+      const updatedEquipment = { ...current.equipment };
+
+      Object.entries(updatedEquipment).forEach(([slot, equippedItemId]) => {
+        if (equippedItemId === itemId) {
+          updatedEquipment[slot as keyof typeof updatedEquipment] = null;
+        }
+      });
+
+      return {
+        ...current,
+        equipment: updatedEquipment,
+      };
+    });
   }
-  
+
   return (
     <Box
       component="main"
@@ -310,22 +306,24 @@ function confirmAttributes(attributes: Character["attributes"]) {
                   >
                     Ficha ativa
                   </Typography>
+
                   <Typography
                     variant="h3"
                     sx={{ fontWeight: 900, lineHeight: 0.9 }}
                   >
                     {character.name}
                   </Typography>
+
                   <Typography sx={{ color: "#d7c59d", mt: 0.5 }}>
                     {selectedClass.name}
                   </Typography>
-                  <Button
-  variant="outlined"
-  disabled={character.attributesLocked}
-  onClick={() => setIsAttributeDrawerOpen(true)}
->
-  {character.attributesLocked ? "Atributos definidos" : "Distribuir atributos"}
-</Button>
+
+                  {selectedRace && (
+                    <Typography sx={{ color: "#c59b4b", mt: 0.25 }}>
+                      {selectedRace.name}
+                    </Typography>
+                  )}
+
                   <Fade in timeout={500}>
                     <Box
                       sx={{
@@ -350,6 +348,7 @@ function confirmAttributes(attributes: Character["attributes"]) {
                     </Box>
                   </Fade>
                 </Box>
+
                 <Chip
                   label={`${character.hp.current}/${maxHp} HP`}
                   sx={{
@@ -369,7 +368,9 @@ function confirmAttributes(attributes: Character["attributes"]) {
                   label="Classe"
                   value={character.classId}
                   disabled={character.classLocked}
-                  onChange={(event) => requestClassChange(event.target.value)}
+                  onChange={(event) =>
+                    requestClassChange(event.target.value as string)
+                  }
                   sx={{
                     color: "#f7edd9",
                     ".MuiOutlinedInput-notchedOutline": {
@@ -384,12 +385,83 @@ function confirmAttributes(attributes: Character["attributes"]) {
                     </MenuItem>
                   ))}
                 </Select>
+
                 {character.classLocked && (
                   <Typography sx={{ color: "#c59b4b", fontSize: 12 }}>
                     Classe definida. Não é possível alterar.
                   </Typography>
                 )}
               </FormControl>
+
+              <FormControl fullWidth size="small">
+                <InputLabel sx={{ color: "#b9a98b" }}>Raça</InputLabel>
+
+                <Select
+                  label="Raça"
+                  value={character.raceId}
+                  disabled={!character.classLocked || character.raceLocked}
+                  onChange={(event) => {
+                    const raceId = event.target.value as string;
+
+                    setCharacter((current) => ({
+                      ...current,
+                      raceId,
+                      raceLocked: true,
+                    }));
+                  }}
+                  sx={{
+                    color: "#f7edd9",
+                    ".MuiOutlinedInput-notchedOutline": {
+                      borderColor: "rgba(217,200,159,.22)",
+                    },
+                    ".MuiSvgIcon-root": { color: "#f7edd9" },
+                  }}
+                >
+                  {selectedClass.races.map((race) => (
+                    <MenuItem value={race.id} key={race.id}>
+                      {race.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+
+                {!character.classLocked && (
+                  <Typography sx={{ color: "#b9a98b", fontSize: 12 }}>
+                    Escolha e confirme uma classe primeiro.
+                  </Typography>
+                )}
+
+                {character.raceLocked && (
+                  <Typography sx={{ color: "#c59b4b", fontSize: 12 }}>
+                    Raça definida.
+                  </Typography>
+                )}
+              </FormControl>
+
+              {selectedRace && (
+                <Paper
+                  sx={{
+                    p: 1.5,
+                    bgcolor: "rgba(255,255,255,.04)",
+                    border: "1px solid rgba(217,200,159,.12)",
+                  }}
+                >
+                  <Typography
+                    sx={{ color: "#c59b4b", fontWeight: 900, mb: 0.5 }}
+                  >
+                    {selectedRace.name}
+                  </Typography>
+
+                  <Typography
+                    sx={{
+                      color: "#d7c59d",
+                      fontSize: ".9rem",
+                      lineHeight: 1.6,
+                    }}
+                  >
+                    {selectedRace.description}
+                  </Typography>
+                </Paper>
+              )}
 
               {activeTab === "personagem" && (
                 <Stack spacing={2}>
@@ -409,8 +481,11 @@ function confirmAttributes(attributes: Character["attributes"]) {
                         gap: 1,
                       }}
                     >
-                      {Object.entries(character.attributes).map(
-                        ([key, value]) => (
+                      {attributeKeys.map((key) => {
+                        const baseValue = character.attributes[key];
+                        const finalValue = finalAttributes[key];
+
+                        return (
                           <Paper
                             variant="outlined"
                             key={key}
@@ -424,17 +499,41 @@ function confirmAttributes(attributes: Character["attributes"]) {
                             <Typography
                               sx={{ color: "#b9a98b", fontSize: ".72rem" }}
                             >
-                              {key}
+                              {attributeLabels[key]}
                             </Typography>
+
                             <Typography
                               sx={{ fontWeight: 900, fontSize: "1.35rem" }}
                             >
-                              {value}
+                              {finalValue} ({formatModifier(finalValue)})
                             </Typography>
+
+                            {finalValue !== baseValue && (
+                              <Typography
+                                sx={{ color: "#c59b4b", fontSize: ".72rem" }}
+                              >
+                                Base {baseValue}
+                              </Typography>
+                            )}
                           </Paper>
-                        ),
-                      )}
+                        );
+                      })}
                     </Box>
+
+                    <Button
+                      sx={{
+                        mt: 2,
+                        py: 1.1,
+                      }}
+                      variant="outlined"
+                      fullWidth
+                      disabled={character.attributesLocked}
+                      onClick={() => setIsAttributeDrawerOpen(true)}
+                    >
+                      {character.attributesLocked
+                        ? "Atributos definidos"
+                        : "Distribuir atributos"}
+                    </Button>
                   </InfoPanel>
 
                   <InfoPanel title="Itens">
@@ -443,6 +542,7 @@ function confirmAttributes(attributes: Character["attributes"]) {
                     >
                       {equippedItemsData.map((item) => (
                         <Chip
+                          key={item.id}
                           label={item.name}
                           onClick={() => removeItem(item.id)}
                           sx={{
@@ -465,6 +565,34 @@ function confirmAttributes(attributes: Character["attributes"]) {
                   <Typography sx={{ color: "#d7c59d", mb: 2 }}>
                     {selectedClass.description}
                   </Typography>
+
+                  {selectedRace && (
+                    <Paper
+                      sx={{
+                        mb: 2,
+                        p: 1.5,
+                        bgcolor: "rgba(255,255,255,.04)",
+                        border: "1px solid rgba(217,200,159,.12)",
+                      }}
+                    >
+                      <Typography
+                        sx={{ color: "#c59b4b", fontWeight: 900, mb: 0.5 }}
+                      >
+                        Raça: {selectedRace.name}
+                      </Typography>
+
+                      <Typography
+                        sx={{
+                          color: "#d7c59d",
+                          fontSize: ".9rem",
+                          lineHeight: 1.6,
+                        }}
+                      >
+                        {selectedRace.description}
+                      </Typography>
+                    </Paper>
+                  )}
+
                   <Stack spacing={1}>
                     {selectedClass.characteristics.map((item) => (
                       <Chip
@@ -487,6 +615,7 @@ function confirmAttributes(attributes: Character["attributes"]) {
                     Pontos disponíveis:{" "}
                     {character.skillPoints - character.selectedSkillIds.length}
                   </Typography>
+
                   <Stack spacing={1.2}>
                     {selectedClass.startingSkills.map((skill) => (
                       <Paper
@@ -502,6 +631,7 @@ function confirmAttributes(attributes: Character["attributes"]) {
                         <Typography sx={{ fontWeight: 900 }}>
                           {skill.name}
                         </Typography>
+
                         <Typography
                           sx={{ color: "#b9a98b", fontSize: ".9rem" }}
                         >
@@ -551,6 +681,7 @@ function confirmAttributes(attributes: Character["attributes"]) {
           ))}
         </BottomNavigation>
       </Paper>
+
       <Dialog
         open={isClassDialogOpen}
         onClose={() => setIsClassDialogOpen(false)}
@@ -571,6 +702,12 @@ function confirmAttributes(attributes: Character["attributes"]) {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <AttributeDistributionDrawer
+        open={isAttributeDrawerOpen}
+        onClose={() => setIsAttributeDrawerOpen(false)}
+        onConfirm={confirmAttributes}
+      />
     </Box>
   );
 }
@@ -594,6 +731,7 @@ function ResourceBar({
         sx={{ flexDirection: "row", justifyContent: "space-between", mb: 0.6 }}
       >
         <Typography sx={{ fontWeight: 900 }}>{label}</Typography>
+
         <Typography sx={{ color: "#b9a98b" }}>
           {current} / {max}
         </Typography>
@@ -609,7 +747,6 @@ function ResourceBar({
           ".MuiLinearProgress-bar": { bgcolor: color },
         }}
       />
-      
     </Box>
   );
 }
@@ -635,12 +772,13 @@ function InfoPanel({
       <Typography sx={{ color: "#c59b4b", fontWeight: 900, mb: 1 }}>
         {title}
       </Typography>
+
       {children}
     </Paper>
   );
-
 }
-  function ClassSigil({ classId }: { classId: string }) {
+
+function ClassSigil({ classId }: { classId: string }) {
   const sigils: Record<string, { symbol: string; color: string }> = {
     barbaro: { symbol: "☠", color: "#aa263d" },
     bardo: { symbol: "♪", color: "#c59b4b" },
@@ -651,9 +789,9 @@ function InfoPanel({
     mago: { symbol: "✦", color: "#5fb6c4" },
     paladino: { symbol: "♜", color: "#e0c26d" },
     ranger: { symbol: "➶", color: "#7fa46b" },
-  }
+  };
 
-  const sigil = sigils[classId] ?? { symbol: "◆", color: "#c59b4b" }
+  const sigil = sigils[classId] ?? { symbol: "◆", color: "#c59b4b" };
 
   return (
     <Typography
@@ -667,5 +805,5 @@ function InfoPanel({
     >
       {sigil.symbol}
     </Typography>
-  )
+  );
 }

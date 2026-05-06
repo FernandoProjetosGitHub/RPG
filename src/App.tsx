@@ -1,5 +1,21 @@
 import { useMemo, useState } from "react";
-import { Box, Button, Container, Stack, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  Card,
+  CardActionArea,
+  CardContent,
+  Chip,
+  Container,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  Divider,
+  Paper,
+  Stack,
+  Typography,
+} from "@mui/material";
+import Grid from "@mui/material/Grid2";
 
 import heroImage from "./assets/zine-hero.png";
 import frontierImage from "./assets/zine-frontier.png";
@@ -93,7 +109,8 @@ const adventurerClasses: AdventurerClass[] = [
     id: "bardo",
     name: "Bardo",
     archetype: "voz, memoria e mentira bonita",
-    hook: "Transforma historias em vantagem, abre portas com charme e reconhece criaturas, lugares e lendas antes dos demais.",
+    hook:
+      "Transforma historias em vantagem, abre portas com charme e reconhece criaturas, lugares e lendas antes dos demais.",
     stat: "Carisma",
     hp: "6 + Constituicao",
     load: "9 + FOR",
@@ -109,7 +126,8 @@ const adventurerClasses: AdventurerClass[] = [
     id: "clerigo",
     name: "Clerigo",
     archetype: "fe, dominio e custo sagrado",
-    hook: "Serve a uma divindade, recebe preces, afasta mortos-vivos e transforma crenca em risco concreto na ficcao.",
+    hook:
+      "Serve a uma divindade, recebe preces, afasta mortos-vivos e transforma crenca em risco concreto na ficcao.",
     stat: "Sabedoria",
     hp: "8 + Constituicao",
     load: "10 + FOR",
@@ -120,7 +138,8 @@ const adventurerClasses: AdventurerClass[] = [
     id: "druida",
     name: "Druida",
     archetype: "territorio vivo e pele trocada",
-    hook: "Pertence a uma terra, fala com espiritos naturais e assume formas que mudam o tipo de problema que o grupo consegue enfrentar.",
+    hook:
+      "Pertence a uma terra, fala com espiritos naturais e assume formas que mudam o tipo de problema que o grupo consegue enfrentar.",
     stat: "Sabedoria",
     hp: "6 + Constituicao",
     load: "6 + FOR",
@@ -136,7 +155,8 @@ const adventurerClasses: AdventurerClass[] = [
     id: "guerreiro",
     name: "Guerreiro",
     archetype: "aco, cicatriz e resposta direta",
-    hook: "E a linha entre o grupo e a morte. Sua arma assinatura resolve problemas, mas tambem cria reputacao.",
+    hook:
+      "E a linha entre o grupo e a morte. Sua arma assinatura resolve problemas, mas tambem cria reputacao.",
     stat: "Forca",
     hp: "10 + Constituicao",
     load: "12 + FOR",
@@ -152,7 +172,8 @@ const adventurerClasses: AdventurerClass[] = [
     id: "ladrao",
     name: "Ladrao",
     archetype: "sombra, veneno e segunda saida",
-    hook: "Encontra armadilhas, abre fechaduras, prepara venenos e transforma descuido inimigo em golpe decisivo.",
+    hook:
+      "Encontra armadilhas, abre fechaduras, prepara venenos e transforma descuido inimigo em golpe decisivo.",
     stat: "Destreza",
     hp: "6 + Constituicao",
     load: "9 + FOR",
@@ -168,7 +189,8 @@ const adventurerClasses: AdventurerClass[] = [
     id: "mago",
     name: "Mago",
     archetype: "grimorio, preparo e poder instavel",
-    hook: "Prepara magias no grimorio, usa rituais quando tem tempo e paga o preco quando a realidade resiste.",
+    hook:
+      "Prepara magias no grimorio, usa rituais quando tem tempo e paga o preco quando a realidade resiste.",
     stat: "Inteligencia",
     hp: "4 + Constituicao",
     load: "7 + FOR",
@@ -179,7 +201,8 @@ const adventurerClasses: AdventurerClass[] = [
     id: "paladino",
     name: "Paladino",
     archetype: "juramento, julgamento e presenca sagrada",
-    hook: "Impoe votos, protege aliados e transforma sua causa em uma forca que precisa ser honrada em cena.",
+    hook:
+      "Impoe votos, protege aliados e transforma sua causa em uma forca que precisa ser honrada em cena.",
     stat: "Carisma",
     hp: "10 + Constituicao",
     load: "12 + FOR",
@@ -190,7 +213,8 @@ const adventurerClasses: AdventurerClass[] = [
     id: "ranger",
     name: "Ranger",
     archetype: "trilha, presa e companheiro animal",
-    hook: "Le rastros, guia jornadas perigosas e luta ao lado de um companheiro animal com instinto proprio.",
+    hook:
+      "Le rastros, guia jornadas perigosas e luta ao lado de um companheiro animal com instinto proprio.",
     stat: "Destreza",
     hp: "8 + Constituicao",
     load: "11 + FOR",
@@ -270,6 +294,7 @@ const rituals = [
 ];
 
 export default function App() {
+  const [character, setCharacter] = useState(initialCharacter);
   const [currentView, setCurrentView] = useState<CurrentView>("codex");
   const [activePageId, setActivePageId] = useState(pages[0].id);
   const [isCodexOpen, setIsCodexOpen] = useState(false);
@@ -300,7 +325,7 @@ export default function App() {
         : spells.filter((spell) => spell.tradition === spellTradition),
     [spellTradition],
   );
-const [character, setCharacter] = useState(initialCharacter);
+
   function openClass(classId: string) {
     setSelectedClassId(classId);
     setCodexMode("class");
@@ -323,77 +348,65 @@ const [character, setCharacter] = useState(initialCharacter);
     );
   }
 
-if (currentView === "masterPanel") {
-  return (
-    <MasterAppPage
-      character={character}
-      setCharacter={setCharacter}
-      onBackToCodex={() => setCurrentView("codex")}
-      onOpenCharacter={() => setCurrentView("masterCharacter")}
-    />
-  );
-}
+  if (currentView === "masterPanel") {
+    return (
+      <MasterAppPage
+        character={character}
+        setCharacter={setCharacter}
+        onBackToCodex={() => setCurrentView("codex")}
+        onOpenCharacter={() => setCurrentView("masterCharacter")}
+      />
+    );
+  }
 
-if (currentView === "masterCharacter") {
-  return (
-    <CharacterAppPage
-      mode="master"
-      character={character}
-      setCharacter={setCharacter}
-      onBackToMaster={() => setCurrentView("masterPanel")}
-    />
-  );
-}
+  if (currentView === "masterCharacter") {
+    return (
+      <CharacterAppPage
+        mode="master"
+        character={character}
+        setCharacter={setCharacter}
+        onBackToMaster={() => setCurrentView("masterPanel")}
+      />
+    );
+  }
 
   return (
-    <Box
-      sx={{
-        minHeight: "100vh",
-        bgcolor: "#070706",
-        color: "#f7edd9",
-      }}
-    >
+    <Box sx={{ minHeight: "100vh", bgcolor: "#070706", color: "#f7edd9", pb: 10 }}>
       <Box
         sx={{
           position: "sticky",
           top: 0,
-          zIndex: 10,
-          bgcolor: "rgba(0,0,0,.72)",
-          backdropFilter: "blur(8px)",
+          zIndex: 20,
+          bgcolor: "rgba(7,7,6,.86)",
+          backdropFilter: "blur(10px)",
           borderBottom: "1px solid rgba(217,200,159,.18)",
         }}
       >
-        <Container sx={{ py: 1 }}>
+        <Container maxWidth="lg" sx={{ py: 1 }}>
           <Stack
-            direction="row"
-            spacing={1}
-            sx={{ justifyContent: "space-between", alignItems: "center" }}
+            direction={{ xs: "column", md: "row" }}
+            spacing={1.2}
+            sx={{ justifyContent: "space-between", alignItems: { xs: "stretch", md: "center" } }}
           >
-            <Stack direction="row" spacing={1}>
-              <Button href="#inicio" sx={{ color: "#f7edd9" }}>
-                Início
-              </Button>
-              <Button href="#movimentos" sx={{ color: "#f7edd9" }}>
-                Moves
-              </Button>
-              <Button href="#classes" sx={{ color: "#f7edd9" }}>
-                Classes
-              </Button>
-              <Button href="#magias" sx={{ color: "#f7edd9" }}>
-                Magias
-              </Button>
+            <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
+              <Button href="#inicio">Início</Button>
+              <Button href="#movimentos">Moves</Button>
+              <Button href="#classes">Classes</Button>
+              <Button href="#magias">Magias</Button>
+              <Button href="#mesa">Mesa</Button>
             </Stack>
 
             <Stack direction="row" spacing={1}>
               <Button
+                fullWidth
                 variant="outlined"
                 onClick={() => setCurrentView("playerCharacter")}
-                sx={{ borderColor: "rgba(217,200,159,.28)", color: "#f7edd9" }}
               >
                 Jogador
               </Button>
 
               <Button
+                fullWidth
                 variant="contained"
                 onClick={() => setCurrentView("masterPanel")}
               >
@@ -407,35 +420,35 @@ if (currentView === "masterCharacter") {
       <Box
         id="inicio"
         sx={{
-          py: 8,
+          minHeight: 520,
+          display: "grid",
+          placeItems: "center",
           px: 2,
+          backgroundImage: `
+            linear-gradient(180deg, rgba(7,7,6,.36), #070706 96%),
+            radial-gradient(circle at 50% 0%, rgba(170,38,61,.25), transparent 55%),
+            url(${heroImage})
+          `,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
           textAlign: "center",
-          background:
-            "radial-gradient(circle at top, rgba(170,38,61,.25), transparent 60%)",
         }}
       >
-        <Container maxWidth="sm">
-          <Stack spacing={2}>
-            <Typography sx={{ color: "#c59b4b", fontWeight: 900 }}>
-              Dungeon World digital
-            </Typography>
-
-            <Typography variant="h3" sx={{ fontWeight: 900 }}>
+        <Container maxWidth="md">
+          <Stack spacing={2.2} sx={{ alignItems: "center" }}>
+            <Chip label="Dungeon World digital" />
+            <Typography variant="h2" sx={{ fontWeight: 900 }}>
               Referência viva para aventuras perigosas
             </Typography>
-
-            <Typography sx={{ color: "#d7c59d" }}>
-              Consulta rápida para movimentos, classes e magias, adaptada para
-              uso direto na mesa.
+            <Typography sx={{ color: "#d7c59d", maxWidth: 720, fontSize: "1.05rem" }}>
+              Consulta rápida para movimentos, classes, magias e apoio de mesa,
+              adaptada para uso direto durante a sessão.
             </Typography>
 
-            <Stack
-              direction="row"
-              spacing={1}
-              sx={{ justifyContent: "center" }}
-            >
+            <Stack direction={{ xs: "column", sm: "row" }} spacing={1.2}>
               <Button
                 variant="contained"
+                size="large"
                 onClick={() => setCurrentView("playerCharacter")}
               >
                 Abrir ficha do jogador
@@ -443,8 +456,8 @@ if (currentView === "masterCharacter") {
 
               <Button
                 variant="outlined"
+                size="large"
                 onClick={() => setCurrentView("masterPanel")}
-                sx={{ borderColor: "rgba(217,200,159,.28)", color: "#f7edd9" }}
               >
                 Painel do mestre
               </Button>
@@ -453,280 +466,380 @@ if (currentView === "masterCharacter") {
         </Container>
       </Box>
 
-      <section className="intro-band" aria-label="Principios de leitura">
-        {rituals.map((ritual, index) => (
-          <article key={ritual}>
-            <span>{String(index + 1).padStart(2, "0")}</span>
-            <p>{ritual}</p>
-          </article>
-        ))}
-      </section>
+      <Container maxWidth="lg" sx={{ py: 5 }}>
+        <Grid container spacing={2}>
+          {rituals.map((ritual, index) => (
+            <Grid size={{ xs: 12, md: 4 }} key={ritual}>
+              <Paper sx={{ p: 2, height: "100%" }}>
+                <Typography sx={{ color: "#c59b4b", fontWeight: 900 }}>
+                  {String(index + 1).padStart(2, "0")}
+                </Typography>
+                <Typography sx={{ color: "#d7c59d", mt: 1 }}>{ritual}</Typography>
+              </Paper>
+            </Grid>
+          ))}
+        </Grid>
+      </Container>
 
-      <section
-        className="reader"
-        id="paginas"
-        aria-label="Paginas coloridas do zine"
-      >
-        <div className="reader__copy">
-          <p className="eyebrow">Guia do Dungeon World</p>
-          <h2>{activePage.title}</h2>
-          <p>{activePage.description}</p>
-          <dl>
-            <div>
-              <dt>Capitulo</dt>
-              <dd>{activePage.kicker}</dd>
-            </div>
-            <div>
-              <dt>Paleta</dt>
-              <dd>{activePage.palette}</dd>
-            </div>
-          </dl>
-        </div>
+      <Container maxWidth="lg" id="paginas" sx={{ py: 4 }}>
+        <Grid container spacing={3} sx={{ alignItems: "center" }}>
+          <Grid size={{ xs: 12, md: 5 }}>
+            <Stack spacing={1.5}>
+              <Typography sx={{ color: "#c59b4b", fontWeight: 900 }}>
+                Guia do Dungeon World
+              </Typography>
+              <Typography variant="h3" sx={{ fontWeight: 900 }}>
+                {activePage.title}
+              </Typography>
+              <Typography sx={{ color: "#d7c59d" }}>
+                {activePage.description}
+              </Typography>
 
-        <div className="reader__stage">
-          <button
-            className="feature-image"
-            type="button"
-            onClick={openPage}
-            aria-label={`Abrir detalhes de ${activePage.title}`}
-          >
-            <img src={activePage.image} alt="" />
-            <span>{activePage.number}</span>
-          </button>
-          <div className="note-stack" aria-label="Marcadores da pagina">
-            {activePage.notes.map((note) => (
-              <span key={note}>{note}</span>
-            ))}
-          </div>
-        </div>
-      </section>
+              <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
+                <Chip label={activePage.kicker} />
+                <Chip label={activePage.palette} />
+              </Stack>
 
-      <section className="page-grid" aria-label="Selecao de capitulos">
-        {pages.map((page) => (
-          <button
-            className={
-              page.id === activePage.id
-                ? "page-card page-card--active"
-                : "page-card"
-            }
-            type="button"
-            key={page.id}
-            onClick={() => setActivePageId(page.id)}
-            aria-pressed={page.id === activePage.id}
-          >
-            <img src={page.image} alt="" />
-            <span>{page.number}</span>
-            <strong>{page.title}</strong>
-            <small>{page.kicker}</small>
-          </button>
-        ))}
-      </section>
+              <Button variant="outlined" onClick={openPage}>
+                Abrir detalhes
+              </Button>
+            </Stack>
+          </Grid>
 
-      <section
-        className="move-reference"
-        id="movimentos"
-        aria-label="Cartas de movimento"
-      >
-        <div className="section-title">
-          <p className="eyebrow">Cartas de movimento</p>
-          <h2>Gatilhos claros, consequencias rapidas</h2>
-          <p>
-            Cards resumidos e parafraseados para consulta em mesa. Use o texto
-            completo dos PDFs quando precisar resolver uma excecao fina.
-          </p>
-        </div>
+          <Grid size={{ xs: 12, md: 7 }}>
+            <Card sx={{ overflow: "hidden" }}>
+              <CardActionArea onClick={openPage}>
+                <Box
+                  component="img"
+                  src={activePage.image}
+                  alt=""
+                  sx={{
+                    width: "100%",
+                    height: { xs: 260, md: 420 },
+                    objectFit: "cover",
+                    display: "block",
+                  }}
+                />
+              </CardActionArea>
 
-        <div className="move-grid">
+              <CardContent>
+                <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
+                  {activePage.notes.map((note) => (
+                    <Chip key={note} label={note} />
+                  ))}
+                </Stack>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+      </Container>
+
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        <Grid container spacing={2}>
+          {pages.map((page) => (
+            <Grid size={{ xs: 12, md: 4 }} key={page.id}>
+              <Card
+                sx={{
+                  height: "100%",
+                  borderColor:
+                    page.id === activePage.id ? "#c59b4b" : "rgba(217,200,159,.15)",
+                }}
+              >
+                <CardActionArea onClick={() => setActivePageId(page.id)}>
+                  <Box
+                    component="img"
+                    src={page.image}
+                    alt=""
+                    sx={{ width: "100%", height: 180, objectFit: "cover" }}
+                  />
+                  <CardContent>
+                    <Typography sx={{ color: "#c59b4b", fontWeight: 900 }}>
+                      {page.number}
+                    </Typography>
+                    <Typography variant="h6" sx={{ fontWeight: 900 }}>
+                      {page.title}
+                    </Typography>
+                    <Typography sx={{ color: "#b9a98b" }}>{page.kicker}</Typography>
+                  </CardContent>
+                </CardActionArea>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      </Container>
+
+      <Container maxWidth="lg" id="movimentos" sx={{ py: 5 }}>
+        <SectionTitle
+          eyebrow="Cartas de movimento"
+          title="Gatilhos claros, consequências rápidas"
+          description="Cards resumidos para consulta em mesa. Use o texto completo dos PDFs quando precisar resolver exceções finas."
+        />
+
+        <Grid container spacing={2}>
           {moveCards.map((move) => (
-            <article className="move-card" key={move.name}>
-              <span>{move.stat}</span>
-              <h3>{move.name}</h3>
-              <p>{move.trigger}</p>
-              <strong>{move.result}</strong>
-              <small>{move.gmCue}</small>
-            </article>
+            <Grid size={{ xs: 12, md: 4 }} key={move.name}>
+              <Card sx={{ height: "100%" }}>
+                <CardContent>
+                  <Chip label={move.stat} />
+                  <Typography variant="h6" sx={{ fontWeight: 900, mt: 1.5 }}>
+                    {move.name}
+                  </Typography>
+                  <Typography sx={{ color: "#d7c59d", mt: 1 }}>
+                    {move.trigger}
+                  </Typography>
+                  <Divider sx={{ my: 1.5 }} />
+                  <Typography sx={{ fontWeight: 900 }}>{move.result}</Typography>
+                  <Typography sx={{ color: "#b9a98b", mt: 1, fontSize: ".9rem" }}>
+                    {move.gmCue}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
           ))}
-        </div>
-      </section>
+        </Grid>
+      </Container>
 
-      <section
-        className="class-manual"
-        id="classes"
-        aria-label="Manual de classes"
-      >
-        <div className="section-title">
-          <p className="eyebrow">Manual de classes</p>
-          <h2>Escolha o papel antes da masmorra escolher voce</h2>
-          <p>
-            Consulta rapida baseada nas fichas de classe: arquétipo,
-            atributo-chave, PV, carga, equipamento e movimentos iniciais.
-          </p>
-        </div>
+      <Container maxWidth="lg" id="classes" sx={{ py: 5 }}>
+        <SectionTitle
+          eyebrow="Manual de classes"
+          title="Escolha o papel antes da masmorra escolher você"
+          description="Consulta rápida baseada nas fichas de classe: arquétipo, atributo-chave, PV, carga, equipamento e movimentos iniciais."
+        />
 
-        <div className="class-grid">
+        <Grid container spacing={2}>
           {adventurerClasses.map((heroClass) => (
-            <button
-              className="class-card"
-              type="button"
-              key={heroClass.id}
-              onClick={() => openClass(heroClass.id)}
-            >
-              <span>{heroClass.stat}</span>
-              <strong>{heroClass.name}</strong>
-              <small>{heroClass.archetype}</small>
-              <p>{heroClass.hook}</p>
-            </button>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }} key={heroClass.id}>
+              <Card sx={{ height: "100%" }}>
+                <CardActionArea onClick={() => openClass(heroClass.id)} sx={{ height: "100%" }}>
+                  <CardContent>
+                    <Chip label={heroClass.stat} />
+                    <Typography variant="h6" sx={{ fontWeight: 900, mt: 1.5 }}>
+                      {heroClass.name}
+                    </Typography>
+                    <Typography sx={{ color: "#c59b4b", fontSize: ".9rem" }}>
+                      {heroClass.archetype}
+                    </Typography>
+                    <Typography sx={{ color: "#d7c59d", mt: 1 }}>
+                      {heroClass.hook}
+                    </Typography>
+                  </CardContent>
+                </CardActionArea>
+              </Card>
+            </Grid>
           ))}
-        </div>
-      </section>
+        </Grid>
+      </Container>
 
-      <section className="spellbook" id="magias" aria-label="Guia de magias">
-        <div className="section-title">
-          <p className="eyebrow">Guia de magias</p>
-          <h2>Preces, truques e feitiços preparados</h2>
-          <p>
-            Magias organizadas por tradição e nivel, com resumo funcional para
-            lembrar o papel de cada efeito sem interromper a conversa da mesa.
-          </p>
-        </div>
+      <Container maxWidth="lg" id="magias" sx={{ py: 5 }}>
+        <SectionTitle
+          eyebrow="Guia de magias"
+          title="Preces, truques e feitiços preparados"
+          description="Magias organizadas por tradição e nível, com resumo funcional para lembrar o papel de cada efeito."
+        />
 
-        <div className="spell-filters" aria-label="Filtro de magias">
+        <Stack direction="row" spacing={1} sx={{ mb: 2, flexWrap: "wrap" }}>
           {(["Todos", "Clerigo", "Mago"] as const).map((tradition) => (
-            <button
-              className={spellTradition === tradition ? "is-active" : ""}
-              type="button"
+            <Button
               key={tradition}
+              variant={spellTradition === tradition ? "contained" : "outlined"}
               onClick={() => setSpellTradition(tradition)}
             >
               {tradition}
-            </button>
+            </Button>
           ))}
-        </div>
+        </Stack>
 
-        <div className="spell-grid">
+        <Grid container spacing={2}>
           {filteredSpells.map((spell) => (
-            <article
-              className="spell-card"
-              key={`${spell.tradition}-${spell.level}-${spell.name}`}
-            >
-              <span>
-                {spell.tradition} · {spell.level}
-              </span>
-              <h3>{spell.name}</h3>
-              <p>{spell.summary}</p>
-            </article>
+            <Grid size={{ xs: 12, md: 3 }} key={`${spell.tradition}-${spell.level}-${spell.name}`}>
+              <Card sx={{ height: "100%" }}>
+                <CardContent>
+                  <Chip label={`${spell.tradition} · ${spell.level}`} />
+                  <Typography variant="h6" sx={{ fontWeight: 900, mt: 1.5 }}>
+                    {spell.name}
+                  </Typography>
+                  <Typography sx={{ color: "#d7c59d", mt: 1 }}>
+                    {spell.summary}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
           ))}
-        </div>
-      </section>
+        </Grid>
+      </Container>
 
-      <section className="play-aid" id="mesa" aria-label="Auxilio de mesa">
-        <div>
-          <p className="eyebrow">Para usar na mesa</p>
-          <h2>Fiel ao ritmo: ficcao, movimento, consequencia</h2>
-        </div>
+      <Container maxWidth="lg" id="mesa" sx={{ py: 5 }}>
+        <Paper sx={{ p: { xs: 2, md: 4 } }}>
+          <Grid container spacing={3}>
+            <Grid size={{ xs: 12, md: 5 }}>
+              <Typography sx={{ color: "#c59b4b", fontWeight: 900 }}>
+                Para usar na mesa
+              </Typography>
+              <Typography variant="h4" sx={{ fontWeight: 900, mt: 1 }}>
+                Fiel ao ritmo: ficção, movimento, consequência
+              </Typography>
+            </Grid>
 
-        <div className="play-aid__columns">
-          <p>
-            A pagina evita copiar blocos longos dos PDFs e transforma o material
-            em referencia operacional: nomes, gatilhos e resumos para consulta
-            rapida.
-          </p>
-          <p>
-            Classes e magias foram organizadas para acelerar criacao de
-            personagem, preparo de sessoes e consulta durante rolagens
-            importantes.
-          </p>
-        </div>
-      </section>
+            <Grid size={{ xs: 12, md: 7 }}>
+              <Stack spacing={2}>
+                <Typography sx={{ color: "#d7c59d" }}>
+                  A página evita copiar blocos longos dos PDFs e transforma o
+                  material em referência operacional: nomes, gatilhos e resumos
+                  para consulta rápida.
+                </Typography>
+                <Typography sx={{ color: "#d7c59d" }}>
+                  Classes e magias foram organizadas para acelerar criação de
+                  personagem, preparo de sessões e consulta durante rolagens
+                  importantes.
+                </Typography>
+              </Stack>
+            </Grid>
+          </Grid>
+        </Paper>
+      </Container>
 
-      <nav className="mobile-dock" aria-label="Menu mobile">
-        <button type="button" onClick={() => setCurrentView("playerCharacter")}>
-          Jogador
-        </button>
-        <button type="button" onClick={() => setCurrentView("masterPanel")}>
-          Mestre
-        </button>
-        <a href="#movimentos">Moves</a>
-        <a href="#classes">Classes</a>
-        <a href="#magias">Magias</a>
-      </nav>
+      <Paper
+        elevation={8}
+        sx={{
+          position: "fixed",
+          right: 12,
+          bottom: 12,
+          left: 12,
+          display: { xs: "block", md: "none" },
+          p: 1,
+          zIndex: 30,
+          bgcolor: "rgba(8,8,7,.94)",
+        }}
+      >
+        <Stack direction="row" spacing={1}>
+          <Button fullWidth variant="contained" onClick={() => setCurrentView("playerCharacter")}>
+            Jogador
+          </Button>
+          <Button fullWidth variant="outlined" onClick={() => setCurrentView("masterPanel")}>
+            Mestre
+          </Button>
+        </Stack>
+      </Paper>
 
-      {isCodexOpen && (
-        <div
-          className="modal"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="codex-title"
-        >
-          <button
-            className="modal__backdrop"
-            type="button"
-            onClick={() => setIsCodexOpen(false)}
-            aria-label="Fechar detalhes"
-          />
+      <Dialog
+        open={isCodexOpen}
+        onClose={() => setIsCodexOpen(false)}
+        fullWidth
+        maxWidth="md"
+      >
+        <DialogTitle>
+          {codexMode === "class" ? selectedClass.name : activePage.title}
+        </DialogTitle>
 
-          <article className="modal__panel">
-            <button
-              className="modal__close"
-              type="button"
-              onClick={() => setIsCodexOpen(false)}
-            >
-              Fechar
-            </button>
+        <DialogContent>
+          {codexMode === "class" ? (
+            <Grid container spacing={2}>
+              <Grid size={{ xs: 12, md: 5 }}>
+                <Box
+                  component="img"
+                  src={tableImage}
+                  alt=""
+                  sx={{ width: "100%", borderRadius: 2 }}
+                />
+              </Grid>
 
-            {codexMode === "class" ? (
-              <>
-                <img src={tableImage} alt="" />
-                <div>
-                  <p className="eyebrow">{selectedClass.name}</p>
-                  <h2 id="codex-title">{selectedClass.archetype}</h2>
-                  <p>{selectedClass.hook}</p>
+              <Grid size={{ xs: 12, md: 7 }}>
+                <Stack spacing={1.5}>
+                  <Typography sx={{ color: "#c59b4b", fontWeight: 900 }}>
+                    {selectedClass.archetype}
+                  </Typography>
+                  <Typography sx={{ color: "#d7c59d" }}>
+                    {selectedClass.hook}
+                  </Typography>
 
-                  <dl className="class-sheet">
-                    <div>
-                      <dt>Atributo</dt>
-                      <dd>{selectedClass.stat}</dd>
-                    </div>
-                    <div>
-                      <dt>PV</dt>
-                      <dd>{selectedClass.hp}</dd>
-                    </div>
-                    <div>
-                      <dt>Carga</dt>
-                      <dd>{selectedClass.load}</dd>
-                    </div>
-                    <div>
-                      <dt>Equipamento</dt>
-                      <dd>{selectedClass.equipment}</dd>
-                    </div>
-                  </dl>
+                  <Divider />
 
-                  <ul>
+                  <Grid container spacing={1}>
+                    <Grid size={{ xs: 6 }}>
+                      <InfoLabel label="Atributo" value={selectedClass.stat} />
+                    </Grid>
+                    <Grid size={{ xs: 6 }}>
+                      <InfoLabel label="PV" value={selectedClass.hp} />
+                    </Grid>
+                    <Grid size={{ xs: 6 }}>
+                      <InfoLabel label="Carga" value={selectedClass.load} />
+                    </Grid>
+                    <Grid size={{ xs: 6 }}>
+                      <InfoLabel label="Equipamento" value={selectedClass.equipment} />
+                    </Grid>
+                  </Grid>
+
+                  <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
                     {selectedClass.moves.map((move) => (
-                      <li key={move}>{move}</li>
+                      <Chip key={move} label={move} />
                     ))}
-                  </ul>
-                </div>
-              </>
-            ) : (
-              <>
-                <img src={activePage.image} alt="" />
-                <div>
-                  <p className="eyebrow">{activePage.kicker}</p>
-                  <h2 id="codex-title">{activePage.title}</h2>
-                  <p>{activePage.description}</p>
+                  </Stack>
+                </Stack>
+              </Grid>
+            </Grid>
+          ) : (
+            <Grid container spacing={2}>
+              <Grid size={{ xs: 12, md: 5 }}>
+                <Box
+                  component="img"
+                  src={activePage.image}
+                  alt=""
+                  sx={{ width: "100%", borderRadius: 2 }}
+                />
+              </Grid>
 
-                  <ul>
+              <Grid size={{ xs: 12, md: 7 }}>
+                <Stack spacing={1.5}>
+                  <Chip label={activePage.kicker} />
+                  <Typography sx={{ color: "#d7c59d" }}>
+                    {activePage.description}
+                  </Typography>
+                  <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
                     {activePage.notes.map((note) => (
-                      <li key={note}>{note}</li>
+                      <Chip key={note} label={note} />
                     ))}
-                  </ul>
-                </div>
-              </>
-            )}
-          </article>
-        </div>
-      )}
+                  </Stack>
+                </Stack>
+              </Grid>
+            </Grid>
+          )}
+        </DialogContent>
+      </Dialog>
     </Box>
+  );
+}
+
+function SectionTitle({
+  eyebrow,
+  title,
+  description,
+}: {
+  eyebrow: string;
+  title: string;
+  description: string;
+}) {
+  return (
+    <Stack spacing={1} sx={{ mb: 3 }}>
+      <Typography sx={{ color: "#c59b4b", fontWeight: 900 }}>
+        {eyebrow}
+      </Typography>
+      <Typography variant="h4" sx={{ fontWeight: 900 }}>
+        {title}
+      </Typography>
+      <Typography sx={{ color: "#d7c59d", maxWidth: 760 }}>
+        {description}
+      </Typography>
+    </Stack>
+  );
+}
+
+function InfoLabel({ label, value }: { label: string; value: string }) {
+  return (
+    <Paper sx={{ p: 1.5, height: "100%" }}>
+      <Typography sx={{ color: "#b9a98b", fontSize: ".75rem" }}>
+        {label}
+      </Typography>
+      <Typography sx={{ fontWeight: 900 }}>{value}</Typography>
+    </Paper>
   );
 }
