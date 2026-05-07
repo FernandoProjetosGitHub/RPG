@@ -86,8 +86,61 @@ export const dwClasses: DwClass[] = [
           "Quando usar força bruta em vez de sutileza, você pode resolver problemas de forma direta, violenta e memorável.",
       },
     ],
-    advancedSkillsLevel2To5: [],
-advancedSkillsLevel6To10: [],
+    advancedSkillsLevel2To5: [
+      {
+        id: "barbaro-continuo-faminto",
+        name: "Continuo Faminto",
+        levelRequirement: 2,
+        description:
+          "Escolha mais um apetite para guiar suas acoes e criar novas oportunidades de XP e complicacao.",
+      },
+      {
+        id: "barbaro-apetite-por-destruicao",
+        name: "Apetite por Destruicao",
+        levelRequirement: 2,
+        description:
+          "Escolha um movimento de guerreiro, bardo ou ladrao, sem pegar movimentos de multiclasse.",
+      },
+      {
+        id: "barbaro-impressionar-pela-forca",
+        name: "Meu Amor por Voce e Como um Caminhao",
+        levelRequirement: 2,
+        description:
+          "Quando realizar um feito brutal de forca, marque quem ficou impressionado para ganhar vantagem social adiante.",
+      },
+    ],
+    advancedSkillsLevel6To10: [
+      {
+        id: "barbaro-apetite-insaciavel",
+        name: "Apetite Insaciavel",
+        levelRequirement: 6,
+        requiresSkillId: "barbaro-continuo-faminto",
+        description:
+          "Seu apetite se torna lendario. Quando agir para satisfaze-lo, a ficcao deve oferecer uma recompensa maior ou uma complicacao mais perigosa.",
+      },
+      {
+        id: "barbaro-destruicao-perfeita",
+        name: "Destruicao Perfeita",
+        levelRequirement: 6,
+        requiresSkillId: "barbaro-apetite-por-destruicao",
+        description:
+          "Quando destruir algo importante pela forca, voce tambem revela uma fraqueza, passagem ou oportunidade escondida.",
+      },
+      {
+        id: "barbaro-forca-de-tita",
+        name: "Forca de Tita",
+        levelRequirement: 6,
+        description:
+          "Quando executar um feito fisico absurdo, trate obstaculos comuns como detalhe narrativo e force o MJ a mostrar o verdadeiro custo.",
+      },
+      {
+        id: "barbaro-riso-diante-da-morte",
+        name: "Riso Diante da Morte",
+        levelRequirement: 6,
+        description:
+          "Quando sobreviver a dano brutal ou perigo impossivel, marque sua presenca na cena e ganhe vantagem ficcional contra quem testemunhou.",
+      },
+    ],
   },
 
   {
@@ -145,8 +198,62 @@ advancedSkillsLevel6To10: [],
           "Quando retornar a um local civilizado que já visitou, você pode encontrar abrigo, contatos ou alguém disposto a ouvir suas histórias.",
       },
     ],
-    advancedSkillsLevel2To5: [],
-advancedSkillsLevel6To10: [],
+    advancedSkillsLevel2To5: [
+      {
+        id: "bardo-cura-arcana",
+        name: "Cura Arcana",
+        levelRequirement: 2,
+        description:
+          "Sua Arte Arcana pode restaurar mais vitalidade quando voce usa musica, palavra ou performance para ajudar.",
+      },
+      {
+        id: "bardo-vicioso",
+        name: "Vicioso",
+        levelRequirement: 2,
+        description:
+          "Quando usar Arte Arcana para causar dano extra, o efeito se torna mais perigoso.",
+      },
+      {
+        id: "bardo-multiclasse-diletante",
+        name: "Multiclasse Diletante",
+        levelRequirement: 2,
+        description:
+          "Escolha um movimento de outra classe como se seu nivel fosse menor para esse movimento.",
+      },
+    ],
+    advancedSkillsLevel6To10: [
+      {
+        id: "bardo-coro-de-guerra",
+        name: "Coro de Guerra",
+        levelRequirement: 6,
+        requiresSkillId: "bardo-cura-arcana",
+        description:
+          "Sua Arte Arcana sustenta mais de um aliado na mesma cena, desde que sua performance continue fazendo sentido na ficcao.",
+      },
+      {
+        id: "bardo-palavras-cortantes",
+        name: "Palavras Cortantes",
+        levelRequirement: 6,
+        requiresSkillId: "bardo-vicioso",
+        description:
+          "Quando sua arte fere ou enfraquece um inimigo, ela tambem abala sua postura, reputacao ou coragem.",
+      },
+      {
+        id: "bardo-multiclasse-mestre",
+        name: "Multiclasse Mestre",
+        levelRequirement: 6,
+        requiresSkillId: "bardo-multiclasse-diletante",
+        description:
+          "Escolha outro movimento de uma classe diferente, tratando seu nivel como menor para respeitar os limites de multiclasse.",
+      },
+      {
+        id: "bardo-lenda-viva",
+        name: "Lenda Viva",
+        levelRequirement: 6,
+        description:
+          "Quando chegar a um lugar onde historias importam, alguem ja ouviu uma versao exagerada de seus feitos.",
+      },
+    ],
   },
 
   {
@@ -206,8 +313,62 @@ advancedSkillsLevel6To10: [],
           "Quando erguer seu símbolo sagrado e invocar sua divindade contra mortos-vivos, role +SAB para afastá-los ou destruí-los.",
       },
     ],
-    advancedSkillsLevel2To5: [],
-advancedSkillsLevel6To10: [],
+    advancedSkillsLevel2To5: [
+      {
+        id: "clerigo-o-escolhido",
+        name: "O Escolhido",
+        levelRequirement: 2,
+        description:
+          "Escolha um feitico que sua divindade concede com mais facilidade, tratado como se fosse de nivel menor.",
+      },
+      {
+        id: "clerigo-revigorar",
+        name: "Revigorar",
+        levelRequirement: 2,
+        description:
+          "Quando curar alguem, a pessoa tambem recebe impulso para causar dano em seguida.",
+      },
+      {
+        id: "clerigo-equilibrio-vida-morte",
+        name: "O Equilibrio entre a Vida e a Morte",
+        levelRequirement: 2,
+        description:
+          "Sua presenca ajuda alguem que encara o ultimo suspiro a resistir ao chamado da morte.",
+      },
+    ],
+    advancedSkillsLevel6To10: [
+      {
+        id: "clerigo-escolhido-maior",
+        name: "Escolhido Maior",
+        levelRequirement: 6,
+        requiresSkillId: "clerigo-o-escolhido",
+        description:
+          "A magia favorecida pela sua divindade se torna ainda mais facil de preparar e justificar dentro da ficcao sagrada.",
+      },
+      {
+        id: "clerigo-cura-poderosa",
+        name: "Cura Poderosa",
+        levelRequirement: 6,
+        requiresSkillId: "clerigo-revigorar",
+        description:
+          "Quando curar alguem, a cura tambem remove fraqueza, medo ou outro peso espiritual quando a ficcao permitir.",
+      },
+      {
+        id: "clerigo-senhor-da-fronteira",
+        name: "Senhor da Fronteira",
+        levelRequirement: 6,
+        requiresSkillId: "clerigo-equilibrio-vida-morte",
+        description:
+          "Sua presenca torna o ultimo suspiro mais favoravel para aliados que ainda tenham algo sagrado a cumprir.",
+      },
+      {
+        id: "clerigo-voz-da-divindade",
+        name: "Voz da Divindade",
+        levelRequirement: 6,
+        description:
+          "Quando proclamar a vontade divina diante de fieis, inimigos ou mortos-vivos, a cena deve responder com temor, obediencia ou desafio claro.",
+      },
+    ],
   },
 
   {
@@ -271,8 +432,61 @@ advancedSkillsLevel6To10: [],
           "Você pode falar com os espíritos da natureza e criaturas ligadas à sua terra.",
       },
     ],
-    advancedSkillsLevel2To5: [],
-advancedSkillsLevel6To10: [],
+    advancedSkillsLevel2To5: [
+      {
+        id: "druida-irmao-do-cacador",
+        name: "Irmao do Cacador",
+        levelRequirement: 2,
+        description:
+          "Escolha um movimento da lista do ranger, ligando sua natureza ao instinto de caca.",
+      },
+      {
+        id: "druida-garras-dentes-vermelhos",
+        name: "Garras e Dentes Vermelhos",
+        levelRequirement: 2,
+        description:
+          "Em uma forma animal perigosa, seu dano aumenta e sua presenca se torna mais ameacadora.",
+      },
+      {
+        id: "druida-comunhao-dos-sussurros",
+        name: "Comunhao dos Sussurros",
+        levelRequirement: 2,
+        description:
+          "Ao observar os espiritos de um lugar, voce pode fazer perguntas sobre a area e seus perigos.",
+      },
+    ],
+    advancedSkillsLevel6To10: [
+      {
+        id: "druida-pele-do-predador",
+        name: "Pele do Predador",
+        levelRequirement: 6,
+        requiresSkillId: "druida-garras-dentes-vermelhos",
+        description:
+          "Suas formas animais perigosas ganham presença dominante; quando atacar nelas, o ambiente reage como se um predador maior tivesse chegado.",
+      },
+      {
+        id: "druida-conselho-dos-espiritos",
+        name: "Conselho dos Espiritos",
+        levelRequirement: 6,
+        requiresSkillId: "druida-comunhao-dos-sussurros",
+        description:
+          "Quando consultar os espiritos de um local, eles tambem indicam o que desejam, temem ou protegem.",
+      },
+      {
+        id: "druida-sangue-da-terra",
+        name: "Sangue da Terra",
+        levelRequirement: 6,
+        description:
+          "Quando defender sua terra ou algo natural ameacado, receba permissao ficcional para feitos impossiveis a um corpo comum.",
+      },
+      {
+        id: "druida-muitas-peles",
+        name: "Muitas Peles",
+        levelRequirement: 6,
+        description:
+          "Voce alterna formas conhecidas com mais liberdade quando a cena esta ligada aos seus espiritos, instintos ou territorio.",
+      },
+    ],
   },
 
   {
@@ -455,8 +669,62 @@ advancedSkillsLevel6To10: [
           "Você sabe preparar e usar venenos com segurança, aplicando-os em armas ou situações adequadas.",
       },
     ],
-    advancedSkillsLevel2To5: [],
-advancedSkillsLevel6To10: [],
+    advancedSkillsLevel2To5: [
+      {
+        id: "ladrao-golpe-desonesto",
+        name: "Golpe Desonesto",
+        levelRequirement: 2,
+        description:
+          "Quando atacar pelas costas com arma precisa ou de mao, seu dano furtivo se torna mais letal.",
+      },
+      {
+        id: "ladrao-cauteloso",
+        name: "Cauteloso",
+        levelRequirement: 2,
+        description:
+          "Ao avaliar armadilhas, voce sempre conserva algum dominio da situacao, mesmo quando as coisas pioram.",
+      },
+      {
+        id: "ladrao-riqueza-bom-gosto",
+        name: "Riqueza e Bom Gosto",
+        levelRequirement: 2,
+        description:
+          "Ao ostentar valor ou estilo, voce atrai atencao util e descobre quem deseja aquilo que carrega.",
+      },
+    ],
+    advancedSkillsLevel6To10: [
+      {
+        id: "ladrao-golpe-mortal",
+        name: "Golpe Mortal",
+        levelRequirement: 6,
+        requiresSkillId: "ladrao-golpe-desonesto",
+        description:
+          "Quando atacar um alvo vulneravel, seu golpe tambem cria uma vantagem decisiva: fuga, refem, silencio ou posicao.",
+      },
+      {
+        id: "ladrao-impossivel-de-prender",
+        name: "Impossivel de Prender",
+        levelRequirement: 6,
+        requiresSkillId: "ladrao-cauteloso",
+        description:
+          "Quando armadilhas, correntes ou guardas deveriam conter voce, diga qual detalhe havia preparado para ter uma saida.",
+      },
+      {
+        id: "ladrao-mestre-dos-venenos",
+        name: "Mestre dos Venenos",
+        levelRequirement: 6,
+        description:
+          "Seus venenos sao mais confiaveis e podem carregar efeitos mais sutis, desde que voce tenha tempo e ingredientes adequados.",
+      },
+      {
+        id: "ladrao-reputacao-perigosa",
+        name: "Reputacao Perigosa",
+        levelRequirement: 6,
+        requiresSkillId: "ladrao-riqueza-bom-gosto",
+        description:
+          "Quando entrar no submundo de uma cidade, alguem conhece seu nome e oferece respeito, medo ou uma divida antiga.",
+      },
+    ],
   },
 
   {
@@ -515,8 +783,62 @@ advancedSkillsLevel6To10: [],
           "Quando recorrer a um local de poder para criar um efeito mágico maior, o MJ dirá o que é necessário, custoso ou perigoso.",
       },
     ],
-    advancedSkillsLevel2To5: [],
-advancedSkillsLevel6To10: [],
+    advancedSkillsLevel2To5: [
+      {
+        id: "mago-prodigio",
+        name: "Prodigio",
+        levelRequirement: 2,
+        description:
+          "Escolha um feitico que voce prepara com mais facilidade, tratando-o como se fosse de nivel menor.",
+      },
+      {
+        id: "mago-magia-potencializada",
+        name: "Magia Potencializada",
+        levelRequirement: 2,
+        description:
+          "Quando conjurar com grande controle, voce pode aceitar risco extra para ampliar efeito ou alvos.",
+      },
+      {
+        id: "mago-fonte-de-conhecimento",
+        name: "Fonte de Conhecimento",
+        levelRequirement: 2,
+        description:
+          "Quando explicar algo obscuro, voce pode transformar estudo arcano em informacao util para a cena.",
+      },
+    ],
+    advancedSkillsLevel6To10: [
+      {
+        id: "mago-prodigio-maior",
+        name: "Prodigio Maior",
+        levelRequirement: 6,
+        requiresSkillId: "mago-prodigio",
+        description:
+          "Seu feitico favorecido exige ainda menos preparo e pode ser explicado como assinatura arcana do seu grimorio.",
+      },
+      {
+        id: "mago-magia-maximizada",
+        name: "Magia Maximizada",
+        levelRequirement: 6,
+        requiresSkillId: "mago-magia-potencializada",
+        description:
+          "Quando aceitar consequencias ao conjurar, o efeito pode atingir escala, alcance ou intensidade muito superior.",
+      },
+      {
+        id: "mago-erudito-arcano",
+        name: "Erudito Arcano",
+        levelRequirement: 6,
+        requiresSkillId: "mago-fonte-de-conhecimento",
+        description:
+          "Quando consultar seu grimorio ou memoria sobre magia antiga, o MJ deve revelar uma verdade util e um perigo associado.",
+      },
+      {
+        id: "mago-ritualista",
+        name: "Ritualista",
+        levelRequirement: 6,
+        description:
+          "Quando realizar Ritual, voce pode propor uma exigencia aceitavel antes do MJ listar custos, materiais ou perigos.",
+      },
+    ],
   },
 
   {
@@ -564,8 +886,62 @@ advancedSkillsLevel6To10: [],
           "Quando dedicar-se a uma missão sagrada por meio de oração e purificação, escolha bênçãos e votos que guiarão sua jornada.",
       },
     ],
-    advancedSkillsLevel2To5: [],
-advancedSkillsLevel6To10: [],
+    advancedSkillsLevel2To5: [
+      {
+        id: "paladino-favor-divino",
+        name: "Favor Divino",
+        levelRequirement: 2,
+        description:
+          "Dedique-se a uma divindade e passe a acessar comunhao e conjuracao como um clerigo iniciante.",
+      },
+      {
+        id: "paladino-investida-sangrenta",
+        name: "Investida Sangrenta",
+        levelRequirement: 2,
+        description:
+          "Quando mergulhar no combate em nome da sua causa, seu dano aumenta ao custo de maior exposicao.",
+      },
+      {
+        id: "paladino-exterminatus",
+        name: "Exterminatus",
+        levelRequirement: 2,
+        description:
+          "Quando declarar um inimigo como alvo de sua missao sagrada, sua violencia ganha peso ritual.",
+      },
+    ],
+    advancedSkillsLevel6To10: [
+      {
+        id: "paladino-santo-armado",
+        name: "Santo Armado",
+        levelRequirement: 6,
+        requiresSkillId: "paladino-favor-divino",
+        description:
+          "Sua causa sagrada se manifesta em combate; quando agir conforme seus votos, sua autoridade divina pesa na cena.",
+      },
+      {
+        id: "paladino-martelo-do-julgamento",
+        name: "Martelo do Julgamento",
+        levelRequirement: 6,
+        requiresSkillId: "paladino-investida-sangrenta",
+        description:
+          "Quando ferir alguem marcado por sua missao, o golpe tambem o empurra para rendicao, fuga ou revelacao.",
+      },
+      {
+        id: "paladino-campeao-da-questao",
+        name: "Campeao da Questao",
+        levelRequirement: 6,
+        requiresSkillId: "paladino-exterminatus",
+        description:
+          "Enquanto seguir sua missao sagrada, aliados reconhecem sua determinacao e inimigos entendem o custo de enfrenta-lo.",
+      },
+      {
+        id: "paladino-aura-de-coragem",
+        name: "Aura de Coragem",
+        levelRequirement: 6,
+        description:
+          "Quando liderar aliados contra medo, tentacao ou desespero, sua presenca oferece uma escolha clara para resistir.",
+      },
+    ],
   },
 
   {
@@ -619,7 +995,61 @@ advancedSkillsLevel6To10: [],
           "Quando agir em conjunto com seu companheiro animal, ele contribui com seus pontos fortes e treinamento.",
       },
     ],
-    advancedSkillsLevel2To5: [],
-advancedSkillsLevel6To10: [],
+    advancedSkillsLevel2To5: [
+      {
+        id: "ranger-empatia-selvagem",
+        name: "Empatia Selvagem",
+        levelRequirement: 2,
+        description:
+          "Voce se comunica melhor com animais e percebe intencoes por postura, som e instinto.",
+      },
+      {
+        id: "ranger-presa",
+        name: "Presa",
+        levelRequirement: 2,
+        description:
+          "Ao estudar uma criatura ou rastro, voce sabe como perseguir, cercar ou pressionar sua presa.",
+      },
+      {
+        id: "ranger-companheiro-aprimorado",
+        name: "Companheiro Aprimorado",
+        levelRequirement: 2,
+        description:
+          "Seu companheiro animal recebe mais destaque na ficcao e se torna mais confiavel em sua funcao.",
+      },
+    ],
+    advancedSkillsLevel6To10: [
+      {
+        id: "ranger-senhor-das-ferase",
+        name: "Senhor das Feras",
+        levelRequirement: 6,
+        requiresSkillId: "ranger-companheiro-aprimorado",
+        description:
+          "Seu companheiro animal age com autonomia heroica quando seus instintos e treinamento apontam a mesma direcao.",
+      },
+      {
+        id: "ranger-cacador-implacavel",
+        name: "Cacador Implacavel",
+        levelRequirement: 6,
+        requiresSkillId: "ranger-presa",
+        description:
+          "Quando marcar uma presa, ela nao consegue se esconder de voce sem deixar um custo, rastro ou vulnerabilidade.",
+      },
+      {
+        id: "ranger-voz-da-mata",
+        name: "Voz da Mata",
+        levelRequirement: 6,
+        requiresSkillId: "ranger-empatia-selvagem",
+        description:
+          "Animais e sinais naturais podem levar mensagens, avisos ou pressagios quando voce respeita seus limites.",
+      },
+      {
+        id: "ranger-trilha-impossivel",
+        name: "Trilha Impossivel",
+        levelRequirement: 6,
+        description:
+          "Quando seguir uma trilha que deveria ter se perdido, diga que sinal pequeno ainda aponta o caminho.",
+      },
+    ],
   },
 ];

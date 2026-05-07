@@ -13,8 +13,9 @@ import {
   TextField,
 } from "@mui/material";
 import { useState, type Dispatch, type SetStateAction } from "react";
+import { dwClasses } from "../data/dwClasses";
 import { items } from "../data/items";
-import type { Character } from "../types/character";
+import { getXpToNextLevel, type Character } from "../types/character";
 
 type MasterAppPageProps = {
   character: Character;
@@ -34,6 +35,23 @@ export default function MasterAppPage({
   const [healValue, setHealValue] = useState(0);
   const [xpValue, setXpValue] = useState(0);
   const [targetLevel, setTargetLevel] = useState(1);
+
+  const selectedClass =
+    dwClasses.find((dwClass) => dwClass.id === character.classId) ??
+    dwClasses[0];
+
+  const maxHp =
+    selectedClass.baseHp +
+    character.attributes.constituicao +
+    Object.values(character.equipment)
+      .filter((itemId): itemId is string => Boolean(itemId))
+      .map((itemId) => items.find((item) => item.id === itemId))
+      .filter((item): item is (typeof items)[number] => Boolean(item))
+      .reduce((acc, item) => acc + (item.modifiers.hp ?? 0), 0);
+
+  const xpToNextLevel = getXpToNextLevel(character.level);
+  const canLevelUp = character.xp >= xpToNextLevel;
+
   function handleGiveItem() {
     if (!selectedItem) return;
 
@@ -66,7 +84,7 @@ export default function MasterAppPage({
       ...current,
       hp: {
         ...current.hp,
-        current: current.hp.current + healValue,
+        current: Math.min(maxHp, current.hp.current + healValue),
       },
     }));
 
@@ -96,10 +114,15 @@ export default function MasterAppPage({
   }
 
   function handleLevelUp() {
+    if (!canLevelUp) return;
+
     setCharacter((current) => ({
       ...current,
       level: current.level + 1,
+      xp: Math.max(0, current.xp - getXpToNextLevel(current.level)),
       skillPoints: current.skillPoints + 1,
+      skillsLocked: false,
+      spellsLocked: false,
     }));
   }
 
@@ -117,6 +140,75 @@ export default function MasterAppPage({
       ...current,
       level: targetLevel,
     }));
+  }
+
+  function handleAddSkillPoint() {
+    setCharacter((current) => ({
+      ...current,
+      skillPoints: current.skillPoints + 1,
+      skillsLocked: false,
+    }));
+  }
+
+  function handleRemoveSkillPoint() {
+    setCharacter((current) => ({
+      ...current,
+      skillPoints: Math.max(0, current.skillPoints - 1),
+      selectedSkillIds: current.selectedSkillIds.slice(
+        0,
+        Math.max(0, current.skillPoints - 1),
+      ),
+    }));
+  }
+
+  function handleUnlockSkills() {
+    setCharacter((current) => ({
+      ...current,
+      skillsLocked: false,
+    }));
+  }
+
+  function handleResetSkills() {
+    setCharacter((current) => ({
+      ...current,
+      selectedSkillIds: [],
+      skillsLocked: false,
+    }));
+  }
+
+  function handleUnlockSpells() {
+    setCharacter((current) => ({
+      ...current,
+      spellsLocked: false,
+    }));
+  }
+
+  function handleResetSpells() {
+    setCharacter((current) => ({
+      ...current,
+      preparedSpellIds: [],
+      spellsLocked: false,
+    }));
+  }
+
+  function handleRemoveItem(itemId: string) {
+    setCharacter((current) => {
+      const updatedEquipment = { ...current.equipment };
+
+      Object.entries(updatedEquipment).forEach(([slot, equippedItemId]) => {
+        if (equippedItemId === itemId) {
+          updatedEquipment[slot as keyof typeof updatedEquipment] = null;
+        }
+      });
+
+      return {
+        ...current,
+        availableItems: current.availableItems.filter(
+          (currentItemId) => currentItemId !== itemId,
+        ),
+        equipment: updatedEquipment,
+      };
+    });
   }
   return (
     <Box
@@ -178,6 +270,33 @@ export default function MasterAppPage({
               >
                 Dar item ao jogador
               </Button>
+
+              <Stack spacing={1}>
+                <Typography sx={{ color: "#b9a98b", fontSize: ".9rem" }}>
+                  Inventario atual
+                </Typography>
+
+                {character.availableItems.length === 0 ? (
+                  <Typography sx={{ color: "#b9a98b", fontSize: ".85rem" }}>
+                    Nenhum item entregue.
+                  </Typography>
+                ) : (
+                  <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
+                    {character.availableItems.map((itemId) => {
+                      const item = items.find((currentItem) => currentItem.id === itemId);
+                      if (!item) return null;
+
+                      return (
+                        <Chip
+                          key={item.id}
+                          label={item.name}
+                          onDelete={() => handleRemoveItem(item.id)}
+                        />
+                      );
+                    })}
+                  </Stack>
+                )}
+              </Stack>
             </Stack>
           </CardContent>
         </Card>
@@ -190,9 +309,20 @@ export default function MasterAppPage({
 
               <Stack direction="row" spacing={1}>
                 <Chip label={`Nível ${character.level}`} />
-                <Chip label={`${character.xp} XP`} />
+                <Chip label={`${character.xp}/${xpToNextLevel} XP`} />
                 <Chip label={`${character.skillPoints} pontos de skill`} />
               </Stack>
+
+              <Typography
+                sx={{
+                  color: canLevelUp ? "#c59b4b" : "#b9a98b",
+                  fontSize: ".9rem",
+                }}
+              >
+                {canLevelUp
+                  ? "XP suficiente para subir de nivel. Ao subir, o personagem ganha 1 ponto de movimento."
+                  : "Dungeon World usa o nivel atual + 7 como referencia de XP para o proximo nivel."}
+              </Typography>
 
               <Stack direction="row" spacing={1}>
                 <Button
@@ -229,7 +359,12 @@ export default function MasterAppPage({
                   - Nível
                 </Button>
 
-                <Button fullWidth variant="contained" onClick={handleLevelUp}>
+                <Button
+                  fullWidth
+                  variant="contained"
+                  onClick={handleLevelUp}
+                  disabled={!canLevelUp}
+                >
                   + Nível
                 </Button>
                 <Stack spacing={1}>
@@ -249,6 +384,42 @@ export default function MasterAppPage({
                     disabled={targetLevel < 1}
                   >
                     Definir nível
+                  </Button>
+                </Stack>
+              </Stack>
+
+              <Stack spacing={1}>
+                <Typography sx={{ fontWeight: 900 }}>
+                  Controle de skills e magias
+                </Typography>
+
+                <Stack direction="row" spacing={1}>
+                  <Button fullWidth variant="outlined" onClick={handleRemoveSkillPoint}>
+                    - ponto
+                  </Button>
+
+                  <Button fullWidth variant="contained" onClick={handleAddSkillPoint}>
+                    + ponto
+                  </Button>
+                </Stack>
+
+                <Stack direction="row" spacing={1}>
+                  <Button fullWidth variant="outlined" onClick={handleUnlockSkills}>
+                    Destravar skills
+                  </Button>
+
+                  <Button fullWidth variant="outlined" onClick={handleResetSkills}>
+                    Resetar skills
+                  </Button>
+                </Stack>
+
+                <Stack direction="row" spacing={1}>
+                  <Button fullWidth variant="outlined" onClick={handleUnlockSpells}>
+                    Destravar magias
+                  </Button>
+
+                  <Button fullWidth variant="outlined" onClick={handleResetSpells}>
+                    Limpar magias
                   </Button>
                 </Stack>
               </Stack>

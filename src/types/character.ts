@@ -17,8 +17,9 @@ export type EquipmentSlot =
 
 export type Character = {
   name: string;
-level: number;
-xp: number;
+  nameLocked: boolean;
+  level: number;
+  xp: number;
   classId: string;
   classLocked: boolean;
 
@@ -52,6 +53,9 @@ xp: number;
   skillPoints: number;
   selectedSkillIds: string[];
   skillsLocked: boolean;
+
+  preparedSpellIds: string[];
+  spellsLocked: boolean;
 };
 
 export const attributeLabels: Record<AttributeKey, string> = {
@@ -74,10 +78,15 @@ export const attributeKeys: AttributeKey[] = [
 
 export const attributePool = [16, 15, 13, 12, 9, 8];
 
+export function getXpToNextLevel(level: number) {
+  return level + 7;
+}
+
 export const initialCharacter: Character = {
   name: "Alyn",
-level: 1,
-xp: 0,
+  nameLocked: false,
+  level: 1,
+  xp: 0,
   classId: "",
   classLocked: false,
 
@@ -128,4 +137,8 @@ xp: 0,
   selectedSkillIds: [],
 
   skillsLocked: false,
+
+  preparedSpellIds: [],
+
+  spellsLocked: false,
 };
