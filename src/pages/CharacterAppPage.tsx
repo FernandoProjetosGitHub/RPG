@@ -143,9 +143,8 @@ export default function CharacterAppPage({
     });
   }, [maxHp, setCharacter]);
 
-  const hpPercent = maxHp > 0
-    ? Math.round((character.hp.current / maxHp) * 100)
-    : 0;
+  const hpPercent =
+    maxHp > 0 ? Math.round((character.hp.current / maxHp) * 100) : 0;
 
   const isBloodied = hpPercent <= 35;
   const isCritical = hpPercent <= 15;
@@ -224,7 +223,19 @@ export default function CharacterAppPage({
       setClassSelectPulse(false);
     }, 700);
   }
+  function canLearnSkill(skill: {
+    levelRequirement?: number;
+    requiresSkillId?: string;
+  }) {
+    const meetsLevel =
+      !skill.levelRequirement || character.level >= skill.levelRequirement;
 
+    const meetsRequirement =
+      !skill.requiresSkillId ||
+      character.selectedSkillIds.includes(skill.requiresSkillId);
+
+    return meetsLevel && meetsRequirement;
+  }
   function removeItem(itemId: string) {
     setCharacter((current) => {
       const updatedEquipment = { ...current.equipment };
@@ -388,7 +399,7 @@ export default function CharacterAppPage({
 
                 {character.classLocked && (
                   <Typography sx={{ color: "#c59b4b", fontSize: 12 }}>
-                    Classe definida. Não é possível alterar.
+                    Classe definida.
                   </Typography>
                 )}
               </FormControl>
@@ -472,7 +483,37 @@ export default function CharacterAppPage({
                     percent={hpPercent}
                     color="#aa263d"
                   />
+                  <Stack
+                direction="row"
+                spacing={1}
+                sx={{
+                  flexWrap: "wrap",
+                }}
+              >
+                <Chip
+                  label={`Nível ${character.level}`}
+                  sx={{
+                    bgcolor: "rgba(197,155,75,.16)",
+                    color: "#f7edd9",
+                  }}
+                />
 
+                <Chip
+                  label={`${character.xp} XP`}
+                  sx={{
+                    bgcolor: "rgba(95,182,196,.16)",
+                    color: "#dff7ff",
+                  }}
+                />
+
+                <Chip
+                  label={`${character.skillPoints} pontos`}
+                  sx={{
+                    bgcolor: "rgba(127,111,217,.16)",
+                    color: "#ece8ff",
+                  }}
+                />
+              </Stack>
                   <InfoPanel title="Atributos">
                     <Box
                       sx={{
@@ -559,7 +600,7 @@ export default function CharacterAppPage({
                   </InfoPanel>
                 </Stack>
               )}
-
+              
               {activeTab === "descricao" && (
                 <InfoPanel title={selectedClass.name}>
                   <Typography sx={{ color: "#d7c59d", mb: 2 }}>
@@ -610,37 +651,281 @@ export default function CharacterAppPage({
               )}
 
               {activeTab === "skills" && (
-                <InfoPanel title="Skills">
-                  <Typography sx={{ color: "#d7c59d", mb: 1.5 }}>
-                    Pontos disponíveis:{" "}
-                    {character.skillPoints - character.selectedSkillIds.length}
-                  </Typography>
-
-                  <Stack spacing={1.2}>
-                    {selectedClass.startingSkills.map((skill) => (
-                      <Paper
-                        variant="outlined"
-                        key={skill.id}
-                        sx={{
-                          borderColor: "rgba(217,200,159,.14)",
-                          bgcolor: "rgba(255,255,255,.04)",
-                          color: "#f7edd9",
-                          p: 1.5,
-                        }}
-                      >
-                        <Typography sx={{ fontWeight: 900 }}>
-                          {skill.name}
-                        </Typography>
-
-                        <Typography
-                          sx={{ color: "#b9a98b", fontSize: ".9rem" }}
+                <Stack spacing={2}>
+                  <InfoPanel title="Habilidades Iniciais">
+                    <Stack spacing={1.2}>
+                      {selectedClass.startingSkills.map((skill) => (
+                        <Paper
+                          key={skill.id}
+                          variant="outlined"
+                          sx={{
+                            borderColor: "rgba(217,200,159,.14)",
+                            bgcolor: "rgba(255,255,255,.04)",
+                            color: "#f7edd9",
+                            p: 1.5,
+                          }}
                         >
-                          {skill.description}
+                          <Typography
+                            sx={{
+                              fontWeight: 900,
+                              color: "#c59b4b",
+                            }}
+                          >
+                            {skill.name}
+                          </Typography>
+
+                          <Typography
+                            sx={{
+                              color: "#d7c59d",
+                              fontSize: ".9rem",
+                              mt: 0.5,
+                              lineHeight: 1.6,
+                            }}
+                          >
+                            {skill.description}
+                          </Typography>
+                        </Paper>
+                      ))}
+                    </Stack>
+                  </InfoPanel>
+
+                  <Stack spacing={2}>
+                    <InfoPanel title="Movimentos Avançados • Nível 2-5">
+                      {selectedClass.advancedSkillsLevel2To5.length === 0 ? (
+                        <Typography sx={{ color: "#b9a98b" }}>
+                          Nenhum movimento cadastrado ainda.
                         </Typography>
-                      </Paper>
-                    ))}
+                      ) : (
+                        <Stack spacing={1.2}>
+                          {selectedClass.advancedSkillsLevel2To5.map(
+                            (skill) => {
+                              const alreadySelected =
+                                character.selectedSkillIds.includes(skill.id);
+
+                              const remainingPoints =
+                                character.skillPoints -
+                                character.selectedSkillIds.length;
+
+                              return (
+                                <Paper
+                                  key={skill.id}
+                                  variant="outlined"
+                                  sx={{
+                                    borderColor: alreadySelected
+                                      ? "rgba(197,155,75,.65)"
+                                      : "rgba(217,200,159,.14)",
+
+                                    bgcolor: alreadySelected
+                                      ? "rgba(197,155,75,.12)"
+                                      : "rgba(255,255,255,.04)",
+
+                                    color: "#f7edd9",
+                                    p: 1.5,
+                                  }}
+                                >
+                                  <Stack spacing={1}>
+                                    <Typography
+                                      sx={{
+                                        fontWeight: 900,
+                                        color: alreadySelected
+                                          ? "#c59b4b"
+                                          : "#5fb6c4",
+                                      }}
+                                    >
+                                      {skill.name}
+                                    </Typography>
+
+                                    <Typography
+                                      sx={{
+                                        color: "#d7c59d",
+                                        fontSize: ".9rem",
+                                        lineHeight: 1.6,
+                                      }}
+                                    >
+                                      {skill.description}
+                                    </Typography>
+                                    {skill.levelRequirement && (
+                                      <Chip
+                                        label={`Requer nível ${skill.levelRequirement}`}
+                                        sx={{
+                                          alignSelf: "flex-start",
+                                          bgcolor: "rgba(95,182,196,.16)",
+                                          color: "#dff7ff",
+                                        }}
+                                      />
+                                    )}
+
+                                    {skill.requiresSkillId && (
+                                      <Chip
+                                        label={`Requer outro movimento`}
+                                        sx={{
+                                          alignSelf: "flex-start",
+                                          bgcolor: "rgba(170,38,61,.18)",
+                                          color: "#ffd6dc",
+                                        }}
+                                      />
+                                    )}
+                                    <Button
+                                      variant={
+                                        alreadySelected
+                                          ? "contained"
+                                          : "outlined"
+                                      }
+                                      disabled={
+                                        alreadySelected ||
+                                        remainingPoints <= 0 ||
+                                        !canLearnSkill(skill)
+                                      }
+                                      onClick={() => {
+                                        setCharacter((current) => ({
+                                          ...current,
+                                          selectedSkillIds: [
+                                            ...current.selectedSkillIds,
+                                            skill.id,
+                                          ],
+                                        }));
+                                      }}
+                                    >
+                                      {alreadySelected
+                                        ? "Aprendida"
+                                        : skill.levelRequirement &&
+                                            character.level <
+                                              skill.levelRequirement
+                                          ? `Requer nível ${skill.levelRequirement}`
+                                          : skill.requiresSkillId &&
+                                              !character.selectedSkillIds.includes(
+                                                skill.requiresSkillId,
+                                              )
+                                            ? "Pré-requisito não aprendido"
+                                            : "Aprender"}
+                                    </Button>
+                                  </Stack>
+                                </Paper>
+                              );
+                            },
+                          )}
+                        </Stack>
+                      )}
+                    </InfoPanel>
+
+                    <InfoPanel title="Movimentos Avançados • Nível 6-10">
+                      {selectedClass.advancedSkillsLevel6To10.length === 0 ? (
+                        <Typography sx={{ color: "#b9a98b" }}>
+                          Nenhum movimento cadastrado ainda.
+                        </Typography>
+                      ) : (
+                        <Stack spacing={1.2}>
+                          {selectedClass.advancedSkillsLevel6To10.map(
+                            (skill) => {
+                              const alreadySelected =
+                                character.selectedSkillIds.includes(skill.id);
+                              const remainingPoints =
+                                character.skillPoints -
+                                character.selectedSkillIds.length;
+                              return (
+                                <Paper
+                                  key={skill.id}
+                                  variant="outlined"
+                                  sx={{
+                                    borderColor: alreadySelected
+                                      ? "rgba(197,155,75,.65)"
+                                      : "rgba(217,200,159,.14)",
+
+                                    bgcolor: alreadySelected
+                                      ? "rgba(197,155,75,.12)"
+                                      : "rgba(255,255,255,.04)",
+
+                                    color: "#f7edd9",
+                                    p: 1.5,
+                                    opacity: 0.7,
+                                  }}
+                                >
+                                  <Stack spacing={1}>
+                                    <Typography
+                                      sx={{
+                                        fontWeight: 900,
+                                        color: alreadySelected
+                                          ? "#c59b4b"
+                                          : "#7f6fd9",
+                                      }}
+                                    >
+                                      {skill.name}
+                                    </Typography>
+
+                                    <Typography
+                                      sx={{
+                                        color: "#d7c59d",
+                                        fontSize: ".9rem",
+                                        lineHeight: 1.6,
+                                      }}
+                                    >
+                                      {skill.description}
+                                    </Typography>
+                                    {skill.levelRequirement && (
+                                      <Chip
+                                        label={`Requer nível ${skill.levelRequirement}`}
+                                        sx={{
+                                          alignSelf: "flex-start",
+                                          bgcolor: "rgba(95,182,196,.16)",
+                                          color: "#dff7ff",
+                                        }}
+                                      />
+                                    )}
+
+                                    {skill.requiresSkillId && (
+                                      <Chip
+                                        label={`Requer outro movimento`}
+                                        sx={{
+                                          alignSelf: "flex-start",
+                                          bgcolor: "rgba(170,38,61,.18)",
+                                          color: "#ffd6dc",
+                                        }}
+                                      />
+                                    )}
+                                    <Button
+                                      variant={
+                                        alreadySelected
+                                          ? "contained"
+                                          : "outlined"
+                                      }
+                                      disabled={
+                                        alreadySelected ||
+                                        remainingPoints <= 0 ||
+                                        !canLearnSkill(skill)
+                                      }
+                                      onClick={() => {
+                                        setCharacter((current) => ({
+                                          ...current,
+                                          selectedSkillIds: [
+                                            ...current.selectedSkillIds,
+                                            skill.id,
+                                          ],
+                                        }));
+                                      }}
+                                    >
+                                      {alreadySelected
+                                        ? "Aprendida"
+                                        : skill.levelRequirement &&
+                                            character.level <
+                                              skill.levelRequirement
+                                          ? `Requer nível ${skill.levelRequirement}`
+                                          : skill.requiresSkillId &&
+                                              !character.selectedSkillIds.includes(
+                                                skill.requiresSkillId,
+                                              )
+                                            ? "Pré-requisito não aprendido"
+                                            : "Aprender"}
+                                    </Button>
+                                  </Stack>
+                                </Paper>
+                              );
+                            },
+                          )}
+                        </Stack>
+                      )}
+                    </InfoPanel>
                   </Stack>
-                </InfoPanel>
+                </Stack>
               )}
             </Stack>
           </CardContent>

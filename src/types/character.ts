@@ -17,7 +17,8 @@ export type EquipmentSlot =
 
 export type Character = {
   name: string;
-
+level: number;
+xp: number;
   classId: string;
   classLocked: boolean;
 
@@ -75,7 +76,8 @@ export const attributePool = [16, 15, 13, 12, 9, 8];
 
 export const initialCharacter: Character = {
   name: "Alyn",
-
+level: 1,
+xp: 0,
   classId: "",
   classLocked: false,
 
