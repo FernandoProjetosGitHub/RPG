@@ -26,6 +26,7 @@ import { useMemo, useRef, useState, useEffect } from "react";
 import { dwClasses } from "../data/dwClasses";
 import { classStartingItemIds, items } from "../data/items";
 import { spells } from "../data/spells";
+import CombatDiceRoller from "../components/CombatDiceRoller";
 import AttributeDistributionDrawer from "../components/AttributeDistributionDrawer";
 import {
   attributeKeys,
@@ -97,9 +98,12 @@ export default function CharacterAppPage({
     body: string;
   } | null>(null);
   const [isCombatPickerOpen, setIsCombatPickerOpen] = useState(false);
-  const [combatUseCounts, setCombatUseCounts] = useState<Record<string, number>>(
-    {},
-  );
+  const [isRollingCombat, setIsRollingCombat] = useState(false);
+  const [rollingActionName, setRollingActionName] = useState("");
+  const [rollingDice, setRollingDice] = useState("");
+  const [combatUseCounts, setCombatUseCounts] = useState<
+    Record<string, number>
+  >({});
   const [combatRoll, setCombatRoll] = useState<CombatRoll | null>(null);
   const combatSceneRef = useRef<HTMLDivElement | null>(null);
 
@@ -184,7 +188,8 @@ export default function CharacterAppPage({
   );
 
   const maxHp = selectedClass.baseHp + finalAttributes.constituicao + bonusHp;
-  const maxLoad = selectedClass.loadBase + getAttributeModifier(finalAttributes.forca);
+  const maxLoad =
+    selectedClass.loadBase + getAttributeModifier(finalAttributes.forca);
   const currentLoad = character.availableItems
     .map((itemId) => items.find((item) => item.id === itemId))
     .filter((item): item is (typeof items)[number] => Boolean(item))
@@ -230,7 +235,8 @@ export default function CharacterAppPage({
             id: `spell-${spell.id}`,
             name: spell.name,
             type: "spell",
-            dice: spell.level === 0 ? "1d4" : spell.level >= 7 ? "1d12" : "1d10",
+            dice:
+              spell.level === 0 ? "1d4" : spell.level >= 7 ? "1d12" : "1d10",
             detail: `${spell.levelLabel}. ${spell.summary}`,
             usesPerRest: spell.level === 0 ? null : 1,
           }))
@@ -246,7 +252,8 @@ export default function CharacterAppPage({
           ...learnedAdvancedSkills
             .filter(
               (skill) =>
-                !skill.levelRequirement || character.level >= skill.levelRequirement,
+                !skill.levelRequirement ||
+                character.level >= skill.levelRequirement,
             )
             .map<CombatAction>((skill) => ({
               id: `skill-${skill.id}`,
@@ -407,7 +414,21 @@ export default function CharacterAppPage({
     const item = items.find((currentItem) => currentItem.id === itemId);
     if (!item) return null;
 
-    if (item.slot !== "acessorio") return item.slot;
+    if (item.slot === "arma") {
+  if (!character.equipment.arma) {
+    return "arma";
+  }
+
+  if (!character.equipment.armaSecundaria) {
+    return "armaSecundaria";
+  }
+
+  return "arma";
+}
+
+if (item.slot !== "acessorio") {
+  return item.slot;
+}
 
     if (character.equipment.acessorio1 === itemId) return "acessorio1";
     if (character.equipment.acessorio2 === itemId) return "acessorio2";
@@ -450,7 +471,9 @@ export default function CharacterAppPage({
   function toggleSpell(spellId: string) {
     if (character.spellsLocked) return;
 
-    const spell = availableSpells.find((currentSpell) => currentSpell.id === spellId);
+    const spell = availableSpells.find(
+      (currentSpell) => currentSpell.id === spellId,
+    );
     if (!spell) return;
 
     const isPrepared = character.preparedSpellIds.includes(spellId);
@@ -463,32 +486,48 @@ export default function CharacterAppPage({
     setCharacter((current) => ({
       ...current,
       preparedSpellIds: isPrepared
-        ? current.preparedSpellIds.filter((currentSpellId) => currentSpellId !== spellId)
+        ? current.preparedSpellIds.filter(
+            (currentSpellId) => currentSpellId !== spellId,
+          )
         : [...current.preparedSpellIds, spellId],
     }));
   }
 
   function rollCombatAction(action: CombatAction) {
-    const match = action.dice.match(/^(\d+)d(\d+)$/);
-    const diceCount = match ? Number(match[1]) : 1;
-    const dieSize = match ? Number(match[2]) : Number(action.dice.replace("d", ""));
-    const rolls = Array.from({ length: diceCount }, () =>
-      Math.floor(Math.random() * dieSize) + 1,
-    );
+    setIsCombatPickerOpen(false);
+    setRollingActionName(action.name);
+    setRollingDice(action.dice);
+    setCombatRoll(null);
+    setIsRollingCombat(true);
 
-    setCombatRoll({
-      actionName: action.name,
-      dice: action.dice,
-      rolls,
-      total: rolls.reduce((acc, value) => acc + value, 0),
-    });
+    window.setTimeout(() => {
+      const match = action.dice.match(/^(\d+)d(\d+)$/);
+      const diceCount = match ? Number(match[1]) : 1;
+      const dieSize = match
+        ? Number(match[2])
+        : Number(action.dice.replace("d", ""));
 
-    if (action.usesPerRest !== null) {
-      setCombatUseCounts((current) => ({
-        ...current,
-        [action.id]: (current[action.id] ?? 0) + 1,
-      }));
-    }
+      const rolls = Array.from(
+        { length: diceCount },
+        () => Math.floor(Math.random() * dieSize) + 1,
+      );
+
+      setCombatRoll({
+        actionName: action.name,
+        dice: action.dice,
+        rolls,
+        total: rolls.reduce((acc, value) => acc + value, 0),
+      });
+
+      if (action.usesPerRest !== null) {
+        setCombatUseCounts((current) => ({
+          ...current,
+          [action.id]: (current[action.id] ?? 0) + 1,
+        }));
+      }
+
+      setIsRollingCombat(false);
+    }, 2000);
 
     window.setTimeout(() => {
       combatSceneRef.current?.scrollIntoView({
@@ -586,7 +625,9 @@ export default function CharacterAppPage({
                             ? "0 0 28px rgba(197,155,75,.75)"
                             : "0 0 12px rgba(0,0,0,.45)",
                           transition: "all .45s ease",
-                          transform: classSelectPulse ? "scale(1.08)" : "scale(1)",
+                          transform: classSelectPulse
+                            ? "scale(1.08)"
+                            : "scale(1)",
                         }}
                       >
                         <ClassSigil classId={selectedClass.id} />
@@ -597,7 +638,11 @@ export default function CharacterAppPage({
                       {character.nameLocked || activeTab !== "personagem" ? (
                         <Typography
                           variant="h3"
-                          sx={{ fontWeight: 900, lineHeight: 0.9, minHeight: 42 }}
+                          sx={{
+                            fontWeight: 900,
+                            lineHeight: 0.9,
+                            minHeight: 42,
+                          }}
                         >
                           {character.nameLocked ? character.name : ""}
                         </Typography>
@@ -650,7 +695,9 @@ export default function CharacterAppPage({
                       </Typography>
 
                       {displayRace && (
-                        <Typography sx={{ color: "#c59b4b", mt: 0.25, fontSize: ".9rem" }}>
+                        <Typography
+                          sx={{ color: "#c59b4b", mt: 0.25, fontSize: ".9rem" }}
+                        >
                           {displayRace.name}
                         </Typography>
                       )}
@@ -660,39 +707,38 @@ export default function CharacterAppPage({
               </Stack>
 
               {activeTab === "personagem" && (
-              <>
-              <FormControl fullWidth size="small">
-                <InputLabel sx={{ color: "#b9a98b" }}>Classe</InputLabel>
-                <Select
-                  label="Classe"
-                  value={character.classId}
-                  disabled={character.classLocked}
-                  onChange={(event) =>
-                    requestClassChange(event.target.value as string)
-                  }
-                  sx={{
-                    color: "#f7edd9",
-                    ".MuiOutlinedInput-notchedOutline": {
-                      borderColor: "rgba(217,200,159,.22)",
-                    },
-                    ".MuiSvgIcon-root": { color: "#f7edd9" },
-                  }}
-                >
-                  {dwClasses.map((dwClass) => (
-                    <MenuItem value={dwClass.id} key={dwClass.id}>
-                      {dwClass.name}
-                    </MenuItem>
-                  ))}
-                </Select>
+                <>
+                  <FormControl fullWidth size="small">
+                    <InputLabel sx={{ color: "#b9a98b" }}>Classe</InputLabel>
+                    <Select
+                      label="Classe"
+                      value={character.classId}
+                      disabled={character.classLocked}
+                      onChange={(event) =>
+                        requestClassChange(event.target.value as string)
+                      }
+                      sx={{
+                        color: "#f7edd9",
+                        ".MuiOutlinedInput-notchedOutline": {
+                          borderColor: "rgba(217,200,159,.22)",
+                        },
+                        ".MuiSvgIcon-root": { color: "#f7edd9" },
+                      }}
+                    >
+                      {dwClasses.map((dwClass) => (
+                        <MenuItem value={dwClass.id} key={dwClass.id}>
+                          {dwClass.name}
+                        </MenuItem>
+                      ))}
+                    </Select>
 
-                {character.classLocked && (
-                  <Typography sx={{ color: "#c59b4b", fontSize: 12 }}>
-                    Classe definida.
-                  </Typography>
-                )}
-              </FormControl>
-
-              </>
+                    {character.classLocked && (
+                      <Typography sx={{ color: "#c59b4b", fontSize: 12 }}>
+                        Classe definida.
+                      </Typography>
+                    )}
+                  </FormControl>
+                </>
               )}
 
               {activeTab === "personagem" && (
@@ -705,39 +751,38 @@ export default function CharacterAppPage({
                     color="#aa263d"
                   />
                   <Stack
-                direction="row"
-                spacing={1}
-                sx={{
-                  flexWrap: "wrap",
-                }}
-              >
-                <Chip
-                  label={`Nível ${character.level}`}
-                  sx={{
-                    bgcolor: "rgba(197,155,75,.16)",
-                    color: "#f7edd9",
-                  }}
-                />
+                    direction="row"
+                    spacing={1}
+                    sx={{
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    <Chip
+                      label={`Nível ${character.level}`}
+                      sx={{
+                        bgcolor: "rgba(197,155,75,.16)",
+                        color: "#f7edd9",
+                      }}
+                    />
 
-                <Chip
-                  label={`${character.xp}/${xpToNextLevel} XP`}
-                  sx={{
-                    bgcolor: canLevelUp
-                      ? "rgba(197,155,75,.24)"
-                      : "rgba(95,182,196,.16)",
-                    color: "#dff7ff",
-                  }}
-                />
+                    <Chip
+                      label={`${character.xp}/${xpToNextLevel} XP`}
+                      sx={{
+                        bgcolor: canLevelUp
+                          ? "rgba(197,155,75,.24)"
+                          : "rgba(95,182,196,.16)",
+                        color: "#dff7ff",
+                      }}
+                    />
 
-                <Chip
-                  label={`${character.skillPoints} pontos`}
-                  sx={{
-                    bgcolor: "rgba(127,111,217,.16)",
-                    color: "#ece8ff",
-                  }}
-                />
-
-              </Stack>
+                    <Chip
+                      label={`${character.skillPoints} pontos`}
+                      sx={{
+                        bgcolor: "rgba(127,111,217,.16)",
+                        color: "#ece8ff",
+                      }}
+                    />
+                  </Stack>
                   <InfoPanel title="Atributos">
                     <Box
                       sx={{
@@ -805,6 +850,33 @@ export default function CharacterAppPage({
                     <Stack
                       sx={{ flexDirection: "row", flexWrap: "wrap", gap: 1 }}
                     >
+                      <Stack spacing={1} sx={{ mb: 1.5 }}>
+  <Chip
+    label={`Arma principal: ${
+      equippedWeapon?.name ?? "Nenhuma"
+    }`}
+    sx={{
+      bgcolor: "rgba(197,155,75,.14)",
+      color: "#f7edd9",
+    }}
+  />
+
+  <Chip
+    label={`Arma secundária: ${
+      character.equipment.armaSecundaria
+        ? items.find(
+            (item) =>
+              item.id ===
+              character.equipment.armaSecundaria,
+          )?.name
+        : "Nenhuma"
+    }`}
+    sx={{
+      bgcolor: "rgba(95,182,196,.14)",
+      color: "#dff7ff",
+    }}
+  />
+</Stack>
                       {equippedItemsData.map((item) => (
                         <Chip
                           key={item.id}
@@ -819,7 +891,7 @@ export default function CharacterAppPage({
                   </InfoPanel>
                 </Stack>
               )}
-              
+
               {activeTab === "descricao" && (
                 <InfoPanel title={selectedClass.name}>
                   <Typography sx={{ color: "#d7c59d", mb: 2 }}>
@@ -938,10 +1010,15 @@ export default function CharacterAppPage({
                                 character.skillPoints -
                                 character.selectedSkillIds.length;
                               const requirementBlocked =
-                                Boolean(skill.levelRequirement && character.level < skill.levelRequirement) ||
+                                Boolean(
+                                  skill.levelRequirement &&
+                                  character.level < skill.levelRequirement,
+                                ) ||
                                 Boolean(
                                   skill.requiresSkillId &&
-                                    !character.selectedSkillIds.includes(skill.requiresSkillId),
+                                  !character.selectedSkillIds.includes(
+                                    skill.requiresSkillId,
+                                  ),
                                 );
 
                               return (
@@ -960,7 +1037,9 @@ export default function CharacterAppPage({
                                     color: "#f7edd9",
                                     p: 1.5,
                                     opacity: requirementBlocked ? 0.48 : 1,
-                                    filter: requirementBlocked ? "grayscale(.55)" : "none",
+                                    filter: requirementBlocked
+                                      ? "grayscale(.55)"
+                                      : "none",
                                   }}
                                 >
                                   <Stack spacing={1}>
@@ -987,7 +1066,10 @@ export default function CharacterAppPage({
 
                                     <Button
                                       variant="text"
-                                      sx={{ alignSelf: "flex-start", color: "#f2c76c" }}
+                                      sx={{
+                                        alignSelf: "flex-start",
+                                        color: "#f2c76c",
+                                      }}
                                       onClick={() =>
                                         setDescriptionDialog({
                                           title: skill.name,
@@ -1028,7 +1110,9 @@ export default function CharacterAppPage({
                                         onClick={() =>
                                           setDescriptionDialog({
                                             title: `Requisitos: ${skill.name}`,
-                                            body: getSkillRequirementText(skill),
+                                            body: getSkillRequirementText(
+                                              skill,
+                                            ),
                                           })
                                         }
                                       >
@@ -1061,16 +1145,16 @@ export default function CharacterAppPage({
                                         ? "Aprendida"
                                         : character.skillsLocked
                                           ? "Travada pelo mestre"
-                                        : skill.levelRequirement &&
-                                            character.level <
-                                              skill.levelRequirement
-                                          ? `Requer nível ${skill.levelRequirement}`
-                                          : skill.requiresSkillId &&
-                                              !character.selectedSkillIds.includes(
-                                                skill.requiresSkillId,
-                                              )
-                                            ? "Pré-requisito não aprendido"
-                                            : "Aprender"}
+                                          : skill.levelRequirement &&
+                                              character.level <
+                                                skill.levelRequirement
+                                            ? `Requer nível ${skill.levelRequirement}`
+                                            : skill.requiresSkillId &&
+                                                !character.selectedSkillIds.includes(
+                                                  skill.requiresSkillId,
+                                                )
+                                              ? "Pré-requisito não aprendido"
+                                              : "Aprender"}
                                     </Button>
                                   </Stack>
                                 </Paper>
@@ -1096,10 +1180,15 @@ export default function CharacterAppPage({
                                 character.skillPoints -
                                 character.selectedSkillIds.length;
                               const requirementBlocked =
-                                Boolean(skill.levelRequirement && character.level < skill.levelRequirement) ||
+                                Boolean(
+                                  skill.levelRequirement &&
+                                  character.level < skill.levelRequirement,
+                                ) ||
                                 Boolean(
                                   skill.requiresSkillId &&
-                                    !character.selectedSkillIds.includes(skill.requiresSkillId),
+                                  !character.selectedSkillIds.includes(
+                                    skill.requiresSkillId,
+                                  ),
                                 );
                               return (
                                 <Paper
@@ -1117,7 +1206,9 @@ export default function CharacterAppPage({
                                     color: "#f7edd9",
                                     p: 1.5,
                                     opacity: requirementBlocked ? 0.42 : 0.7,
-                                    filter: requirementBlocked ? "grayscale(.55)" : "none",
+                                    filter: requirementBlocked
+                                      ? "grayscale(.55)"
+                                      : "none",
                                   }}
                                 >
                                   <Stack spacing={1}>
@@ -1144,7 +1235,10 @@ export default function CharacterAppPage({
 
                                     <Button
                                       variant="text"
-                                      sx={{ alignSelf: "flex-start", color: "#f2c76c" }}
+                                      sx={{
+                                        alignSelf: "flex-start",
+                                        color: "#f2c76c",
+                                      }}
                                       onClick={() =>
                                         setDescriptionDialog({
                                           title: skill.name,
@@ -1185,7 +1279,9 @@ export default function CharacterAppPage({
                                         onClick={() =>
                                           setDescriptionDialog({
                                             title: `Requisitos: ${skill.name}`,
-                                            body: getSkillRequirementText(skill),
+                                            body: getSkillRequirementText(
+                                              skill,
+                                            ),
                                           })
                                         }
                                       >
@@ -1218,16 +1314,16 @@ export default function CharacterAppPage({
                                         ? "Aprendida"
                                         : character.skillsLocked
                                           ? "Travada pelo mestre"
-                                        : skill.levelRequirement &&
-                                            character.level <
-                                              skill.levelRequirement
-                                          ? `Requer nível ${skill.levelRequirement}`
-                                          : skill.requiresSkillId &&
-                                              !character.selectedSkillIds.includes(
-                                                skill.requiresSkillId,
-                                              )
-                                            ? "Pré-requisito não aprendido"
-                                            : "Aprender"}
+                                          : skill.levelRequirement &&
+                                              character.level <
+                                                skill.levelRequirement
+                                            ? `Requer nível ${skill.levelRequirement}`
+                                            : skill.requiresSkillId &&
+                                                !character.selectedSkillIds.includes(
+                                                  skill.requiresSkillId,
+                                                )
+                                              ? "Pré-requisito não aprendido"
+                                              : "Aprender"}
                                     </Button>
                                   </Stack>
                                 </Paper>
@@ -1246,17 +1342,29 @@ export default function CharacterAppPage({
                   <InfoPanel title="Magias preparadas">
                     {!selectedClass.usesSpells ? (
                       <Typography sx={{ color: "#b9a98b" }}>
-                        Esta classe nao usa preparo de magias pelo modelo base de Dungeon World.
+                        Esta classe nao usa preparo de magias pelo modelo base
+                        de Dungeon World.
                       </Typography>
                     ) : (
                       <Stack spacing={1.2}>
-                        <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
+                        <Stack
+                          direction="row"
+                          spacing={1}
+                          sx={{ flexWrap: "wrap" }}
+                        >
                           <Chip
                             label={`${preparedSpellCost}/${spellPreparationLimit} niveis preparados`}
-                            sx={{ bgcolor: "rgba(95,182,196,.16)", color: "#dff7ff" }}
+                            sx={{
+                              bgcolor: "rgba(95,182,196,.16)",
+                              color: "#dff7ff",
+                            }}
                           />
                           <Chip
-                            label={character.spellsLocked ? "Preparo travado" : "Preparo aberto"}
+                            label={
+                              character.spellsLocked
+                                ? "Preparo travado"
+                                : "Preparo aberto"
+                            }
                             sx={{
                               bgcolor: character.spellsLocked
                                 ? "rgba(170,38,61,.18)"
@@ -1266,14 +1374,19 @@ export default function CharacterAppPage({
                           />
                         </Stack>
 
-                        <Typography sx={{ color: "#b9a98b", fontSize: ".9rem" }}>
-                          Oracoes e truques custam 0. Magias de nivel 1 ou maior ocupam
-                          espaco de preparo conforme seu nivel.
+                        <Typography
+                          sx={{ color: "#b9a98b", fontSize: ".9rem" }}
+                        >
+                          Oracoes e truques custam 0. Magias de nivel 1 ou maior
+                          ocupam espaco de preparo conforme seu nivel.
                         </Typography>
 
                         <Button
                           variant="contained"
-                          disabled={character.spellsLocked || character.preparedSpellIds.length === 0}
+                          disabled={
+                            character.spellsLocked ||
+                            character.preparedSpellIds.length === 0
+                          }
                           onClick={() =>
                             setCharacter((current) => ({
                               ...current,
@@ -1296,10 +1409,12 @@ export default function CharacterAppPage({
                       ) : (
                         <Stack spacing={1.2}>
                           {availableSpells.map((spell) => {
-                            const isPrepared = character.preparedSpellIds.includes(spell.id);
+                            const isPrepared =
+                              character.preparedSpellIds.includes(spell.id);
                             const wouldExceed =
                               !isPrepared &&
-                              preparedSpellCost + spell.level > spellPreparationLimit;
+                              preparedSpellCost + spell.level >
+                                spellPreparationLimit;
 
                             return (
                               <Paper
@@ -1317,22 +1432,37 @@ export default function CharacterAppPage({
                                 }}
                               >
                                 <Stack spacing={1}>
-                                  <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
+                                  <Stack
+                                    direction="row"
+                                    spacing={1}
+                                    sx={{ flexWrap: "wrap" }}
+                                  >
                                     <Chip label={spell.levelLabel} />
                                     {isPrepared && <Chip label="Preparada" />}
                                   </Stack>
 
-                                  <Typography sx={{ color: "#5fb6c4", fontWeight: 900 }}>
+                                  <Typography
+                                    sx={{ color: "#5fb6c4", fontWeight: 900 }}
+                                  >
                                     {spell.name}
                                   </Typography>
 
-                                  <Typography sx={{ color: "#d7c59d", fontSize: ".9rem", lineHeight: 1.6 }}>
+                                  <Typography
+                                    sx={{
+                                      color: "#d7c59d",
+                                      fontSize: ".9rem",
+                                      lineHeight: 1.6,
+                                    }}
+                                  >
                                     {spell.summary}
                                   </Typography>
 
                                   <Button
                                     variant="text"
-                                    sx={{ alignSelf: "flex-start", color: "#f2c76c" }}
+                                    sx={{
+                                      alignSelf: "flex-start",
+                                      color: "#f2c76c",
+                                    }}
                                     onClick={() =>
                                       setDescriptionDialog({
                                         title: spell.name,
@@ -1344,8 +1474,12 @@ export default function CharacterAppPage({
                                   </Button>
 
                                   <Button
-                                    variant={isPrepared ? "contained" : "outlined"}
-                                    disabled={character.spellsLocked || wouldExceed}
+                                    variant={
+                                      isPrepared ? "contained" : "outlined"
+                                    }
+                                    disabled={
+                                      character.spellsLocked || wouldExceed
+                                    }
                                     onClick={() => toggleSpell(spell.id)}
                                   >
                                     {isPrepared
@@ -1386,9 +1520,15 @@ export default function CharacterAppPage({
                           gap: 1,
                         }}
                       >
-                        <CombatStat label="Ataque" value={selectedClass.damageDice} />
+                        <CombatStat
+                          label="Ataque"
+                          value={selectedClass.damageDice}
+                        />
                         <CombatStat label="Armadura" value={String(armor)} />
-                        <CombatStat label="Arma" value={equippedWeapon?.name ?? "Desarmado"} />
+                        <CombatStat
+                          label="Arma"
+                          value={equippedWeapon?.name ?? "Desarmado"}
+                        />
                         <CombatStat
                           label="Condicao"
                           value={
@@ -1402,57 +1542,65 @@ export default function CharacterAppPage({
                       </Box>
                     </Stack>
                   </InfoPanel>
-
+                          <Box ref={combatSceneRef}>
+  <CombatDiceRoller
+    isRolling={isRollingCombat}
+    actionName={rollingActionName || combatRoll?.actionName || ""}
+    dice={rollingDice || combatRoll?.dice || ""}
+    rolls={combatRoll?.rolls ?? []}
+    total={combatRoll?.total ?? null}
+  />
+</Box>
                   <Box ref={combatSceneRef}>
-                  <InfoPanel title="Cena de confronto">
-                    <Box
-                      sx={{
-                        minHeight: 190,
-                        display: "grid",
-                        placeItems: "center",
-                        borderRadius: 3,
-                        border: "1px solid rgba(217,200,159,.14)",
-                        background:
-                          "radial-gradient(circle at 50% 20%, rgba(170,38,61,.22), transparent 16rem), linear-gradient(180deg, rgba(255,255,255,.05), rgba(0,0,0,.28))",
-                        overflow: "hidden",
-                      }}
-                    >
+                    <InfoPanel title="Cena de confronto">
                       <Box
                         sx={{
-                          width: 92,
-                          height: 92,
-                          borderRadius: "50%",
+                          minHeight: 190,
                           display: "grid",
                           placeItems: "center",
-                          border: "1px solid rgba(217,200,159,.26)",
-                          bgcolor: "rgba(7,7,6,.72)",
-                          boxShadow: isBloodied
-                            ? "0 0 34px rgba(170,38,61,.65)"
-                            : "0 0 28px rgba(197,155,75,.28)",
+                          borderRadius: 3,
+                          border: "1px solid rgba(217,200,159,.14)",
+                          background:
+                            "radial-gradient(circle at 50% 20%, rgba(170,38,61,.22), transparent 16rem), linear-gradient(180deg, rgba(255,255,255,.05), rgba(0,0,0,.28))",
+                          overflow: "hidden",
                         }}
                       >
-                        {combatRoll ? (
-                          <CombatDie roll={combatRoll} />
-                        ) : (
-                          <ClassSigil classId={selectedClass.id} />
-                        )}
+                        <Box
+                          sx={{
+                            width: 92,
+                            height: 92,
+                            borderRadius: "50%",
+                            display: "grid",
+                            placeItems: "center",
+                            border: "1px solid rgba(217,200,159,.26)",
+                            bgcolor: "rgba(7,7,6,.72)",
+                            boxShadow: isBloodied
+                              ? "0 0 34px rgba(170,38,61,.65)"
+                              : "0 0 28px rgba(197,155,75,.28)",
+                          }}
+                        >
+                          {combatRoll ? (
+                            <CombatDie roll={combatRoll} />
+                          ) : (
+                            <ClassSigil classId={selectedClass.id} />
+                          )}
+                        </Box>
                       </Box>
-                    </Box>
 
-                    {combatRoll && (
-                      <Typography
-                        sx={{
-                          color: "#f2c76c",
-                          mt: 1.2,
-                          fontSize: ".95rem",
-                          fontWeight: 900,
-                          textAlign: "center",
-                        }}
-                      >
-                        {combatRoll.actionName}: {combatRoll.total}
-                      </Typography>
-                    )}
-                  </InfoPanel>
+                      {combatRoll && (
+                        <Typography
+                          sx={{
+                            color: "#f2c76c",
+                            mt: 1.2,
+                            fontSize: ".95rem",
+                            fontWeight: 900,
+                            textAlign: "center",
+                          }}
+                        >
+                          {combatRoll.actionName}: {combatRoll.total}
+                        </Typography>
+                      )}
+                    </InfoPanel>
                   </Box>
 
                   <InfoPanel title="Acoes">
@@ -1481,16 +1629,27 @@ export default function CharacterAppPage({
                           color: "#f2c76c",
                           py: 1.2,
                         }}
-                        onClick={() => setIsCombatPickerOpen((current) => !current)}
+                        onClick={() =>
+                          setIsCombatPickerOpen((current) => !current)
+                        }
                       >
-                        Selecionar {selectedClass.usesSpells ? "magia" : "habilidade"}
+                        Selecionar{" "}
+                        {selectedClass.usesSpells ? "magia" : "habilidade"}
                       </Button>
 
                       {isCombatPickerOpen && (
                         <Stack spacing={1}>
-                          {usableCombatActions.filter((action) => action.id !== "common-attack").length === 0 ? (
-                            <Typography sx={{ color: "#b9a98b", fontSize: ".9rem" }}>
-                              Nenhuma {selectedClass.usesSpells ? "magia" : "habilidade"} disponivel agora.
+                          {usableCombatActions.filter(
+                            (action) => action.id !== "common-attack",
+                          ).length === 0 ? (
+                            <Typography
+                              sx={{ color: "#b9a98b", fontSize: ".9rem" }}
+                            >
+                              Nenhuma{" "}
+                              {selectedClass.usesSpells
+                                ? "magia"
+                                : "habilidade"}{" "}
+                              disponivel agora.
                             </Typography>
                           ) : (
                             usableCombatActions
@@ -1532,14 +1691,23 @@ export default function CharacterAppPage({
                         max={maxLoad}
                         percent={
                           maxLoad > 0
-                            ? Math.min(100, Math.round((currentLoad / maxLoad) * 100))
+                            ? Math.min(
+                                100,
+                                Math.round((currentLoad / maxLoad) * 100),
+                              )
                             : 0
                         }
                         color={currentLoad > maxLoad ? "#aa263d" : "#c59b4b"}
                       />
 
-                      <Typography sx={{ color: currentLoad > maxLoad ? "#ffb0b8" : "#b9a98b", fontSize: ".9rem" }}>
-                        Peso total: {currentLoad} / {maxLoad}. Carga da classe: {selectedClass.loadBase} + modificador de FOR.
+                      <Typography
+                        sx={{
+                          color: currentLoad > maxLoad ? "#ffb0b8" : "#b9a98b",
+                          fontSize: ".9rem",
+                        }}
+                      >
+                        Peso total: {currentLoad} / {maxLoad}. Carga da classe:{" "}
+                        {selectedClass.loadBase} + modificador de FOR.
                       </Typography>
                     </Stack>
                   </InfoPanel>
@@ -1552,9 +1720,21 @@ export default function CharacterAppPage({
                         gap: 1,
                       }}
                     >
-                      {(["arma", "armadura", "capacete", "acessorio1", "acessorio2"] as const).map((slot) => {
+                      {(
+                        [
+                          "arma",
+                          "armadura",
+                          "capacete",
+                          "acessorio1",
+                          "acessorio2",
+                        ] as const
+                      ).map((slot) => {
                         const itemId = character.equipment[slot];
-                        const item = itemId ? items.find((currentItem) => currentItem.id === itemId) : null;
+                        const item = itemId
+                          ? items.find(
+                              (currentItem) => currentItem.id === itemId,
+                            )
+                          : null;
 
                         return (
                           <EquipmentSlotCard
@@ -1571,15 +1751,20 @@ export default function CharacterAppPage({
                   <InfoPanel title="Inventario virtual">
                     {character.availableItems.length === 0 ? (
                       <Typography sx={{ color: "#b9a98b" }}>
-                        Nenhum item recebido ainda. O mestre distribui itens pelo painel dele.
+                        Nenhum item recebido ainda. O mestre distribui itens
+                        pelo painel dele.
                       </Typography>
                     ) : (
                       <Stack spacing={1.2}>
                         {character.availableItems.map((itemId) => {
-                          const item = items.find((currentItem) => currentItem.id === itemId);
+                          const item = items.find(
+                            (currentItem) => currentItem.id === itemId,
+                          );
                           if (!item) return null;
 
-                          const isEquipped = Object.values(character.equipment).includes(item.id);
+                          const isEquipped = Object.values(
+                            character.equipment,
+                          ).includes(item.id);
 
                           return (
                             <Paper
@@ -1597,7 +1782,11 @@ export default function CharacterAppPage({
                               }}
                             >
                               <Stack spacing={1}>
-                                <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
+                                <Stack
+                                  direction="row"
+                                  spacing={1}
+                                  sx={{ flexWrap: "wrap" }}
+                                >
                                   <Chip label={item.type} />
                                   <Chip label={`peso ${item.weight}`} />
                                   {item.tags.map((tag) => (
@@ -1605,18 +1794,30 @@ export default function CharacterAppPage({
                                   ))}
                                 </Stack>
 
-                                <Typography sx={{ color: "#c59b4b", fontWeight: 900 }}>
+                                <Typography
+                                  sx={{ color: "#c59b4b", fontWeight: 900 }}
+                                >
                                   {item.name}
                                 </Typography>
 
-                                <Typography sx={{ color: "#d7c59d", fontSize: ".9rem", lineHeight: 1.6 }}>
+                                <Typography
+                                  sx={{
+                                    color: "#d7c59d",
+                                    fontSize: ".9rem",
+                                    lineHeight: 1.6,
+                                  }}
+                                >
                                   {item.description}
                                 </Typography>
 
                                 <Button
-                                  variant={isEquipped ? "contained" : "outlined"}
+                                  variant={
+                                    isEquipped ? "contained" : "outlined"
+                                  }
                                   onClick={() =>
-                                    isEquipped ? unequipItem(item.id) : equipItem(item.id)
+                                    isEquipped
+                                      ? unequipItem(item.id)
+                                      : equipItem(item.id)
                                   }
                                 >
                                   {isEquipped ? "Desequipar" : "Equipar"}
@@ -1707,7 +1908,9 @@ export default function CharacterAppPage({
                 <Select
                   label="Raça"
                   value={pendingRaceId || pendingClass.races[0]?.id || ""}
-                  onChange={(event) => setPendingRaceId(event.target.value as string)}
+                  onChange={(event) =>
+                    setPendingRaceId(event.target.value as string)
+                  }
                   sx={{
                     color: "#f7edd9",
                     ".MuiOutlinedInput-notchedOutline": {
@@ -1771,7 +1974,10 @@ export default function CharacterAppPage({
         </DialogContent>
 
         <DialogActions>
-          <Button variant="contained" onClick={() => setDescriptionDialog(null)}>
+          <Button
+            variant="contained"
+            onClick={() => setDescriptionDialog(null)}
+          >
             Fechar
           </Button>
         </DialogActions>
@@ -1905,7 +2111,7 @@ function EquipmentSlotCard({
 
   const slotIcon =
     slot === "arma"
-      ? weaponSilhouettes[classId] ?? "⚔"
+      ? (weaponSilhouettes[classId] ?? "⚔")
       : slot === "armadura"
         ? "▣"
         : slot === "capacete"
@@ -1929,7 +2135,13 @@ function EquipmentSlotCard({
       }}
     >
       <Stack spacing={0.6} sx={{ alignItems: "center" }}>
-        <Typography sx={{ color: itemName ? "#f2c76c" : "#5b5141", fontSize: 34, lineHeight: 1 }}>
+        <Typography
+          sx={{
+            color: itemName ? "#f2c76c" : "#5b5141",
+            fontSize: 34,
+            lineHeight: 1,
+          }}
+        >
           {slotIcon}
         </Typography>
 
@@ -1979,7 +2191,9 @@ function CombatActionCard({
           {action.name}
         </Typography>
 
-        <Typography sx={{ color: "#d7c59d", fontSize: ".88rem", lineHeight: 1.55 }}>
+        <Typography
+          sx={{ color: "#d7c59d", fontSize: ".88rem", lineHeight: 1.55 }}
+        >
           {action.detail}
         </Typography>
 
@@ -2010,11 +2224,20 @@ function CombatDie({ roll }: { roll: CombatRoll }) {
       }}
     >
       <Box sx={{ transform: "rotate(-45deg)", textAlign: "center" }}>
-        <Typography sx={{ color: "#b9a98b", fontSize: ".75rem", fontWeight: 900 }}>
+        <Typography
+          sx={{ color: "#b9a98b", fontSize: ".75rem", fontWeight: 900 }}
+        >
           {roll.dice}
         </Typography>
 
-        <Typography sx={{ color: "#fff3dc", fontSize: 38, fontWeight: 900, lineHeight: 1 }}>
+        <Typography
+          sx={{
+            color: "#fff3dc",
+            fontSize: 38,
+            fontWeight: 900,
+            lineHeight: 1,
+          }}
+        >
           {roll.total}
         </Typography>
 

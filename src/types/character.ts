@@ -10,6 +10,7 @@ export type CharacterAttributes = Record<AttributeKey, number>;
 
 export type EquipmentSlot =
   | "arma"
+  | "armaSecundaria"
   | "armadura"
   | "capacete"
   | "acessorio1"
@@ -126,6 +127,7 @@ export const initialCharacter: Character = {
 
   equipment: {
     arma: null,
+    armaSecundaria: null,
     armadura: null,
     capacete: null,
     acessorio1: null,
