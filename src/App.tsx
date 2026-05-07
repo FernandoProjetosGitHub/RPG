@@ -15,7 +15,7 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 
 import heroImage from "./assets/zine-hero.png";
 import frontierImage from "./assets/zine-frontier.png";

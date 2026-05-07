@@ -10,53 +10,54 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
+import { useState, type Dispatch, type SetStateAction } from "react";
 import { items } from "../data/items";
-import { useState } from "react";
+import type { Character } from "../types/character";
 
 type MasterAppPageProps = {
-  character: any;
-  setCharacter: any;
+  character: Character;
+  setCharacter: Dispatch<SetStateAction<Character>>;
   onBackToCodex?: () => void;
   onOpenCharacter?: () => void;
 };
 
 export default function MasterAppPage({
-  character,
   setCharacter,
   onBackToCodex,
   onOpenCharacter,
 }: MasterAppPageProps) {
-  // TEMPORÁRIO — depois vamos conectar com o personagem real
   const [selectedItem, setSelectedItem] = useState("");
 
   function handleGiveItem() {
-  setCharacter((current) => ({
-  ...current,
-  availableItems: current.availableItems.includes(selectedItem)
-    ? current.availableItems
-    : [...current.availableItems, selectedItem],
-}));
+    if (!selectedItem) return;
+
+    setCharacter((current) => ({
+      ...current,
+      availableItems: current.availableItems.includes(selectedItem)
+        ? current.availableItems
+        : [...current.availableItems, selectedItem],
+    }));
   }
 
   function handleDamage() {
-  setCharacter((current) => ({
-    ...current,
-    hp: {
-      ...current.hp,
-      current: Math.max(0, current.hp.current - 5),
-    },
-  }));
-}
+    setCharacter((current) => ({
+      ...current,
+      hp: {
+        ...current.hp,
+        current: Math.max(0, current.hp.current - 5),
+      },
+    }));
+  }
 
   function handleHeal() {
-  setCharacter((current) => ({
-    ...current,
-    hp: {
-      ...current.hp,
-      current: current.hp.current + 5,
-    },
-  }));
-}
+    setCharacter((current) => ({
+      ...current,
+      hp: {
+        ...current.hp,
+        current: current.hp.current + 5,
+      },
+    }));
+  }
 
   return (
     <Box
@@ -91,10 +92,11 @@ export default function MasterAppPage({
 
               <FormControl fullWidth size="small">
                 <InputLabel>Item</InputLabel>
+
                 <Select
                   value={selectedItem}
                   label="Item"
-                  onChange={(e) => setSelectedItem(e.target.value)}
+                  onChange={(event) => setSelectedItem(event.target.value)}
                 >
                   {items.map((item) => (
                     <MenuItem key={item.id} value={item.id}>
@@ -103,12 +105,18 @@ export default function MasterAppPage({
                   ))}
                 </Select>
               </FormControl>
+
               {onOpenCharacter && (
                 <Button variant="contained" onClick={onOpenCharacter}>
                   Abrir ficha do jogador
                 </Button>
               )}
-              <Button variant="contained" onClick={handleGiveItem}>
+
+              <Button
+                variant="contained"
+                onClick={handleGiveItem}
+                disabled={!selectedItem}
+              >
                 Dar item ao jogador
               </Button>
             </Stack>
