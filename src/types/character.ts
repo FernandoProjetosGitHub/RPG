@@ -57,6 +57,8 @@ export type Character = {
   skillsLocked: boolean;
 
   preparedSpellIds: string[];
+  exhaustedSpellIds: string[];
+  spellCastPenalty: number;
   spellsLocked: boolean;
 };
 
@@ -142,6 +144,8 @@ export const initialCharacter: Character = {
   skillsLocked: false,
 
   preparedSpellIds: [],
+  exhaustedSpellIds: [],
+  spellCastPenalty: 0,
 
   spellsLocked: false,
 };

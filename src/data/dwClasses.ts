@@ -1,3 +1,5 @@
+import type { AttributeKey } from "../types/character";
+
 export type DwDice = "d4" | "d6" | "d8" | "d10";
 
 export type DwSkill = {
@@ -6,6 +8,7 @@ export type DwSkill = {
   name: string;
 
   description: string;
+  rollAttribute?: AttributeKey;
 
   levelRequirement?: number;
 
@@ -35,6 +38,14 @@ export type DwClass = {
     | "sabedoria"
     | "carisma";
   usesSpells?: boolean;
+  spellCastingAttribute?:
+    | "forca"
+    | "destreza"
+    | "constituicao"
+    | "inteligencia"
+    | "sabedoria"
+    | "carisma";
+  spellcastingLabel?: string;
   characteristics: string[];
   races: DwRaceOption[];
   startingSkills: DwSkill[];
@@ -176,6 +187,7 @@ export const dwClasses: DwClass[] = [
       {
         id: "arte-arcana",
         name: "Arte Arcana",
+        rollAttribute: "carisma",
         description:
           "Quando usar uma apresentação para criar um efeito mágico, escolha efeitos como curar, causar dano adicional, encantar ou reforçar aliados.",
       },
@@ -264,6 +276,8 @@ export const dwClasses: DwClass[] = [
     loadBase: 10,
     mainAttribute: "sabedoria",
     usesSpells: true,
+    spellCastingAttribute: "sabedoria",
+    spellcastingLabel: "Conjurar feiticos",
     description:
       "Um servo divino que conjura feitiços concedidos por sua divindade.",
     characteristics: ["Feitiços divinos", "Cura", "Expulsar mortos-vivos"],
@@ -303,12 +317,14 @@ export const dwClasses: DwClass[] = [
       {
         id: "conjurar-magia-clerigo",
         name: "Conjurar Magia",
+        rollAttribute: "sabedoria",
         description:
           "Quando conjurar uma magia concedida por sua divindade, role +SAB e aceite os riscos espirituais de canalizar poder sagrado.",
       },
       {
         id: "expulsar-mortos-vivos",
         name: "Expulsar Mortos-Vivos",
+        rollAttribute: "sabedoria",
         description:
           "Quando erguer seu símbolo sagrado e invocar sua divindade contra mortos-vivos, role +SAB para afastá-los ou destruí-los.",
       },
@@ -422,6 +438,7 @@ export const dwClasses: DwClass[] = [
       {
         id: "metamorfose",
         name: "Metamorfose",
+        rollAttribute: "sabedoria",
         description:
           "Quando invocar os espíritos da natureza para assumir outra forma, role +SAB e ganhe domínio temporário daquela forma.",
       },
@@ -451,6 +468,7 @@ export const dwClasses: DwClass[] = [
         id: "druida-comunhao-dos-sussurros",
         name: "Comunhao dos Sussurros",
         levelRequirement: 2,
+        rollAttribute: "sabedoria",
         description:
           "Ao observar os espiritos de um lugar, voce pode fazer perguntas sobre a area e seus perigos.",
       },
@@ -485,6 +503,162 @@ export const dwClasses: DwClass[] = [
         levelRequirement: 6,
         description:
           "Voce alterna formas conhecidas com mais liberdade quando a cena esta ligada aos seus espiritos, instintos ou territorio.",
+      },
+    ],
+  },
+
+  {
+    id: "engenheiro-arcano",
+    name: "Engenheiro Arcano",
+    baseHp: 4,
+    damageDice: "d4",
+    loadBase: 7,
+    mainAttribute: "inteligencia",
+    usesSpells: true,
+    spellCastingAttribute: "inteligencia",
+    spellcastingLabel: "Ativar efeitos",
+    description:
+      "Um inventor magitecnico que registra efeitos em um codex e os ativa por dispositivos instaveis.",
+    characteristics: ["Codex", "Dispositivos", "Magitecnologia"],
+    races: [
+      {
+        id: "pesquisa-desenvolvimento",
+        name: "Pesquisa e Desenvolvimento",
+        description:
+          "Detectar Magia e Maquinas e tratado como rotina. Seu olhar tecnico percebe energia, engrenagens e falhas ocultas.",
+      },
+      {
+        id: "biotecnologia",
+        name: "Biotecnologia",
+        description:
+          "Escolha um feitico de clerigo: voce pode explica-lo como efeito de engenheiro quando estiver registrado no codex.",
+      },
+    ],
+    startingSkills: [
+      {
+        id: "codex-arcano",
+        name: "Codex",
+        description:
+          "Voce registra rotinas e efeitos em um codex de peso 1. Comece com todas as rotinas e tres efeitos de nivel 1.",
+      },
+      {
+        id: "preparar-dispositivos",
+        name: "Preparar Dispositivos",
+        description:
+          "Quando passar cerca de uma hora conectando dispositivos ao codex, desative efeitos antigos e prepare efeitos cujo total de niveis nao supere seu nivel + 1. Rotinas nao contam nesse limite.",
+      },
+      {
+        id: "ativar-efeitos",
+        name: "Ativar Efeitos",
+        rollAttribute: "inteligencia",
+        description:
+          "Quando ativar um efeito preparado, role +INT. Com 10+, funciona sem defeitos. Com 7-9, funciona, mas escolha bug, atencao indesejada ou gasto de energia do dispositivo.",
+      },
+      {
+        id: "escudo-eletromagnetico",
+        name: "Escudo Eletromagnetico",
+        description:
+          "Voce pode encerrar um efeito continuo para defletir um ataque, subtraindo o nivel do efeito do dano recebido.",
+      },
+      {
+        id: "invencoes-fantasticas",
+        name: "Invencoes Fantasticas",
+        description:
+          "Quando usar energia de um local de alta tecnologia ou magia para criar uma invencao, diga o efeito desejado; o MJ dira custos, riscos, tempo, materiais ou limitacoes.",
+      },
+    ],
+    advancedSkillsLevel2To5: [
+      {
+        id: "engenheiro-prodigio",
+        name: "Prodigio",
+        levelRequirement: 2,
+        description:
+          "Escolha um efeito. Ele conta como 1 nivel menor quando voce prepara dispositivos.",
+      },
+      {
+        id: "engenheiro-efeito-potencializado",
+        name: "Efeito Potencializado",
+        levelRequirement: 2,
+        description:
+          "Quando ativar efeitos com 10+, voce pode aceitar uma escolha de 7-9 para maximizar o efeito ou dobrar seus alvos.",
+      },
+      {
+        id: "engenheiro-fonte-de-conhecimento",
+        name: "Fonte de Conhecimento",
+        levelRequirement: 2,
+        description:
+          "Quando falar dificil sobre algo que ninguem mais sabe, receba +1 adiante se agir de acordo com essa explicacao.",
+      },
+      {
+        id: "engenheiro-codex-expandido",
+        name: "Codex Expandido",
+        levelRequirement: 2,
+        description:
+          "Adicione um efeito inspirado em outra classe ao seu codex, traduzindo magia em magitecnologia.",
+      },
+      {
+        id: "engenheiro-logica",
+        name: "Logica",
+        levelRequirement: 2,
+        rollAttribute: "inteligencia",
+        description:
+          "Quando analisar os arredores por deducao pura, voce pode discernir realidades com INT no lugar de SAB.",
+      },
+      {
+        id: "engenheiro-protecao-eletrostatica",
+        name: "Protecao Eletrostatica",
+        levelRequirement: 2,
+        description:
+          "Enquanto tiver pelo menos um efeito de nivel 1 ou superior preparado, receba armadura +2.",
+      },
+    ],
+    advancedSkillsLevel6To10: [
+      {
+        id: "engenheiro-mestre",
+        name: "Mestre",
+        levelRequirement: 6,
+        requiresSkillId: "engenheiro-prodigio",
+        description:
+          "Escolha um segundo efeito para contar como 1 nivel menor quando preparar dispositivos.",
+      },
+      {
+        id: "engenheiro-efeito-potencializado-superior",
+        name: "Efeito Potencializado Superior",
+        levelRequirement: 6,
+        requiresSkillId: "engenheiro-efeito-potencializado",
+        description:
+          "Com 12+ ao ativar efeitos, voce pode ampliar efeitos ou alvos sem pagar o custo de uma escolha de 7-9.",
+      },
+      {
+        id: "engenheiro-logica-extrema",
+        name: "Logica Extrema",
+        levelRequirement: 6,
+        requiresSkillId: "engenheiro-logica",
+        rollAttribute: "inteligencia",
+        description:
+          "Quando discernir realidades por deducao pura e tirar 12+, faca quaisquer tres perguntas ao MJ.",
+      },
+      {
+        id: "engenheiro-armadura-magitronica",
+        name: "Armadura Magitronica",
+        levelRequirement: 6,
+        requiresSkillId: "engenheiro-protecao-eletrostatica",
+        description:
+          "Enquanto tiver pelo menos um efeito de nivel 1 ou superior preparado, receba armadura +4.",
+      },
+      {
+        id: "engenheiro-domo-de-nulificacao",
+        name: "Domo de Nulificacao",
+        levelRequirement: 6,
+        description:
+          "Quando um aliado em sua linha de visao for alvo de feitico, voce pode tentar nulifica-lo como se fosse o alvo.",
+      },
+      {
+        id: "engenheiro-autossuficiente",
+        name: "Autossuficiente",
+        levelRequirement: 6,
+        description:
+          "Com tempo, pecas, materiais arcanos e seguranca, voce pode criar seu proprio local de poder magitecnico.",
       },
     ],
   },
@@ -536,6 +710,7 @@ export const dwClasses: DwClass[] = [
       {
         id: "dobrar-barras-levantar-portoes",
         name: "Dobrar Barras, Levantar Portões",
+        rollAttribute: "forca",
         description:
           "Quando usar força bruta para destruir uma barreira, dobrar metal, quebrar portas ou superar obstáculos físicos, role +FOR.",
       },
@@ -641,18 +816,21 @@ advancedSkillsLevel6To10: [
       {
         id: "especialista-em-armadilhas",
         name: "Especialista em Armadilhas",
+        rollAttribute: "destreza",
         description:
           "Quando dedicar um momento para examinar uma área perigosa, role +DES para encontrar armadilhas, mecanismos ou perigos ocultos.",
       },
       {
         id: "truques-do-oficio",
         name: "Truques do Ofício",
+        rollAttribute: "destreza",
         description:
           "Quando arrombar fechaduras, desarmar armadilhas ou manipular mecanismos delicados, role +DES.",
       },
       {
         id: "ataque-furtivo",
         name: "Ataque Furtivo",
+        rollAttribute: "destreza",
         description:
           "Quando atacar um inimigo surpreso ou indefeso com uma arma corpo a corpo, você pode escolher causar dano extra ou obter vantagem tática.",
       },
@@ -674,6 +852,7 @@ advancedSkillsLevel6To10: [
         id: "ladrao-golpe-desonesto",
         name: "Golpe Desonesto",
         levelRequirement: 2,
+        rollAttribute: "destreza",
         description:
           "Quando atacar pelas costas com arma precisa ou de mao, seu dano furtivo se torna mais letal.",
       },
@@ -681,6 +860,7 @@ advancedSkillsLevel6To10: [
         id: "ladrao-cauteloso",
         name: "Cauteloso",
         levelRequirement: 2,
+        rollAttribute: "destreza",
         description:
           "Ao avaliar armadilhas, voce sempre conserva algum dominio da situacao, mesmo quando as coisas pioram.",
       },
@@ -698,6 +878,7 @@ advancedSkillsLevel6To10: [
         name: "Golpe Mortal",
         levelRequirement: 6,
         requiresSkillId: "ladrao-golpe-desonesto",
+        rollAttribute: "destreza",
         description:
           "Quando atacar um alvo vulneravel, seu golpe tambem cria uma vantagem decisiva: fuga, refem, silencio ou posicao.",
       },
@@ -735,6 +916,8 @@ advancedSkillsLevel6To10: [
     loadBase: 7,
     mainAttribute: "inteligencia",
     usesSpells: true,
+    spellCastingAttribute: "inteligencia",
+    spellcastingLabel: "Conjurar feiticos",
     description:
       "Um estudioso arcano que prepara e conjura feitiços através de grimório.",
     characteristics: ["Grimório", "Preparar feitiços", "Ritual"],
@@ -767,6 +950,7 @@ advancedSkillsLevel6To10: [
       {
         id: "conjurar-magia-mago",
         name: "Conjurar Magia",
+        rollAttribute: "inteligencia",
         description:
           "Quando liberar uma magia preparada, role +INT e aceite as consequências de manipular forças arcanas instáveis.",
       },
@@ -802,6 +986,7 @@ advancedSkillsLevel6To10: [
         id: "mago-fonte-de-conhecimento",
         name: "Fonte de Conhecimento",
         levelRequirement: 2,
+        rollAttribute: "inteligencia",
         description:
           "Quando explicar algo obscuro, voce pode transformar estudo arcano em informacao util para a cena.",
       },
@@ -828,6 +1013,7 @@ advancedSkillsLevel6To10: [
         name: "Erudito Arcano",
         levelRequirement: 6,
         requiresSkillId: "mago-fonte-de-conhecimento",
+        rollAttribute: "inteligencia",
         description:
           "Quando consultar seu grimorio ou memoria sobre magia antiga, o MJ deve revelar uma verdade util e um perigo associado.",
       },
@@ -864,6 +1050,7 @@ advancedSkillsLevel6To10: [
       {
         id: "imposicao-de-maos",
         name: "Imposição de Mãos",
+        rollAttribute: "carisma",
         description:
           "Quando tocar alguém pele com pele e rezar por seu bem, role +CAR para curar ou compartilhar sofrimento.",
       },
@@ -876,6 +1063,7 @@ advancedSkillsLevel6To10: [
       {
         id: "eu-sou-a-lei",
         name: "Eu Sou a Lei",
+        rollAttribute: "carisma",
         description:
           "Quando ordenar algo a uma criatura em nome de sua autoridade divina, role +CAR.",
       },
@@ -973,12 +1161,14 @@ advancedSkillsLevel6To10: [
       {
         id: "cacar-e-rastrear",
         name: "Caçar e Rastrear",
+        rollAttribute: "sabedoria",
         description:
           "Quando seguir uma trilha de pistas deixada por criaturas, role +SAB para descobrir informações e manter o rastro.",
       },
       {
         id: "disparo-chamado",
         name: "Disparo Chamado",
+        rollAttribute: "destreza",
         description:
           "Quando atacar um alvo indefeso ou surpreso à distância, escolha uma parte do corpo e aplique um efeito apropriado.",
       },
@@ -1000,6 +1190,7 @@ advancedSkillsLevel6To10: [
         id: "ranger-empatia-selvagem",
         name: "Empatia Selvagem",
         levelRequirement: 2,
+        rollAttribute: "sabedoria",
         description:
           "Voce se comunica melhor com animais e percebe intencoes por postura, som e instinto.",
       },
@@ -1007,6 +1198,7 @@ advancedSkillsLevel6To10: [
         id: "ranger-presa",
         name: "Presa",
         levelRequirement: 2,
+        rollAttribute: "sabedoria",
         description:
           "Ao estudar uma criatura ou rastro, voce sabe como perseguir, cercar ou pressionar sua presa.",
       },
@@ -1032,6 +1224,7 @@ advancedSkillsLevel6To10: [
         name: "Cacador Implacavel",
         levelRequirement: 6,
         requiresSkillId: "ranger-presa",
+        rollAttribute: "sabedoria",
         description:
           "Quando marcar uma presa, ela nao consegue se esconder de voce sem deixar um custo, rastro ou vulnerabilidade.",
       },

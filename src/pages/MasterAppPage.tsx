@@ -3,19 +3,29 @@ import {
   Button,
   Card,
   CardContent,
+  Chip,
   FormControl,
   InputLabel,
+  LinearProgress,
   MenuItem,
+  Paper,
   Select,
   Stack,
-  Chip,
-  Typography,
+  Tab,
+  Tabs,
   TextField,
+  Typography,
 } from "@mui/material";
-import { useState, type Dispatch, type SetStateAction } from "react";
+import { useMemo, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
 import { dwClasses } from "../data/dwClasses";
-import { items } from "../data/items";
-import { getXpToNextLevel, type Character } from "../types/character";
+import { basicMoves } from "../data/dwMoves";
+import { classStartingItemIds, items } from "../data/items";
+import { spells } from "../data/spells";
+import {
+  attributeLabels,
+  getXpToNextLevel,
+  type Character,
+} from "../types/character";
 
 type MasterAppPageProps = {
   character: Character;
@@ -24,33 +34,98 @@ type MasterAppPageProps = {
   onOpenCharacter?: () => void;
 };
 
+type MasterTab = "criacao" | "habilidades" | "combate" | "itens";
+
+const masterTabs: Array<{ value: MasterTab; label: string }> = [
+  { value: "criacao", label: "Criação" },
+  { value: "habilidades", label: "Habilidades" },
+  { value: "combate", label: "Combate" },
+  { value: "itens", label: "Itens" },
+];
+
 export default function MasterAppPage({
   character,
   setCharacter,
   onBackToCodex,
   onOpenCharacter,
 }: MasterAppPageProps) {
+  const [activeTab, setActiveTab] = useState<MasterTab>("criacao");
   const [selectedItem, setSelectedItem] = useState("");
   const [damageValue, setDamageValue] = useState(0);
   const [healValue, setHealValue] = useState(0);
   const [xpValue, setXpValue] = useState(0);
-  const [targetLevel, setTargetLevel] = useState(1);
+  const [targetLevel, setTargetLevel] = useState(character.level);
+  const [classDraft, setClassDraft] = useState(character.classId);
+  const [raceDraft, setRaceDraft] = useState(character.raceId);
 
   const selectedClass =
     dwClasses.find((dwClass) => dwClass.id === character.classId) ??
     dwClasses[0];
+  const draftClass =
+    dwClasses.find((dwClass) => dwClass.id === classDraft) ?? selectedClass;
+  const selectedRace = selectedClass.races.find(
+    (race) => race.id === character.raceId,
+  );
+  const classSpells = spells.filter(
+    (spell) => spell.tradition === selectedClass.id,
+  );
+  const preparedSpellCost = classSpells
+    .filter((spell) => character.preparedSpellIds.includes(spell.id))
+    .reduce((acc, spell) => acc + spell.level, 0);
 
-  const maxHp =
-    selectedClass.baseHp +
-    character.attributes.constituicao +
-    Object.values(character.equipment)
-      .filter((itemId): itemId is string => Boolean(itemId))
-      .map((itemId) => items.find((item) => item.id === itemId))
-      .filter((item): item is (typeof items)[number] => Boolean(item))
-      .reduce((acc, item) => acc + (item.modifiers.hp ?? 0), 0);
+  const maxHp = useMemo(() => {
+    return (
+      selectedClass.baseHp +
+      character.attributes.constituicao +
+      Object.values(character.equipment)
+        .filter((itemId): itemId is string => Boolean(itemId))
+        .map((itemId) => items.find((item) => item.id === itemId))
+        .filter((item): item is (typeof items)[number] => Boolean(item))
+        .reduce((acc, item) => acc + (item.modifiers.hp ?? 0), 0)
+    );
+  }, [character.attributes.constituicao, character.equipment, selectedClass]);
 
   const xpToNextLevel = getXpToNextLevel(character.level);
   const canLevelUp = character.xp >= xpToNextLevel;
+  const hpPercent = maxHp > 0 ? Math.round((character.hp.current / maxHp) * 100) : 0;
+  const xpPercent =
+    xpToNextLevel > 0
+      ? Math.min(100, Math.round((character.xp / xpToNextLevel) * 100))
+      : 0;
+  const remainingSkillPoints = Math.max(
+    0,
+    character.skillPoints - character.selectedSkillIds.length,
+  );
+
+  function applyClassAndRace() {
+    const nextClass = dwClasses.find((dwClass) => dwClass.id === classDraft);
+    if (!nextClass) return;
+
+    const nextRaceId = raceDraft || nextClass.races[0]?.id || "";
+    const startingItemIds = classStartingItemIds[nextClass.id] ?? [];
+    const nextMaxHp = nextClass.baseHp + character.attributes.constituicao;
+
+    setCharacter((current) => ({
+      ...current,
+      classId: nextClass.id,
+      raceId: nextRaceId,
+      availableItems: Array.from(
+        new Set([...current.availableItems, ...startingItemIds]),
+      ),
+      preparedSpellIds: [],
+      exhaustedSpellIds: [],
+      spellCastPenalty: 0,
+      spellsLocked: false,
+      hp: {
+        ...current.hp,
+        current: current.hp.current > 0 ? Math.min(current.hp.current, nextMaxHp) : nextMaxHp,
+      },
+    }));
+  }
+
+  function setLock(field: "classLocked" | "raceLocked" | "attributesLocked" | "skillsLocked" | "spellsLocked", value: boolean) {
+    setCharacter((current) => ({ ...current, [field]: value }));
+  }
 
   function handleGiveItem() {
     if (!selectedItem) return;
@@ -60,134 +135,6 @@ export default function MasterAppPage({
       availableItems: current.availableItems.includes(selectedItem)
         ? current.availableItems
         : [...current.availableItems, selectedItem],
-    }));
-  }
-
-  function handleDamage() {
-    if (damageValue <= 0) return;
-
-    setCharacter((current) => ({
-      ...current,
-      hp: {
-        ...current.hp,
-        current: Math.max(0, current.hp.current - damageValue),
-      },
-    }));
-
-    setDamageValue(0);
-  }
-
-  function handleHeal() {
-    if (healValue <= 0) return;
-
-    setCharacter((current) => ({
-      ...current,
-      hp: {
-        ...current.hp,
-        current: Math.min(maxHp, current.hp.current + healValue),
-      },
-    }));
-
-    setHealValue(0);
-  }
-
-  function handleAddXp() {
-    if (xpValue <= 0) return;
-
-    setCharacter((current) => ({
-      ...current,
-      xp: current.xp + xpValue,
-    }));
-
-    setXpValue(0);
-  }
-
-  function handleRemoveXp() {
-    if (xpValue <= 0) return;
-
-    setCharacter((current) => ({
-      ...current,
-      xp: Math.max(0, current.xp - xpValue),
-    }));
-
-    setXpValue(0);
-  }
-
-  function handleLevelUp() {
-    if (!canLevelUp) return;
-
-    setCharacter((current) => ({
-      ...current,
-      level: current.level + 1,
-      xp: Math.max(0, current.xp - getXpToNextLevel(current.level)),
-      skillPoints: current.skillPoints + 1,
-      skillsLocked: false,
-      spellsLocked: false,
-    }));
-  }
-
-  function handleLevelDown() {
-    setCharacter((current) => ({
-      ...current,
-      level: Math.max(1, current.level - 1),
-      skillPoints: Math.max(0, current.skillPoints - 1),
-    }));
-  }
-  function handleSetLevel() {
-    if (targetLevel < 1) return;
-
-    setCharacter((current) => ({
-      ...current,
-      level: targetLevel,
-    }));
-  }
-
-  function handleAddSkillPoint() {
-    setCharacter((current) => ({
-      ...current,
-      skillPoints: current.skillPoints + 1,
-      skillsLocked: false,
-    }));
-  }
-
-  function handleRemoveSkillPoint() {
-    setCharacter((current) => ({
-      ...current,
-      skillPoints: Math.max(0, current.skillPoints - 1),
-      selectedSkillIds: current.selectedSkillIds.slice(
-        0,
-        Math.max(0, current.skillPoints - 1),
-      ),
-    }));
-  }
-
-  function handleUnlockSkills() {
-    setCharacter((current) => ({
-      ...current,
-      skillsLocked: false,
-    }));
-  }
-
-  function handleResetSkills() {
-    setCharacter((current) => ({
-      ...current,
-      selectedSkillIds: [],
-      skillsLocked: false,
-    }));
-  }
-
-  function handleUnlockSpells() {
-    setCharacter((current) => ({
-      ...current,
-      spellsLocked: false,
-    }));
-  }
-
-  function handleResetSpells() {
-    setCharacter((current) => ({
-      ...current,
-      preparedSpellIds: [],
-      spellsLocked: false,
     }));
   }
 
@@ -210,79 +157,528 @@ export default function MasterAppPage({
       };
     });
   }
+
+  function handleDamage() {
+    if (damageValue <= 0) return;
+
+    setCharacter((current) => ({
+      ...current,
+      hp: {
+        ...current.hp,
+        current: Math.max(0, current.hp.current - damageValue),
+      },
+    }));
+    setDamageValue(0);
+  }
+
+  function handleHeal() {
+    if (healValue <= 0) return;
+
+    setCharacter((current) => ({
+      ...current,
+      hp: {
+        ...current.hp,
+        current: Math.min(maxHp, current.hp.current + healValue),
+      },
+    }));
+    setHealValue(0);
+  }
+
+  function handleFullHeal() {
+    setCharacter((current) => ({
+      ...current,
+      hp: { ...current.hp, current: maxHp },
+    }));
+  }
+
+  function handleAddXp() {
+    if (xpValue <= 0) return;
+    setCharacter((current) => ({ ...current, xp: current.xp + xpValue }));
+    setXpValue(0);
+  }
+
+  function handleRemoveXp() {
+    if (xpValue <= 0) return;
+    setCharacter((current) => ({
+      ...current,
+      xp: Math.max(0, current.xp - xpValue),
+    }));
+    setXpValue(0);
+  }
+
+  function handleLevelUp() {
+    if (!canLevelUp) return;
+
+    setCharacter((current) => ({
+      ...current,
+      level: current.level + 1,
+      xp: Math.max(0, current.xp - getXpToNextLevel(current.level)),
+      skillPoints: current.skillPoints + 1,
+      skillsLocked: false,
+      spellsLocked: false,
+      exhaustedSpellIds: [],
+      spellCastPenalty: 0,
+    }));
+  }
+
+  function handleSetLevel() {
+    if (targetLevel < 1) return;
+    setCharacter((current) => ({ ...current, level: targetLevel }));
+  }
+
+  function adjustSkillPoints(amount: number) {
+    setCharacter((current) => {
+      const nextPoints = Math.max(0, current.skillPoints + amount);
+
+      return {
+        ...current,
+        skillPoints: nextPoints,
+        selectedSkillIds: current.selectedSkillIds.slice(0, nextPoints),
+        skillsLocked: amount > 0 ? false : current.skillsLocked,
+      };
+    });
+  }
+
+  function resetSkills() {
+    setCharacter((current) => ({
+      ...current,
+      selectedSkillIds: [],
+      skillsLocked: false,
+    }));
+  }
+
+  function resetSpells() {
+    setCharacter((current) => ({
+      ...current,
+      preparedSpellIds: [],
+      exhaustedSpellIds: [],
+      spellCastPenalty: 0,
+      spellsLocked: false,
+    }));
+  }
+
+  function refreshSpells() {
+    setCharacter((current) => ({
+      ...current,
+      exhaustedSpellIds: [],
+      spellCastPenalty: 0,
+      spellsLocked: false,
+    }));
+  }
+
   return (
     <Box
       sx={{
-        minHeight: "100vh",
+        height: "100dvh",
+        overflow: "hidden",
         bgcolor: "#070706",
         color: "#f7edd9",
-        px: 2,
-        py: 2,
+        px: { xs: 1.25, sm: 2 },
+        py: { xs: 1.25, sm: 2 },
       }}
     >
-      <Stack spacing={2} sx={{ maxWidth: 520, mx: "auto" }}>
-        <Stack
-          direction="row"
-          sx={{ justifyContent: "space-between", alignItems: "center" }}
-        >
-          <Typography sx={{ fontWeight: 900 }}>Painel do Mestre</Typography>
+      <Stack
+        spacing={1.5}
+        sx={{
+          width: "100%",
+          maxWidth: { xs: 540, md: 860 },
+          height: "100%",
+          mx: "auto",
+          overflowY: "auto",
+          pr: { xs: 0, sm: 0.5 },
+          scrollbarWidth: "thin",
+        }}
+      >
+        <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center", gap: 1 }}>
+          <Box>
+            <Typography sx={{ fontWeight: 900 }}>Painel do Mestre</Typography>
+            <Typography sx={{ color: "#b9a98b", fontSize: ".82rem" }}>
+              {character.name || "Personagem"} · {selectedClass.name}
+              {selectedRace ? ` · ${selectedRace.name}` : ""}
+            </Typography>
+          </Box>
 
-          {onBackToCodex && (
-            <Button variant="outlined" onClick={onBackToCodex}>
-              Voltar
-            </Button>
-          )}
+          <Stack direction="row" spacing={1}>
+            {onOpenCharacter && (
+              <Button variant="contained" onClick={onOpenCharacter}>
+                Ficha
+              </Button>
+            )}
+            {onBackToCodex && (
+              <Button variant="outlined" onClick={onBackToCodex}>
+                Voltar
+              </Button>
+            )}
+          </Stack>
         </Stack>
 
-        <Card>
-          <CardContent>
-            <Stack spacing={2}>
-              <Typography sx={{ fontWeight: 900 }}>
-                Controle de Itens
-              </Typography>
+        <Paper
+          variant="outlined"
+          sx={{
+            borderColor: "rgba(217,200,159,.18)",
+            bgcolor: "rgba(8,8,7,.88)",
+            overflow: "hidden",
+          }}
+        >
+          <Tabs
+            value={activeTab}
+            variant="scrollable"
+            scrollButtons="auto"
+            onChange={(_, value: MasterTab) => setActiveTab(value)}
+            sx={{
+              minHeight: 52,
+              ".MuiTab-root": { color: "#b9a98b", fontWeight: 900, minHeight: 52 },
+              ".Mui-selected": { color: "#f2c76c" },
+              ".MuiTabs-indicator": { bgcolor: "#c59b4b" },
+            }}
+          >
+            {masterTabs.map((tab) => (
+              <Tab key={tab.value} value={tab.value} label={tab.label} />
+            ))}
+          </Tabs>
+        </Paper>
 
-              <FormControl fullWidth size="small">
-                <InputLabel>Item</InputLabel>
+        {activeTab === "criacao" && (
+          <Stack spacing={1.5}>
+            <SectionCard title="Criação de personagem">
+              <Stack spacing={1.4}>
+                <FormControl fullWidth size="small">
+                  <InputLabel>Classe</InputLabel>
+                  <Select
+                    label="Classe"
+                    value={classDraft}
+                    onChange={(event) => {
+                      const nextClassId = event.target.value;
+                      const nextClass = dwClasses.find(
+                        (dwClass) => dwClass.id === nextClassId,
+                      );
+                      setClassDraft(nextClassId);
+                      setRaceDraft(nextClass?.races[0]?.id ?? "");
+                    }}
+                  >
+                    {dwClasses.map((dwClass) => (
+                      <MenuItem key={dwClass.id} value={dwClass.id}>
+                        {dwClass.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
 
-                <Select
-                  value={selectedItem}
-                  label="Item"
-                  onChange={(event) => setSelectedItem(event.target.value)}
-                >
-                  {items.map((item) => (
-                    <MenuItem key={item.id} value={item.id}>
-                      {item.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+                <FormControl fullWidth size="small">
+                  <InputLabel>Ancestralidade/Raça</InputLabel>
+                  <Select
+                    label="Ancestralidade/Raça"
+                    value={raceDraft || draftClass.races[0]?.id || ""}
+                    onChange={(event) => setRaceDraft(event.target.value)}
+                  >
+                    {draftClass.races.map((race) => (
+                      <MenuItem key={race.id} value={race.id}>
+                        {race.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
 
-              {onOpenCharacter && (
-                <Button variant="contained" onClick={onOpenCharacter}>
-                  Abrir ficha do jogador
+                <Button variant="contained" onClick={applyClassAndRace}>
+                  Aplicar classe, ancestralidade e itens iniciais
                 </Button>
-              )}
 
-              <Button
-                variant="contained"
-                onClick={handleGiveItem}
-                disabled={!selectedItem}
-              >
-                Dar item ao jogador
-              </Button>
+                <LockGrid>
+                  <LockButton
+                    label="Classe"
+                    locked={character.classLocked}
+                    onLock={() => setLock("classLocked", true)}
+                    onUnlock={() => setLock("classLocked", false)}
+                  />
+                  <LockButton
+                    label="Raça"
+                    locked={character.raceLocked}
+                    onLock={() => setLock("raceLocked", true)}
+                    onUnlock={() => setLock("raceLocked", false)}
+                  />
+                  <LockButton
+                    label="Atributos"
+                    locked={character.attributesLocked}
+                    onLock={() => setLock("attributesLocked", true)}
+                    onUnlock={() => setLock("attributesLocked", false)}
+                  />
+                </LockGrid>
+              </Stack>
+            </SectionCard>
 
-              <Stack spacing={1}>
-                <Typography sx={{ color: "#b9a98b", fontSize: ".9rem" }}>
-                  Inventario atual
-                </Typography>
+            <SectionCard title="Progressão">
+              <Stack spacing={1.4}>
+                <ResourceMeter
+                  label="XP"
+                  current={character.xp}
+                  max={xpToNextLevel}
+                  percent={xpPercent}
+                  color={canLevelUp ? "#f2c76c" : "#5fb6c4"}
+                />
 
-                {character.availableItems.length === 0 ? (
-                  <Typography sx={{ color: "#b9a98b", fontSize: ".85rem" }}>
-                    Nenhum item entregue.
-                  </Typography>
-                ) : (
-                  <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
-                    {character.availableItems.map((itemId) => {
+                <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
+                  <Chip label={`Nível ${character.level}`} />
+                  <Chip label={`${character.skillPoints} pontos de movimento`} />
+                  <Chip
+                    label={canLevelUp ? "Pode subir de nível" : "XP insuficiente"}
+                    sx={{ color: canLevelUp ? "#1a1814" : "#f7edd9", bgcolor: canLevelUp ? "#f2c76c" : "rgba(255,255,255,.08)" }}
+                  />
+                </Stack>
+
+                <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+                  <TextField
+                    type="number"
+                    label="XP"
+                    value={xpValue}
+                    onChange={(event) => setXpValue(Number(event.target.value))}
+                    size="small"
+                    fullWidth
+                  />
+                  <Button fullWidth variant="contained" onClick={handleAddXp} disabled={xpValue <= 0}>
+                    Adicionar XP
+                  </Button>
+                  <Button fullWidth variant="outlined" onClick={handleRemoveXp} disabled={xpValue <= 0}>
+                    Remover XP
+                  </Button>
+                </Stack>
+
+                <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+                  <Button fullWidth variant="contained" onClick={handleLevelUp} disabled={!canLevelUp}>
+                    Subir nível
+                  </Button>
+                  <TextField
+                    type="number"
+                    label="Definir nível"
+                    value={targetLevel}
+                    onChange={(event) => setTargetLevel(Number(event.target.value))}
+                    size="small"
+                    fullWidth
+                  />
+                  <Button fullWidth variant="outlined" onClick={handleSetLevel} disabled={targetLevel < 1}>
+                    Definir
+                  </Button>
+                </Stack>
+              </Stack>
+            </SectionCard>
+          </Stack>
+        )}
+
+        {activeTab === "habilidades" && (
+          <Stack spacing={1.5}>
+            <SectionCard title="Controle de habilidades e magias">
+              <Stack spacing={1.2}>
+                <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
+                  <Chip label={`${remainingSkillPoints} pontos livres`} />
+                  <Chip label={`${character.selectedSkillIds.length}/${character.skillPoints} movimentos escolhidos`} />
+                  <Chip label={`${preparedSpellCost}/${character.level + 1} níveis preparados`} />
+                  <Chip label={`${character.exhaustedSpellIds.length} magias/efeitos gastos`} />
+                  {character.spellCastPenalty < 0 && (
+                    <Chip label={`Penalidade ${character.spellCastPenalty}`} />
+                  )}
+                </Stack>
+
+                <LockGrid>
+                  <LockButton
+                    label="Skills"
+                    locked={character.skillsLocked}
+                    onLock={() => setLock("skillsLocked", true)}
+                    onUnlock={() => setLock("skillsLocked", false)}
+                  />
+                  <LockButton
+                    label="Magias"
+                    locked={character.spellsLocked}
+                    onLock={() => setLock("spellsLocked", true)}
+                    onUnlock={() => setLock("spellsLocked", false)}
+                  />
+                </LockGrid>
+
+                <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+                  <Button fullWidth variant="outlined" onClick={() => adjustSkillPoints(-1)}>
+                    - ponto
+                  </Button>
+                  <Button fullWidth variant="contained" onClick={() => adjustSkillPoints(1)}>
+                    + ponto
+                  </Button>
+                  <Button fullWidth variant="outlined" onClick={resetSkills}>
+                    Resetar movimentos
+                  </Button>
+                </Stack>
+
+                <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+                  <Button fullWidth variant="contained" onClick={refreshSpells}>
+                    Repreparar / limpar falhas
+                  </Button>
+                  <Button fullWidth variant="outlined" onClick={resetSpells}>
+                    Limpar magias
+                  </Button>
+                </Stack>
+              </Stack>
+            </SectionCard>
+
+            <SectionCard title="Cartas de movimentos básicos">
+              <MoveCardGrid>
+                {basicMoves.map((move) => (
+                  <MoveCard
+                    key={move.id}
+                    title={move.name}
+                    chips={[
+                      move.attribute ? `+${attributeLabels[move.attribute]}` : "variável",
+                    ]}
+                    body={move.trigger}
+                    footer={move.partial}
+                  />
+                ))}
+              </MoveCardGrid>
+            </SectionCard>
+
+            <SectionCard title={`Movimentos de ${selectedClass.name}`}>
+              <MoveCardGrid>
+                {[
+                  ...selectedClass.startingSkills,
+                  ...selectedClass.advancedSkillsLevel2To5,
+                  ...selectedClass.advancedSkillsLevel6To10,
+                ].map((skill) => (
+                  <MoveCard
+                    key={skill.id}
+                    title={skill.name}
+                    chips={[
+                      skill.rollAttribute
+                        ? `+${attributeLabels[skill.rollAttribute]}`
+                        : "sem rolagem",
+                      skill.levelRequirement ? `nível ${skill.levelRequirement}` : "inicial",
+                      character.selectedSkillIds.includes(skill.id)
+                        ? "aprendido"
+                        : "",
+                    ].filter(Boolean)}
+                    body={skill.description}
+                    footer={
+                      skill.requiresSkillId
+                        ? `Requer: ${skill.requiresSkillId}`
+                        : undefined
+                    }
+                  />
+                ))}
+              </MoveCardGrid>
+            </SectionCard>
+
+            {selectedClass.usesSpells && (
+              <SectionCard title="Magias e efeitos da classe">
+                <MoveCardGrid>
+                  {classSpells.map((spell) => (
+                    <MoveCard
+                      key={spell.id}
+                      title={spell.name}
+                      chips={[
+                        spell.levelLabel,
+                        character.preparedSpellIds.includes(spell.id)
+                          ? "preparada"
+                          : "",
+                        character.exhaustedSpellIds.includes(spell.id)
+                          ? "gasta"
+                          : "",
+                        spell.damageDice ? `dano ${spell.damageDice}` : "",
+                      ].filter(Boolean)}
+                      body={spell.summary}
+                      footer={spell.tags?.join(" · ")}
+                    />
+                  ))}
+                </MoveCardGrid>
+              </SectionCard>
+            )}
+          </Stack>
+        )}
+
+        {activeTab === "combate" && (
+          <Stack spacing={1.5}>
+            <SectionCard title="Combate e recursos">
+              <Stack spacing={1.4}>
+                <ResourceMeter
+                  label="HP"
+                  current={character.hp.current}
+                  max={maxHp}
+                  percent={hpPercent}
+                  color="#aa263d"
+                />
+
+                <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
+                  <Chip label={`Dano ${selectedClass.damageDice}`} />
+                  <Chip label={`Classe ${selectedClass.name}`} />
+                  <Chip
+                    label={
+                      hpPercent <= 15
+                        ? "Crítico"
+                        : hpPercent <= 35
+                          ? "Ferido"
+                          : "Estável"
+                    }
+                  />
+                </Stack>
+
+                <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+                  <TextField
+                    type="number"
+                    label="Dano"
+                    value={damageValue}
+                    onChange={(event) => setDamageValue(Number(event.target.value))}
+                    size="small"
+                    fullWidth
+                  />
+                  <Button fullWidth color="error" variant="contained" onClick={handleDamage}>
+                    Aplicar dano
+                  </Button>
+                </Stack>
+
+                <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+                  <TextField
+                    type="number"
+                    label="Cura"
+                    value={healValue}
+                    onChange={(event) => setHealValue(Number(event.target.value))}
+                    size="small"
+                    fullWidth
+                  />
+                  <Button fullWidth variant="contained" onClick={handleHeal}>
+                    Curar
+                  </Button>
+                  <Button fullWidth variant="outlined" onClick={handleFullHeal}>
+                    Cura total
+                  </Button>
+                </Stack>
+              </Stack>
+            </SectionCard>
+          </Stack>
+        )}
+
+        {activeTab === "itens" && (
+          <Stack spacing={1.5}>
+            <SectionCard title="Distribuição de itens">
+              <Stack spacing={1.3}>
+                <FormControl fullWidth size="small">
+                  <InputLabel>Item</InputLabel>
+                  <Select
+                    value={selectedItem}
+                    label="Item"
+                    onChange={(event) => setSelectedItem(event.target.value)}
+                  >
+                    {items.map((item) => (
+                      <MenuItem key={item.id} value={item.id}>
+                        {item.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+
+                <Button variant="contained" onClick={handleGiveItem} disabled={!selectedItem}>
+                  Dar item ao jogador
+                </Button>
+
+                <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
+                  {character.availableItems.length === 0 ? (
+                    <Typography sx={{ color: "#b9a98b", fontSize: ".9rem" }}>
+                      Nenhum item entregue.
+                    </Typography>
+                  ) : (
+                    character.availableItems.map((itemId) => {
                       const item = items.find((currentItem) => currentItem.id === itemId);
                       if (!item) return null;
 
@@ -293,183 +689,197 @@ export default function MasterAppPage({
                           onDelete={() => handleRemoveItem(item.id)}
                         />
                       );
-                    })}
-                  </Stack>
-                )}
-              </Stack>
-            </Stack>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent>
-            <Stack spacing={2}>
-              <Typography sx={{ fontWeight: 900 }}>
-                Progressão do Personagem
-              </Typography>
-
-              <Stack direction="row" spacing={1}>
-                <Chip label={`Nível ${character.level}`} />
-                <Chip label={`${character.xp}/${xpToNextLevel} XP`} />
-                <Chip label={`${character.skillPoints} pontos de skill`} />
-              </Stack>
-
-              <Typography
-                sx={{
-                  color: canLevelUp ? "#c59b4b" : "#b9a98b",
-                  fontSize: ".9rem",
-                }}
-              >
-                {canLevelUp
-                  ? "XP suficiente para subir de nivel. Ao subir, o personagem ganha 1 ponto de movimento."
-                  : "Dungeon World usa o nivel atual + 7 como referencia de XP para o proximo nivel."}
-              </Typography>
-
-              <Stack direction="row" spacing={1}>
-                <Button
-                  fullWidth
-                  variant="outlined"
-                  onClick={handleRemoveXp}
-                  disabled={xpValue <= 0}
-                >
-                  Remover XP
-                </Button>
-
-                <Stack spacing={1} sx={{ flex: 1 }}>
-                  <TextField
-                    type="number"
-                    label="XP"
-                    value={xpValue}
-                    onChange={(event) => setXpValue(Number(event.target.value))}
-                    size="small"
-                  />
-
-                  <Button
-                    fullWidth
-                    variant="contained"
-                    onClick={handleAddXp}
-                    disabled={xpValue <= 0}
-                  >
-                    Adicionar XP
-                  </Button>
+                    })
+                  )}
                 </Stack>
               </Stack>
+            </SectionCard>
 
-              <Stack direction="row" spacing={1}>
-                <Button fullWidth variant="outlined" onClick={handleLevelDown}>
-                  - Nível
-                </Button>
+            <SectionCard title="Equipados">
+              <MoveCardGrid>
+                {Object.entries(character.equipment).map(([slot, itemId]) => {
+                  const item = itemId
+                    ? items.find((currentItem) => currentItem.id === itemId)
+                    : null;
 
-                <Button
-                  fullWidth
-                  variant="contained"
-                  onClick={handleLevelUp}
-                  disabled={!canLevelUp}
-                >
-                  + Nível
-                </Button>
-                <Stack spacing={1}>
-                  <TextField
-                    type="number"
-                    label="Definir nível"
-                    value={targetLevel}
-                    onChange={(event) =>
-                      setTargetLevel(Number(event.target.value))
-                    }
-                    size="small"
-                  />
-
-                  <Button
-                    variant="outlined"
-                    onClick={handleSetLevel}
-                    disabled={targetLevel < 1}
-                  >
-                    Definir nível
-                  </Button>
-                </Stack>
-              </Stack>
-
-              <Stack spacing={1}>
-                <Typography sx={{ fontWeight: 900 }}>
-                  Controle de skills e magias
-                </Typography>
-
-                <Stack direction="row" spacing={1}>
-                  <Button fullWidth variant="outlined" onClick={handleRemoveSkillPoint}>
-                    - ponto
-                  </Button>
-
-                  <Button fullWidth variant="contained" onClick={handleAddSkillPoint}>
-                    + ponto
-                  </Button>
-                </Stack>
-
-                <Stack direction="row" spacing={1}>
-                  <Button fullWidth variant="outlined" onClick={handleUnlockSkills}>
-                    Destravar skills
-                  </Button>
-
-                  <Button fullWidth variant="outlined" onClick={handleResetSkills}>
-                    Resetar skills
-                  </Button>
-                </Stack>
-
-                <Stack direction="row" spacing={1}>
-                  <Button fullWidth variant="outlined" onClick={handleUnlockSpells}>
-                    Destravar magias
-                  </Button>
-
-                  <Button fullWidth variant="outlined" onClick={handleResetSpells}>
-                    Limpar magias
-                  </Button>
-                </Stack>
-              </Stack>
-            </Stack>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent>
-            <Stack spacing={2}>
-              <Typography sx={{ fontWeight: 900 }}>
-                Controle de Combate
-              </Typography>
-
-              <Stack spacing={1}>
-                <TextField
-                  type="number"
-                  label="Dano"
-                  value={damageValue}
-                  onChange={(event) =>
-                    setDamageValue(Number(event.target.value))
-                  }
-                  size="small"
-                />
-
-                <Button
-                  color="error"
-                  variant="contained"
-                  onClick={handleDamage}
-                >
-                  Aplicar dano
-                </Button>
-              </Stack>
-
-              <Stack spacing={1}>
-                <TextField
-                  type="number"
-                  label="Cura"
-                  value={healValue}
-                  onChange={(event) => setHealValue(Number(event.target.value))}
-                  size="small"
-                />
-
-                <Button variant="contained" onClick={handleHeal}>
-                  Curar jogador
-                </Button>
-              </Stack>
-            </Stack>
-          </CardContent>
-        </Card>
+                  return (
+                    <MoveCard
+                      key={slot}
+                      title={slot}
+                      chips={[item ? "equipado" : "vazio"]}
+                      body={item?.description ?? "Nenhum item neste espaço."}
+                      footer={item?.name}
+                    />
+                  );
+                })}
+              </MoveCardGrid>
+            </SectionCard>
+          </Stack>
+        )}
       </Stack>
     </Box>
+  );
+}
+
+function SectionCard({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <Card
+      sx={{
+        border: "1px solid rgba(217,200,159,.16)",
+        borderRadius: 3,
+        bgcolor: "rgba(17,17,15,.92)",
+        color: "#f7edd9",
+      }}
+    >
+      <CardContent>
+        <Stack spacing={1.4}>
+          <Typography sx={{ color: "#c59b4b", fontWeight: 900 }}>
+            {title}
+          </Typography>
+          {children}
+        </Stack>
+      </CardContent>
+    </Card>
+  );
+}
+
+function ResourceMeter({
+  label,
+  current,
+  max,
+  percent,
+  color,
+}: {
+  label: string;
+  current: number;
+  max: number;
+  percent: number;
+  color: string;
+}) {
+  return (
+    <Box>
+      <Stack direction="row" sx={{ justifyContent: "space-between", mb: 0.6 }}>
+        <Typography sx={{ fontWeight: 900 }}>{label}</Typography>
+        <Typography sx={{ color: "#b9a98b" }}>
+          {current} / {max}
+        </Typography>
+      </Stack>
+      <LinearProgress
+        variant="determinate"
+        value={Math.max(0, Math.min(100, percent))}
+        sx={{
+          height: 12,
+          borderRadius: 999,
+          bgcolor: "rgba(255,255,255,.08)",
+          ".MuiLinearProgress-bar": { bgcolor: color },
+        }}
+      />
+    </Box>
+  );
+}
+
+function LockGrid({ children }: { children: ReactNode }) {
+  return (
+    <Box
+      sx={{
+        display: "grid",
+        gridTemplateColumns: { xs: "1fr", sm: "repeat(3, 1fr)" },
+        gap: 1,
+      }}
+    >
+      {children}
+    </Box>
+  );
+}
+
+function LockButton({
+  label,
+  locked,
+  onLock,
+  onUnlock,
+}: {
+  label: string;
+  locked: boolean;
+  onLock: () => void;
+  onUnlock: () => void;
+}) {
+  return (
+    <Paper variant="outlined" sx={{ p: 1.1, bgcolor: "rgba(255,255,255,.04)" }}>
+      <Stack spacing={1}>
+        <Chip
+          label={`${label}: ${locked ? "travado" : "aberto"}`}
+          sx={{
+            bgcolor: locked ? "rgba(170,38,61,.18)" : "rgba(36,112,109,.18)",
+            color: "#f7edd9",
+          }}
+        />
+        <Stack direction="row" spacing={1}>
+          <Button fullWidth size="small" variant="outlined" onClick={onUnlock}>
+            Abrir
+          </Button>
+          <Button fullWidth size="small" variant="contained" onClick={onLock}>
+            Trancar
+          </Button>
+        </Stack>
+      </Stack>
+    </Paper>
+  );
+}
+
+function MoveCardGrid({ children }: { children: ReactNode }) {
+  return (
+    <Box
+      sx={{
+        display: "grid",
+        gridTemplateColumns: { xs: "1fr", md: "repeat(2, minmax(0, 1fr))" },
+        gap: 1,
+      }}
+    >
+      {children}
+    </Box>
+  );
+}
+
+function MoveCard({
+  title,
+  chips,
+  body,
+  footer,
+}: {
+  title: string;
+  chips: string[];
+  body: string;
+  footer?: string;
+}) {
+  return (
+    <Paper
+      variant="outlined"
+      sx={{
+        minHeight: 150,
+        borderColor: "rgba(217,200,159,.14)",
+        bgcolor: "rgba(255,255,255,.04)",
+        color: "#f7edd9",
+        p: 1.4,
+      }}
+    >
+      <Stack spacing={1}>
+        <Stack direction="row" spacing={0.7} sx={{ flexWrap: "wrap" }}>
+          {chips.map((chip) => (
+            <Chip key={chip} label={chip} size="small" />
+          ))}
+        </Stack>
+        <Typography sx={{ color: "#f2c76c", fontWeight: 900 }}>
+          {title}
+        </Typography>
+        <Typography sx={{ color: "#d7c59d", fontSize: ".88rem", lineHeight: 1.55 }}>
+          {body}
+        </Typography>
+        {footer && (
+          <Typography sx={{ color: "#b9a98b", fontSize: ".78rem" }}>
+            {footer}
+          </Typography>
+        )}
+      </Stack>
+    </Paper>
   );
 }

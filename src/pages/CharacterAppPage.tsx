@@ -13,6 +13,7 @@ import {
   Paper,
   Select,
   Stack,
+  SvgIcon,
   Typography,
   Dialog,
   DialogActions,
@@ -24,13 +25,20 @@ import {
 import type { ReactNode } from "react";
 import { useMemo, useRef, useState, useEffect } from "react";
 import { dwClasses } from "../data/dwClasses";
+import { basicMoves } from "../data/dwMoves";
 import { classStartingItemIds, items } from "../data/items";
-import { spells } from "../data/spells";
+import {
+  defaultSpellRisks,
+  spells,
+  type DwSpell,
+  type SpellRisk,
+} from "../data/spells";
 import CombatDiceRoller from "../components/CombatDiceRoller";
 import AttributeDistributionDrawer from "../components/AttributeDistributionDrawer";
 import {
   attributeKeys,
   attributeLabels,
+  type AttributeKey,
   type Character,
   type EquipmentSlot,
   getXpToNextLevel,
@@ -53,6 +61,7 @@ type CombatAction = {
   name: string;
   type: "attack" | "skill" | "spell";
   dice: string;
+  attribute: AttributeKey;
   detail: string;
   usesPerRest: number | null;
 };
@@ -60,8 +69,22 @@ type CombatAction = {
 type CombatRoll = {
   actionName: string;
   dice: string;
+  attribute: AttributeKey;
+  attributeValue: number;
   rolls: number[];
+  diceTotal: number;
   total: number;
+  isCritical: boolean;
+  isCriticalFailure: boolean;
+};
+
+type SpellCastRoll = {
+  spell: DwSpell;
+  rolls: number[];
+  modifier: number;
+  penalty: number;
+  total: number;
+  outcome: "success" | "partial" | "miss";
 };
 
 const tabLabels: Record<AppTab, string> = {
@@ -79,6 +102,14 @@ const tabOrder: AppTab[] = [
   "inventario",
   "combate",
 ];
+
+const tabIcons: Record<AppTab, ReactNode> = {
+  personagem: <PersonIcon />,
+  descricao: <ScrollIcon />,
+  skills: <SparkIcon />,
+  inventario: <BackpackIcon />,
+  combate: <SwordsIcon />,
+};
 
 export default function CharacterAppPage({
   mode,
@@ -105,6 +136,9 @@ export default function CharacterAppPage({
     Record<string, number>
   >({});
   const [combatRoll, setCombatRoll] = useState<CombatRoll | null>(null);
+  const [spellCastRoll, setSpellCastRoll] = useState<SpellCastRoll | null>(
+    null,
+  );
   const combatSceneRef = useRef<HTMLDivElement | null>(null);
 
   const selectedClass = useMemo(() => {
@@ -130,7 +164,11 @@ export default function CharacterAppPage({
 
   const currentTabLabels: Record<AppTab, string> = {
     ...tabLabels,
-    skills: selectedClass.usesSpells ? "Magias" : "Habilidades",
+    skills: selectedClass.usesSpells
+      ? selectedClass.id === "engenheiro-arcano"
+        ? "Efeitos"
+        : "Magias"
+      : "Habilidades",
   };
 
   const equippedItemsData = Object.values(character.equipment)
@@ -202,6 +240,10 @@ export default function CharacterAppPage({
 
   const xpToNextLevel = getXpToNextLevel(character.level);
   const canLevelUp = character.xp >= xpToNextLevel;
+  const xpPercent =
+    xpToNextLevel > 0
+      ? Math.min(100, Math.round((character.xp / xpToNextLevel) * 100))
+      : 0;
 
   const classSpells = spells.filter(
     (spell) => spell.tradition === selectedClass.id,
@@ -209,10 +251,32 @@ export default function CharacterAppPage({
   const availableSpells = classSpells.filter(
     (spell) => spell.level <= character.level,
   );
+  const preparedSpellIds = new Set([
+    ...character.preparedSpellIds,
+    ...availableSpells
+      .filter((spell) => spell.level === 0)
+      .map((spell) => spell.id),
+  ]);
+  const exhaustedSpellIds = new Set(character.exhaustedSpellIds ?? []);
   const preparedSpellCost = availableSpells
     .filter((spell) => character.preparedSpellIds.includes(spell.id))
     .reduce((acc, spell) => acc + spell.level, 0);
   const spellPreparationLimit = character.level + 1;
+  const spellCastingAttribute: AttributeKey =
+    selectedClass.spellCastingAttribute ??
+    (selectedClass.id === "clerigo" ? "sabedoria" : "inteligencia");
+  const spellCastingModifier = getAttributeModifier(
+    finalAttributes[spellCastingAttribute],
+  );
+  const spellCastPenalty = character.spellCastPenalty ?? 0;
+  const activePreparedSpells = availableSpells.filter(
+    (spell) => preparedSpellIds.has(spell.id) && !exhaustedSpellIds.has(spell.id),
+  );
+  const spentSkillPoints = character.selectedSkillIds.length;
+  const remainingSkillPoints = Math.max(
+    0,
+    character.skillPoints - spentSkillPoints,
+  );
 
   const learnedAdvancedSkills = [
     ...selectedClass.advancedSkillsLevel2To5,
@@ -225,20 +289,21 @@ export default function CharacterAppPage({
       name: "Ataque comum",
       type: "attack",
       dice: `1${selectedClass.damageDice}`,
+      attribute: selectedClass.mainAttribute ?? "forca",
       detail: `Dano base da classe: ${selectedClass.damageDice}.`,
       usesPerRest: null,
     },
     ...(selectedClass.usesSpells
-      ? availableSpells
-          .filter((spell) => character.preparedSpellIds.includes(spell.id))
+      ? activePreparedSpells
+          .filter((spell) => spell.damageDice)
           .map<CombatAction>((spell) => ({
             id: `spell-${spell.id}`,
             name: spell.name,
             type: "spell",
-            dice:
-              spell.level === 0 ? "1d4" : spell.level >= 7 ? "1d12" : "1d10",
+            dice: spell.damageDice ?? "1d4",
+            attribute: spellCastingAttribute,
             detail: `${spell.levelLabel}. ${spell.summary}`,
-            usesPerRest: spell.level === 0 ? null : 1,
+            usesPerRest: null,
           }))
       : [
           ...selectedClass.startingSkills.map<CombatAction>((skill) => ({
@@ -246,6 +311,7 @@ export default function CharacterAppPage({
             name: skill.name,
             type: "skill",
             dice: `1${selectedClass.damageDice}`,
+            attribute: skill.rollAttribute ?? selectedClass.mainAttribute ?? "forca",
             detail: skill.description,
             usesPerRest: null,
           })),
@@ -260,6 +326,8 @@ export default function CharacterAppPage({
               name: skill.name,
               type: "skill",
               dice: `1${selectedClass.damageDice}`,
+              attribute:
+                skill.rollAttribute ?? selectedClass.mainAttribute ?? "forca",
               detail: skill.description,
               usesPerRest: 1,
             })),
@@ -352,6 +420,10 @@ export default function CharacterAppPage({
       classLocked: true,
       raceId: nextRaceId,
       raceLocked: Boolean(nextRaceId),
+      preparedSpellIds: [],
+      exhaustedSpellIds: [],
+      spellCastPenalty: 0,
+      spellsLocked: false,
       availableItems: Array.from(
         new Set([...current.availableItems, ...startingItemIds]),
       ),
@@ -415,20 +487,19 @@ export default function CharacterAppPage({
     if (!item) return null;
 
     if (item.slot === "arma") {
-  if (!character.equipment.arma) {
-    return "arma";
-  }
+      if (character.equipment.arma === itemId) return "arma";
+      if (character.equipment.armaSecundaria === itemId) {
+        return "armaSecundaria";
+      }
+      if (!character.equipment.arma) return "arma";
+      if (!character.equipment.armaSecundaria) return "armaSecundaria";
 
-  if (!character.equipment.armaSecundaria) {
-    return "armaSecundaria";
-  }
+      return "arma";
+    }
 
-  return "arma";
-}
-
-if (item.slot !== "acessorio") {
-  return item.slot;
-}
+    if (item.slot !== "acessorio") {
+      return item.slot;
+    }
 
     if (character.equipment.acessorio1 === itemId) return "acessorio1";
     if (character.equipment.acessorio2 === itemId) return "acessorio2";
@@ -475,6 +546,7 @@ if (item.slot !== "acessorio") {
       (currentSpell) => currentSpell.id === spellId,
     );
     if (!spell) return;
+    if (spell.level === 0) return;
 
     const isPrepared = character.preparedSpellIds.includes(spellId);
     const nextCost = isPrepared
@@ -493,6 +565,67 @@ if (item.slot !== "acessorio") {
     }));
   }
 
+  function confirmSpellPreparation() {
+    setCharacter((current) => ({
+      ...current,
+      exhaustedSpellIds: [],
+      spellCastPenalty: 0,
+      spellsLocked: true,
+    }));
+    setSpellCastRoll(null);
+  }
+
+  function resetSpellPreparation() {
+    setCharacter((current) => ({
+      ...current,
+      preparedSpellIds: [],
+      exhaustedSpellIds: [],
+      spellCastPenalty: 0,
+      spellsLocked: false,
+    }));
+    setSpellCastRoll(null);
+  }
+
+  function castSpell(spell: DwSpell) {
+    if (!preparedSpellIds.has(spell.id) || exhaustedSpellIds.has(spell.id)) {
+      return;
+    }
+
+    const rolls = [
+      Math.floor(Math.random() * 6) + 1,
+      Math.floor(Math.random() * 6) + 1,
+    ];
+    const total =
+      rolls[0] + rolls[1] + spellCastingModifier + spellCastPenalty;
+    const outcome =
+      total >= 10 ? "success" : total >= 7 ? "partial" : "miss";
+
+    setSpellCastRoll({
+      spell,
+      rolls,
+      modifier: spellCastingModifier,
+      penalty: spellCastPenalty,
+      total,
+      outcome,
+    });
+  }
+
+  function applySpellPenalty() {
+    setCharacter((current) => ({
+      ...current,
+      spellCastPenalty: Math.max(-3, (current.spellCastPenalty ?? 0) - 1),
+    }));
+  }
+
+  function exhaustSpell(spellId: string) {
+    setCharacter((current) => ({
+      ...current,
+      exhaustedSpellIds: (current.exhaustedSpellIds ?? []).includes(spellId)
+        ? current.exhaustedSpellIds
+        : [...(current.exhaustedSpellIds ?? []), spellId],
+    }));
+  }
+
   function rollCombatAction(action: CombatAction) {
     setIsCombatPickerOpen(false);
     setRollingActionName(action.name);
@@ -501,22 +634,25 @@ if (item.slot !== "acessorio") {
     setIsRollingCombat(true);
 
     window.setTimeout(() => {
-      const match = action.dice.match(/^(\d+)d(\d+)$/);
-      const diceCount = match ? Number(match[1]) : 1;
-      const dieSize = match
-        ? Number(match[2])
-        : Number(action.dice.replace("d", ""));
+      const { diceCount, dieSize } = parseDice(action.dice);
 
       const rolls = Array.from(
         { length: diceCount },
         () => Math.floor(Math.random() * dieSize) + 1,
       );
+      const diceTotal = rolls.reduce((acc, value) => acc + value, 0);
+      const attributeValue = finalAttributes[action.attribute];
 
       setCombatRoll({
         actionName: action.name,
         dice: action.dice,
+        attribute: action.attribute,
+        attributeValue,
         rolls,
-        total: rolls.reduce((acc, value) => acc + value, 0),
+        diceTotal,
+        total: diceTotal + attributeValue,
+        isCritical: rolls.every((value) => value === dieSize),
+        isCriticalFailure: rolls.every((value) => value === 1),
       });
 
       if (action.usesPerRest !== null) {
@@ -541,17 +677,31 @@ if (item.slot !== "acessorio") {
     <Box
       component="main"
       sx={{
-        minHeight: "100vh",
+        height: "100dvh",
+        minHeight: 0,
+        overflow: "hidden",
         bgcolor: "#070706",
         background:
           "radial-gradient(circle at 10% 0%, rgba(170,38,61,.26), transparent 22rem), radial-gradient(circle at 90% 12%, rgba(36,112,109,.22), transparent 20rem), linear-gradient(180deg, #12100d 0%, #070706 100%)",
         color: "#f7edd9",
-        px: 1.5,
-        py: 2,
-        pb: 11,
+        px: { xs: 1.25, sm: 2 },
+        py: { xs: 1.25, sm: 2 },
       }}
     >
-      <Stack spacing={1.5} sx={{ maxWidth: 520, mx: "auto" }}>
+      <Stack
+        spacing={1.5}
+        sx={{
+          width: "100%",
+          maxWidth: { xs: 520, md: 760 },
+          height: "100%",
+          mx: "auto",
+          overflowY: "auto",
+          overscrollBehavior: "contain",
+          pb: "calc(96px + env(safe-area-inset-bottom))",
+          pr: { xs: 0, sm: 0.5 },
+          scrollbarWidth: "thin",
+        }}
+      >
         <Stack direction="row" spacing={1}>
           {mode === "player" && onBackToCodex && (
             <Button variant="outlined" onClick={onBackToCodex}>
@@ -569,7 +719,7 @@ if (item.slot !== "acessorio") {
         <Card
           sx={{
             position: "relative",
-            overflow: "hidden",
+            overflow: "visible",
             border: "1px solid rgba(217,200,159,.18)",
             borderRadius: 4,
             bgcolor: "rgba(17,17,15,.92)",
@@ -750,10 +900,32 @@ if (item.slot !== "acessorio") {
                     percent={hpPercent}
                     color="#aa263d"
                   />
+
+                  <ResourceBar
+                    label="XP"
+                    current={character.xp}
+                    max={xpToNextLevel}
+                    percent={xpPercent}
+                    color={canLevelUp ? "#f2c76c" : "#5fb6c4"}
+                  />
+
+                  {canLevelUp && (
+                    <Typography
+                      sx={{
+                        color: "#f2c76c",
+                        fontSize: ".88rem",
+                        fontWeight: 900,
+                      }}
+                    >
+                      XP suficiente para subir de nivel pelo painel do mestre.
+                    </Typography>
+                  )}
+
                   <Stack
                     direction="row"
                     spacing={1}
                     sx={{
+                      display: "none",
                       flexWrap: "wrap",
                     }}
                   >
@@ -943,6 +1115,15 @@ if (item.slot !== "acessorio") {
 
               {activeTab === "skills" && !selectedClass.usesSpells && (
                 <Stack spacing={2}>
+                  <SkillPointsBadge
+                    total={character.skillPoints}
+                    spent={spentSkillPoints}
+                    remaining={remainingSkillPoints}
+                    locked={character.skillsLocked}
+                  />
+
+                  <BasicMovesPanel />
+
                   <InfoPanel title="Habilidades Iniciais">
                     <Stack spacing={1.2}>
                       {selectedClass.startingSkills.map((skill) => (
@@ -1339,66 +1520,103 @@ if (item.slot !== "acessorio") {
 
               {activeTab === "skills" && selectedClass.usesSpells && (
                 <Stack spacing={2}>
-                  <InfoPanel title="Magias preparadas">
-                    {!selectedClass.usesSpells ? (
-                      <Typography sx={{ color: "#b9a98b" }}>
-                        Esta classe nao usa preparo de magias pelo modelo base
-                        de Dungeon World.
-                      </Typography>
-                    ) : (
-                      <Stack spacing={1.2}>
-                        <Stack
-                          direction="row"
-                          spacing={1}
-                          sx={{ flexWrap: "wrap" }}
-                        >
-                          <Chip
-                            label={`${preparedSpellCost}/${spellPreparationLimit} niveis preparados`}
-                            sx={{
-                              bgcolor: "rgba(95,182,196,.16)",
-                              color: "#dff7ff",
-                            }}
-                          />
-                          <Chip
-                            label={
-                              character.spellsLocked
-                                ? "Preparo travado"
-                                : "Preparo aberto"
-                            }
-                            sx={{
-                              bgcolor: character.spellsLocked
+                  <SkillPointsBadge
+                    total={character.skillPoints}
+                    spent={spentSkillPoints}
+                    remaining={remainingSkillPoints}
+                    locked={character.skillsLocked}
+                  />
+
+                  <BasicMovesPanel />
+
+                  <InfoPanel title="Preparo arcano">
+                    <Stack spacing={1.2}>
+                      <Stack
+                        direction="row"
+                        spacing={1}
+                        sx={{ flexWrap: "wrap" }}
+                      >
+                        <Chip
+                          label={`${preparedSpellCost}/${spellPreparationLimit} niveis preparados`}
+                          sx={{
+                            bgcolor: "rgba(95,182,196,.16)",
+                            color: "#dff7ff",
+                          }}
+                        />
+                        <Chip
+                          label={`${selectedClass.spellcastingLabel ?? "Conjurar"} +${attributeLabels[spellCastingAttribute]}`}
+                          sx={{
+                            bgcolor: "rgba(197,155,75,.16)",
+                            color: "#f7edd9",
+                          }}
+                        />
+                        <Chip
+                          label={
+                            spellCastPenalty < 0
+                              ? `Penalidade ${spellCastPenalty}`
+                              : "Sem penalidade"
+                          }
+                          sx={{
+                            bgcolor:
+                              spellCastPenalty < 0
                                 ? "rgba(170,38,61,.18)"
                                 : "rgba(36,112,109,.18)",
-                              color: "#f7edd9",
-                            }}
-                          />
-                        </Stack>
+                            color: "#f7edd9",
+                          }}
+                        />
+                        <Chip
+                          label={
+                            character.spellsLocked
+                              ? "Preparo travado"
+                              : "Preparo aberto"
+                          }
+                          sx={{
+                            bgcolor: character.spellsLocked
+                              ? "rgba(170,38,61,.18)"
+                              : "rgba(36,112,109,.18)",
+                            color: "#f7edd9",
+                          }}
+                        />
+                      </Stack>
 
-                        <Typography
-                          sx={{ color: "#b9a98b", fontSize: ".9rem" }}
-                        >
-                          Oracoes e truques custam 0. Magias de nivel 1 ou maior
-                          ocupam espaco de preparo conforme seu nivel.
-                        </Typography>
+                      <Typography sx={{ color: "#b9a98b", fontSize: ".9rem" }}>
+                        Rotinas, oracoes e truques custam 0 e ficam sempre prontos.
+                        Magias e efeitos de nivel 1 ou maior ocupam preparo ate
+                        o limite nivel + 1. Em 7-9, escolha uma consequencia de
+                        Dungeon World.
+                      </Typography>
 
+                      <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
                         <Button
+                          fullWidth
                           variant="contained"
-                          disabled={
-                            character.spellsLocked ||
-                            character.preparedSpellIds.length === 0
-                          }
-                          onClick={() =>
-                            setCharacter((current) => ({
-                              ...current,
-                              spellsLocked: true,
-                            }))
-                          }
+                          disabled={character.spellsLocked}
+                          onClick={confirmSpellPreparation}
                         >
                           Confirmar preparo
                         </Button>
+                        <Button
+                          fullWidth
+                          variant="outlined"
+                          onClick={resetSpellPreparation}
+                        >
+                          Repreparar
+                        </Button>
                       </Stack>
-                    )}
+                    </Stack>
                   </InfoPanel>
+
+                  {spellCastRoll && (
+                    <SpellCastResultPanel
+                      roll={spellCastRoll}
+                      risk={
+                        spellCastRoll.spell.risk ??
+                        defaultSpellRisks[spellCastRoll.spell.tradition]
+                      }
+                      onApplyPenalty={applySpellPenalty}
+                      onExhaustSpell={() => exhaustSpell(spellCastRoll.spell.id)}
+                    />
+                  )}
 
                   {selectedClass.usesSpells && (
                     <InfoPanel title="Lista de magias">
@@ -1410,7 +1628,8 @@ if (item.slot !== "acessorio") {
                         <Stack spacing={1.2}>
                           {availableSpells.map((spell) => {
                             const isPrepared =
-                              character.preparedSpellIds.includes(spell.id);
+                              preparedSpellIds.has(spell.id);
+                            const isExhausted = exhaustedSpellIds.has(spell.id);
                             const wouldExceed =
                               !isPrepared &&
                               preparedSpellCost + spell.level >
@@ -1425,7 +1644,9 @@ if (item.slot !== "acessorio") {
                                     ? "rgba(95,182,196,.65)"
                                     : "rgba(217,200,159,.14)",
                                   bgcolor: isPrepared
-                                    ? "rgba(95,182,196,.12)"
+                                    ? isExhausted
+                                      ? "rgba(170,38,61,.12)"
+                                      : "rgba(95,182,196,.12)"
                                     : "rgba(255,255,255,.04)",
                                   color: "#f7edd9",
                                   p: 1.5,
@@ -1439,6 +1660,14 @@ if (item.slot !== "acessorio") {
                                   >
                                     <Chip label={spell.levelLabel} />
                                     {isPrepared && <Chip label="Preparada" />}
+                                    {isExhausted && <Chip label="Gasta" />}
+                                    {spell.isOngoing && <Chip label="Continuo" />}
+                                    {spell.damageDice && (
+                                      <Chip label={`Dano ${spell.damageDice}`} />
+                                    )}
+                                    {spell.tags?.map((tag) => (
+                                      <Chip key={tag} label={tag} />
+                                    ))}
                                   </Stack>
 
                                   <Typography
@@ -1466,23 +1695,38 @@ if (item.slot !== "acessorio") {
                                     onClick={() =>
                                       setDescriptionDialog({
                                         title: spell.name,
-                                        body: spell.summary,
+                                        body: spell.fullText ?? spell.summary,
                                       })
                                     }
                                   >
                                     Ler descricao completa
                                   </Button>
 
+                                  {isPrepared && (
+                                    <Button
+                                      variant="contained"
+                                      disabled={isExhausted}
+                                      onClick={() => castSpell(spell)}
+                                    >
+                                      {selectedClass.spellcastingLabel ??
+                                        "Conjurar"}
+                                    </Button>
+                                  )}
+
                                   <Button
                                     variant={
                                       isPrepared ? "contained" : "outlined"
                                     }
                                     disabled={
-                                      character.spellsLocked || wouldExceed
+                                      spell.level === 0 ||
+                                      character.spellsLocked ||
+                                      wouldExceed
                                     }
                                     onClick={() => toggleSpell(spell.id)}
                                   >
-                                    {isPrepared
+                                    {spell.level === 0
+                                      ? "Sempre pronta"
+                                      : isPrepared
                                       ? "Remover preparo"
                                       : character.spellsLocked
                                         ? "Travada pelo mestre"
@@ -1548,7 +1792,7 @@ if (item.slot !== "acessorio") {
     actionName={rollingActionName || combatRoll?.actionName || ""}
     dice={rollingDice || combatRoll?.dice || ""}
     rolls={combatRoll?.rolls ?? []}
-    total={combatRoll?.total ?? null}
+    total={combatRoll?.diceTotal ?? null}
   />
 </Box>
                   <Box ref={combatSceneRef}>
@@ -1580,7 +1824,7 @@ if (item.slot !== "acessorio") {
                           }}
                         >
                           {combatRoll ? (
-                            <CombatDie roll={combatRoll} />
+                            <CombatSceneResult roll={combatRoll} />
                           ) : (
                             <ClassSigil classId={selectedClass.id} />
                           )}
@@ -1597,7 +1841,14 @@ if (item.slot !== "acessorio") {
                             textAlign: "center",
                           }}
                         >
-                          {combatRoll.actionName}: {combatRoll.total}
+                          {combatRoll.isCritical
+                            ? "Acerto critico"
+                            : combatRoll.isCriticalFailure
+                              ? "Falha critica"
+                              : combatRoll.actionName}
+                          : {combatRoll.diceTotal} +{" "}
+                          {attributeLabels[combatRoll.attribute]}{" "}
+                          {combatRoll.attributeValue} = {combatRoll.total}
                         </Typography>
                       )}
                     </InfoPanel>
@@ -1716,13 +1967,17 @@ if (item.slot !== "acessorio") {
                     <Box
                       sx={{
                         display: "grid",
-                        gridTemplateColumns: "repeat(2, 1fr)",
+                        gridTemplateColumns: {
+                          xs: "repeat(2, minmax(0, 1fr))",
+                          sm: "repeat(3, minmax(0, 1fr))",
+                        },
                         gap: 1,
                       }}
                     >
                       {(
                         [
                           "arma",
+                          "armaSecundaria",
                           "armadura",
                           "capacete",
                           "acessorio1",
@@ -1841,29 +2096,43 @@ if (item.slot !== "acessorio") {
         sx={{
           position: "fixed",
           right: 12,
-          bottom: 12,
+          bottom: "calc(12px + env(safe-area-inset-bottom))",
           left: 12,
-          maxWidth: 520,
+          zIndex: 20,
+          maxWidth: { xs: 520, md: 760 },
           mx: "auto",
           overflow: "hidden",
           border: "1px solid rgba(217,200,159,.18)",
-          borderRadius: 4,
+          borderRadius: 3,
           bgcolor: "rgba(8,8,7,.92)",
+          backdropFilter: "blur(16px)",
         }}
       >
         <BottomNavigation
-          showLabels
           value={activeTab}
           onChange={(_, value: AppTab) => setActiveTab(value)}
           sx={{
+            height: { xs: 62, sm: 68 },
             bgcolor: "transparent",
-            ".MuiBottomNavigationAction-root": { color: "#b9a98b" },
+            ".MuiBottomNavigationAction-root": {
+              minWidth: 0,
+              color: "#b9a98b",
+              px: { xs: 0.5, sm: 1 },
+            },
+            ".MuiBottomNavigationAction-root .MuiSvgIcon-root": {
+              fontSize: { xs: 24, sm: 27 },
+            },
+            ".MuiBottomNavigationAction-label": {
+              display: "none",
+            },
             ".Mui-selected": { color: "#f2c76c" },
           }}
         >
           {tabOrder.map((tab) => (
             <BottomNavigationAction
               label={currentTabLabels[tab]}
+              aria-label={currentTabLabels[tab]}
+              icon={tabIcons[tab]}
               value={tab}
               key={tab}
             />
@@ -2031,6 +2300,104 @@ function ResourceBar({
   );
 }
 
+function parseDice(dice: string) {
+  const match = dice.match(/^(\d+)d(\d+)$/);
+
+  return {
+    diceCount: match ? Number(match[1]) : 1,
+    dieSize: match ? Number(match[2]) : Number(dice.replace("d", "")),
+  };
+}
+
+function PersonIcon() {
+  return (
+    <SvgIcon viewBox="0 0 24 24">
+      <path
+        d="M12 12.2a4.1 4.1 0 1 0 0-8.2 4.1 4.1 0 0 0 0 8.2Zm-7 8.3c.8-4 3.3-6.1 7-6.1s6.2 2.1 7 6.1"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.9"
+      />
+    </SvgIcon>
+  );
+}
+
+function ScrollIcon() {
+  return (
+    <SvgIcon viewBox="0 0 24 24">
+      <path
+        d="M7 5.5C7 3.6 8.2 3 9.5 3H18v14.5c0 1.9-1.2 3.5-3.2 3.5H7.5C5.6 21 4 19.7 4 17.7c0-1.8 1.3-3.2 3-3.2V5.5Z"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.8"
+      />
+      <path
+        d="M7 14.5h8m-5-7h5m-5 4h5"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeWidth="1.8"
+      />
+    </SvgIcon>
+  );
+}
+
+function SparkIcon() {
+  return (
+    <SvgIcon viewBox="0 0 24 24">
+      <path
+        d="m12 3 1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3Zm6 10 .8 2.2L21 16l-2.2.8L18 19l-.8-2.2L15 16l2.2-.8L18 13ZM6 15l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7.7-2Z"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.7"
+      />
+    </SvgIcon>
+  );
+}
+
+function BackpackIcon() {
+  return (
+    <SvgIcon viewBox="0 0 24 24">
+      <path
+        d="M8 8V6.8C8 4.7 9.6 3 12 3s4 1.7 4 3.8V8m-9.5 3H9m6 0h2.5M7 8h10c1.7 0 3 1.3 3 3v8.5c0 .8-.7 1.5-1.5 1.5h-13c-.8 0-1.5-.7-1.5-1.5V11c0-1.7 1.3-3 3-3Z"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.8"
+      />
+      <path
+        d="M8 16h8v5H8v-5Z"
+        fill="none"
+        stroke="currentColor"
+        strokeLinejoin="round"
+        strokeWidth="1.8"
+      />
+    </SvgIcon>
+  );
+}
+
+function SwordsIcon() {
+  return (
+    <SvgIcon viewBox="0 0 24 24">
+      <path
+        d="m4 20 5.8-5.8m.8-3.6L18 3h3v3l-7.6 7.4m-4-4L4 4m0 0v4m0-4h4m7.2 10.2L20 19m0 0v-4m0 4h-4"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.8"
+      />
+    </SvgIcon>
+  );
+}
+
 function InfoPanel({
   title,
   children,
@@ -2080,17 +2447,197 @@ function CombatStat({ label, value }: { label: string; value: string }) {
   );
 }
 
+function SkillPointsBadge({
+  total,
+  spent,
+  remaining,
+  locked,
+}: {
+  total: number;
+  spent: number;
+  remaining: number;
+  locked: boolean;
+}) {
+  return (
+    <Paper
+      variant="outlined"
+      sx={{
+        borderColor:
+          remaining > 0 ? "rgba(242,199,108,.48)" : "rgba(217,200,159,.16)",
+        bgcolor:
+          remaining > 0
+            ? "linear-gradient(135deg, rgba(197,155,75,.18), rgba(127,111,217,.12))"
+            : "rgba(255,255,255,.04)",
+        color: "#f7edd9",
+        p: 1.4,
+      }}
+    >
+      <Stack
+        direction="row"
+        spacing={1.2}
+        sx={{ alignItems: "center", justifyContent: "space-between" }}
+      >
+        <Box>
+          <Typography sx={{ color: "#c59b4b", fontSize: ".74rem", fontWeight: 900 }}>
+            Pontos de movimento
+          </Typography>
+          <Typography sx={{ color: "#b9a98b", fontSize: ".84rem" }}>
+            {spent} usados de {total}
+          </Typography>
+        </Box>
+
+        <Chip
+          label={`${remaining} livres`}
+          sx={{
+            bgcolor: remaining > 0 ? "rgba(242,199,108,.2)" : "rgba(255,255,255,.08)",
+            color: remaining > 0 ? "#fff3dc" : "#b9a98b",
+            fontWeight: 900,
+          }}
+        />
+
+        {locked && (
+          <Chip
+            label="Travado"
+            sx={{
+              bgcolor: "rgba(170,38,61,.18)",
+              color: "#ffd7dc",
+              fontWeight: 900,
+            }}
+          />
+        )}
+      </Stack>
+    </Paper>
+  );
+}
+
+function BasicMovesPanel() {
+  return (
+    <InfoPanel title="Movimentos basicos">
+      <Stack spacing={1.2}>
+        {basicMoves.map((move) => (
+          <Paper
+            key={move.id}
+            variant="outlined"
+            sx={{
+              borderColor: "rgba(217,200,159,.14)",
+              bgcolor: "rgba(255,255,255,.04)",
+              color: "#f7edd9",
+              p: 1.3,
+            }}
+          >
+            <Stack spacing={0.8}>
+              <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
+                <Chip label={move.name} />
+                {move.attribute && (
+                  <Chip label={`+${attributeLabels[move.attribute]}`} />
+                )}
+              </Stack>
+
+              <Typography sx={{ color: "#d7c59d", fontSize: ".88rem" }}>
+                {move.trigger}
+              </Typography>
+
+              <Typography sx={{ color: "#b9a98b", fontSize: ".82rem" }}>
+                {move.hit}
+              </Typography>
+
+              <Typography sx={{ color: "#b9a98b", fontSize: ".82rem" }}>
+                {move.partial}
+              </Typography>
+            </Stack>
+          </Paper>
+        ))}
+      </Stack>
+    </InfoPanel>
+  );
+}
+
+function SpellCastResultPanel({
+  roll,
+  risk,
+  onApplyPenalty,
+  onExhaustSpell,
+}: {
+  roll: SpellCastRoll;
+  risk: SpellRisk;
+  onApplyPenalty: () => void;
+  onExhaustSpell: () => void;
+}) {
+  const outcomeLabel =
+    roll.outcome === "success"
+      ? "10+ sucesso total"
+      : roll.outcome === "partial"
+        ? "7-9 sucesso com custo"
+        : "6- o MJ faz um movimento";
+
+  return (
+    <InfoPanel title="Rolagem de magia">
+      <Stack spacing={1.2}>
+        <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
+          <Chip label={roll.spell.name} />
+          <Chip label={`2d6: ${roll.rolls.join(" + ")}`} />
+          <Chip label={`Mod ${roll.modifier >= 0 ? "+" : ""}${roll.modifier}`} />
+          {roll.penalty !== 0 && <Chip label={`Penalidade ${roll.penalty}`} />}
+          <Chip label={`Total ${roll.total}`} />
+        </Stack>
+
+        <Typography
+          sx={{
+            color: roll.outcome === "miss" ? "#ffb0b8" : "#f2c76c",
+            fontWeight: 900,
+          }}
+        >
+          {outcomeLabel}
+        </Typography>
+
+        {roll.outcome === "partial" && (
+          <Stack spacing={1}>
+            <Typography sx={{ color: "#d7c59d", fontSize: ".9rem" }}>
+              Escolha uma consequencia:
+            </Typography>
+            <Paper variant="outlined" sx={{ p: 1.2, bgcolor: "rgba(255,255,255,.04)" }}>
+              <Typography sx={{ color: "#b9a98b", fontSize: ".88rem" }}>
+                {risk.attention}
+              </Typography>
+            </Paper>
+            <Button variant="outlined" onClick={onApplyPenalty}>
+              Aplicar penalidade -1
+            </Button>
+            <Typography sx={{ color: "#b9a98b", fontSize: ".82rem" }}>
+              {risk.penalty}
+            </Typography>
+            <Button variant="outlined" onClick={onExhaustSpell}>
+              Marcar como gasto/esquecido
+            </Button>
+            <Typography sx={{ color: "#b9a98b", fontSize: ".82rem" }}>
+              {risk.losePrepared}
+            </Typography>
+          </Stack>
+        )}
+
+        {roll.outcome === "miss" && (
+          <Typography sx={{ color: "#b9a98b", fontSize: ".9rem" }}>
+            A magia ainda pode acontecer, mas o MJ faz um movimento tao forte
+            quanto a ficcao pedir.
+          </Typography>
+        )}
+      </Stack>
+    </InfoPanel>
+  );
+}
+
 function EquipmentSlotCard({
   slot,
   classId,
   itemName,
 }: {
-  slot: string;
+  slot: EquipmentSlot;
   classId: string;
   itemName?: string;
 }) {
-  const labels: Record<string, string> = {
+  const labels: Record<EquipmentSlot, string> = {
     arma: "Arma",
+    armaSecundaria: "Arma secundaria",
     armadura: "Armadura",
     capacete: "Cabeca",
     acessorio1: "Acessorio",
@@ -2105,12 +2652,13 @@ function EquipmentSlotCard({
     guerreiro: "⚔",
     ladrao: "🗡",
     mago: "杖",
+    "engenheiro-arcano": "⚙",
     paladino: "⚔",
     ranger: "弓",
   };
 
   const slotIcon =
-    slot === "arma"
+    slot === "arma" || slot === "armaSecundaria"
       ? (weaponSilhouettes[classId] ?? "⚔")
       : slot === "armadura"
         ? "▣"
@@ -2122,7 +2670,7 @@ function EquipmentSlotCard({
     <Paper
       variant="outlined"
       sx={{
-        minHeight: 112,
+        minHeight: { xs: 112, sm: 124 },
         display: "grid",
         placeItems: "center",
         textAlign: "center",
@@ -2149,7 +2697,13 @@ function EquipmentSlotCard({
           {labels[slot] ?? slot}
         </Typography>
 
-        <Typography sx={{ fontWeight: 900, fontSize: ".86rem" }}>
+        <Typography
+          sx={{
+            fontWeight: 900,
+            fontSize: ".86rem",
+            overflowWrap: "anywhere",
+          }}
+        >
           {itemName ?? "Vazio"}
         </Typography>
       </Stack>
@@ -2184,6 +2738,7 @@ function CombatActionCard({
       <Stack spacing={1}>
         <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
           <Chip label={action.dice} />
+          <Chip label={`+${attributeLabels[action.attribute]}`} />
           <Chip label={usesLabel} />
         </Stack>
 
@@ -2205,35 +2760,52 @@ function CombatActionCard({
   );
 }
 
-function CombatDie({ roll }: { roll: CombatRoll }) {
+function CombatSceneResult({ roll }: { roll: CombatRoll }) {
+  const tone = roll.isCritical
+    ? {
+        title: "Acerto critico",
+        color: "#f2c76c",
+        glow: "rgba(242,199,108,.42)",
+      }
+    : roll.isCriticalFailure
+      ? {
+          title: "Falha critica",
+          color: "#ff8f9d",
+          glow: "rgba(170,38,61,.45)",
+        }
+      : {
+          title: "Ataque executado",
+          color: "#5fb6c4",
+          glow: "rgba(95,182,196,.32)",
+        };
+
   return (
     <Box
       sx={{
-        width: 112,
-        height: 112,
+        width: "min(100%, 260px)",
+        minHeight: 156,
         display: "grid",
         placeItems: "center",
         position: "relative",
-        borderRadius: 4,
-        border: "2px solid rgba(242,199,108,.62)",
+        borderRadius: 3,
+        border: `2px solid ${tone.color}`,
         background:
-          "linear-gradient(145deg, rgba(242,199,108,.24), rgba(170,38,61,.28)), #16110d",
-        boxShadow:
-          "0 0 30px rgba(242,199,108,.32), inset 0 0 24px rgba(0,0,0,.45)",
-        transform: "rotate(45deg)",
+          "linear-gradient(145deg, rgba(242,199,108,.14), rgba(170,38,61,.16)), #16110d",
+        boxShadow: `0 0 34px ${tone.glow}, inset 0 0 24px rgba(0,0,0,.45)`,
+        p: 2,
       }}
     >
-      <Box sx={{ transform: "rotate(-45deg)", textAlign: "center" }}>
+      <Stack spacing={0.8} sx={{ textAlign: "center", alignItems: "center" }}>
         <Typography
-          sx={{ color: "#b9a98b", fontSize: ".75rem", fontWeight: 900 }}
+          sx={{ color: tone.color, fontSize: ".8rem", fontWeight: 900 }}
         >
-          {roll.dice}
+          {tone.title}
         </Typography>
 
         <Typography
           sx={{
             color: "#fff3dc",
-            fontSize: 38,
+            fontSize: 42,
             fontWeight: 900,
             lineHeight: 1,
           }}
@@ -2241,10 +2813,19 @@ function CombatDie({ roll }: { roll: CombatRoll }) {
           {roll.total}
         </Typography>
 
-        <Typography sx={{ color: "#f2c76c", fontSize: ".68rem" }}>
-          {roll.rolls.join(" + ")}
+        <Typography sx={{ color: "#f2c76c", fontSize: ".78rem", fontWeight: 900 }}>
+          {roll.actionName}
         </Typography>
-      </Box>
+
+        <Typography sx={{ color: "#d7c59d", fontSize: ".82rem" }}>
+          {roll.diceTotal} no dado + {attributeLabels[roll.attribute]}{" "}
+          {roll.attributeValue}
+        </Typography>
+
+        <Typography sx={{ color: "#b9a98b", fontSize: ".75rem" }}>
+          Rolagens naturais: {roll.rolls.join(" + ")}
+        </Typography>
+      </Stack>
     </Box>
   );
 }
@@ -2258,6 +2839,7 @@ function ClassSigil({ classId }: { classId: string }) {
     guerreiro: { symbol: "⚔", color: "#c0b08a" },
     ladrao: { symbol: "♦", color: "#7f6fd9" },
     mago: { symbol: "✦", color: "#5fb6c4" },
+    "engenheiro-arcano": { symbol: "⚙", color: "#64c7a8" },
     paladino: { symbol: "♜", color: "#e0c26d" },
     ranger: { symbol: "➶", color: "#7fa46b" },
   };

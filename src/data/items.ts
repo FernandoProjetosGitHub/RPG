@@ -124,6 +124,20 @@ export const items: Item[] = [
     },
   },
   {
+    id: 'chave-mecanica-longa',
+    name: 'Chave mecanica longa',
+    type: 'arma',
+    slot: 'arma',
+    weight: 1,
+    tags: ['corpo a corpo', 'duas maos', 'magitecnica'],
+    description: 'Ferramenta pesada do engenheiro arcano, util para ajustes finos e pancadas nada sutis.',
+    modifiers: {
+      attributes: {
+        inteligencia: 1,
+      },
+    },
+  },
+  {
     id: 'lanca',
     name: 'Lanca',
     type: 'arma',
@@ -181,6 +195,18 @@ export const items: Item[] = [
     weight: 1,
     tags: ['armadura 1'],
     description: 'Protecao leve que nao pesa tanto em exploracao ou furtividade.',
+    modifiers: {
+      armor: 1,
+    },
+  },
+  {
+    id: 'armadura-improvisada',
+    name: 'Armadura improvisada',
+    type: 'armadura',
+    slot: 'armadura',
+    weight: 1,
+    tags: ['armadura 1', 'magitecnica'],
+    description: 'Placas, rebites e isolamento arcano montados para sobreviver ao proximo teste de campo.',
     modifiers: {
       armor: 1,
     },
@@ -268,6 +294,7 @@ export const classStartingItemIds: Record<string, string[]> = {
   bardo: ['florete-duelo', 'armadura-couro'],
   clerigo: ['martelo-batalha', 'cota-malha'],
   druida: ['cajado', 'armadura-peles'],
+  'engenheiro-arcano': ['chave-mecanica-longa', 'armadura-improvisada', 'anel-arcano'],
   guerreiro: ['arma-assinatura', 'cota-malha'],
   ladrao: ['adaga', 'espada-curta', 'armadura-couro'],
   mago: ['cajado'],
