@@ -45,6 +45,7 @@ export type Character = {
 
   equipment: {
     arma: string | null;
+    armaSecundaria: string | null;
     armadura: string | null;
     capacete: string | null;
     acessorio1: string | null;
