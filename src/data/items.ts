@@ -164,7 +164,7 @@ export const items: Item[] = [
     slot: 'arma',
     weight: 1,
     tags: ['corpo a corpo', 'preciso'],
-    description: 'Arma leve e refinada, perfeita para ladroes e duelistas.',
+    description: 'Arma leve e refinada, perfeita para ladinos e duelistas.',
     modifiers: {},
   },
   {

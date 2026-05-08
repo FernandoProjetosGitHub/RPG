@@ -110,7 +110,7 @@ export const dwClasses: DwClass[] = [
         name: "Apetite por Destruicao",
         levelRequirement: 2,
         description:
-          "Escolha um movimento de guerreiro, bardo ou ladrao, sem pegar movimentos de multiclasse.",
+          "Escolha um movimento de guerreiro, bardo ou ladino, sem pegar movimentos de multiclasse.",
       },
       {
         id: "barbaro-impressionar-pela-forca",
@@ -789,7 +789,7 @@ advancedSkillsLevel6To10: [
 
   {
     id: "ladrao",
-    name: "Ladrão",
+    name: "Ladino",
     baseHp: 6,
     damageDice: "d8",
     loadBase: 9,

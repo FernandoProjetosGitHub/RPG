@@ -25,6 +25,7 @@ import {
 import type { ReactNode } from "react";
 import { useMemo, useRef, useState, useEffect } from "react";
 import { beginnerSheetConcepts, getClassGuide } from "../data/classGuides";
+import { classSelectSounds } from "../data/classSounds";
 import { dwClasses } from "../data/dwClasses";
 import { basicMoves } from "../data/dwMoves";
 import { classStartingItemIds, items } from "../data/items";
@@ -141,6 +142,8 @@ export default function CharacterAppPage({
     null,
   );
   const combatSceneRef = useRef<HTMLDivElement | null>(null);
+  const classAudioContextRef = useRef<AudioContext | null>(null);
+  const classAudioBuffersRef = useRef<Record<string, AudioBuffer>>({});
 
   const selectedClass = useMemo(() => {
     return (
@@ -373,29 +376,52 @@ export default function CharacterAppPage({
     setIsAttributeDrawerOpen(false);
   }
 
-  function playClassSelectSound() {
-    const audioContext = new AudioContext();
-    const oscillator = audioContext.createOscillator();
-    const gain = audioContext.createGain();
+  async function playClassSelectSound(classId: string) {
+    const classSound = classSelectSounds[classId];
+    if (!classSound) return;
 
-    oscillator.type = "sine";
-    oscillator.frequency.setValueAtTime(220, audioContext.currentTime);
-    oscillator.frequency.exponentialRampToValueAtTime(
-      440,
-      audioContext.currentTime + 0.18,
-    );
+    try {
+      const audioContext =
+        classAudioContextRef.current ?? new AudioContext();
+      classAudioContextRef.current = audioContext;
 
-    gain.gain.setValueAtTime(0.12, audioContext.currentTime);
-    gain.gain.exponentialRampToValueAtTime(
-      0.001,
-      audioContext.currentTime + 0.25,
-    );
+      if (audioContext.state === "suspended") {
+        await audioContext.resume();
+      }
 
-    oscillator.connect(gain);
-    gain.connect(audioContext.destination);
+      let audioBuffer = classAudioBuffersRef.current[classId];
 
-    oscillator.start();
-    oscillator.stop(audioContext.currentTime + 0.25);
+      if (!audioBuffer) {
+        const response = await fetch(classSound.src);
+        const arrayBuffer = await response.arrayBuffer();
+        audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+        classAudioBuffersRef.current[classId] = audioBuffer;
+      }
+
+      const source = audioContext.createBufferSource();
+      const gain = audioContext.createGain();
+      const compressor = audioContext.createDynamicsCompressor();
+
+      gain.gain.setValueAtTime(classSound.gain, audioContext.currentTime);
+      gain.gain.exponentialRampToValueAtTime(
+        Math.max(classSound.gain * 0.82, 0.001),
+        audioContext.currentTime + Math.min(audioBuffer.duration, 2.4),
+      );
+
+      compressor.threshold.setValueAtTime(-24, audioContext.currentTime);
+      compressor.knee.setValueAtTime(18, audioContext.currentTime);
+      compressor.ratio.setValueAtTime(5, audioContext.currentTime);
+      compressor.attack.setValueAtTime(0.01, audioContext.currentTime);
+      compressor.release.setValueAtTime(0.22, audioContext.currentTime);
+
+      source.buffer = audioBuffer;
+      source.connect(gain);
+      gain.connect(compressor);
+      compressor.connect(audioContext.destination);
+      source.start();
+    } catch (error) {
+      console.warn("Nao foi possivel tocar o audio da classe.", error);
+    }
   }
 
   function requestClassChange(classId: string) {
@@ -437,7 +463,7 @@ export default function CharacterAppPage({
 
     setIsClassDialogOpen(false);
     setClassSelectPulse(true);
-    playClassSelectSound();
+    void playClassSelectSound(newClass.id);
 
     setTimeout(() => {
       setActiveTab("descricao");

@@ -195,9 +195,9 @@ export const classGuides: Record<string, ClassGuide> = {
   },
   ladrao: {
     fantasy: [
-      "O Ladrao vive de oportunidade, segredo e precisao. Ele pode ser criminoso, espião, explorador urbano, assassino, trapaceiro elegante ou sobrevivente de rua.",
+      "O Ladino vive de oportunidade, segredo e precisao. Ele pode ser criminoso, espiao, explorador urbano, assassino, trapaceiro elegante ou sobrevivente de rua.",
       "A classe nao serve apenas para roubar. Ela descobre rotas, neutraliza armadilhas, prepara venenos, encontra contatos e transforma descuido alheio em vantagem.",
-      "Para iniciantes, o Ladrao ensina a perguntar pelo ambiente: sombras, fechaduras, saidas, guardas, rotinas, objetos pequenos e quem esta prestando atencao.",
+      "Para iniciantes, o Ladino ensina a perguntar pelo ambiente: sombras, fechaduras, saidas, guardas, rotinas, objetos pequenos e quem esta prestando atencao.",
     ],
     tableRole: [
       "Em combate, ele prefere alvo vulneravel, posicao favoravel e ataque decisivo em vez de troca justa de golpes.",
@@ -215,9 +215,9 @@ export const classGuides: Record<string, ClassGuide> = {
       "Se a rolagem parcial pedir custo, pense em alarme, tempo perdido, ferramenta quebrada, exposicao ou escolha entre tesouro e seguranca.",
     ],
     example:
-      "Ao encontrar uma porta com runas, o Ladrao pode observar poeira, dobradicas e marcas de ferramenta antes de mexer. O mestre pode revelar risco, pedir rolagem ou dizer o que custa desarmar sem chamar atencao.",
+      "Ao encontrar uma porta com runas, o Ladino pode observar poeira, dobradicas e marcas de ferramenta antes de mexer. O mestre pode revelar risco, pedir rolagem ou dizer o que custa desarmar sem chamar atencao.",
     gmCue:
-      "Crie seguranca com camadas: pessoas, horarios, ruido, luz, fechaduras e consequencias. O Ladrao merece problemas que possam ser resolvidos com cuidado, audacia ou plano torto.",
+      "Crie seguranca com camadas: pessoas, horarios, ruido, luz, fechaduras e consequencias. O Ladino merece problemas que possam ser resolvidos com cuidado, audacia ou plano torto.",
   },
   mago: {
     fantasy: [
