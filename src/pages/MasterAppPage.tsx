@@ -17,6 +17,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useMemo, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
+import AdventureMapsDialog from "../components/AdventureMapsDialog";
 import { dwClasses } from "../data/dwClasses";
 import { basicMoves } from "../data/dwMoves";
 import { classStartingItemIds, items } from "../data/items";
@@ -57,6 +58,7 @@ export default function MasterAppPage({
   const [targetLevel, setTargetLevel] = useState(character.level);
   const [classDraft, setClassDraft] = useState(character.classId);
   const [raceDraft, setRaceDraft] = useState(character.raceId);
+  const [isMapsDialogOpen, setIsMapsDialogOpen] = useState(false);
 
   const selectedClass =
     dwClasses.find((dwClass) => dwClass.id === character.classId) ??
@@ -299,6 +301,9 @@ export default function MasterAppPage({
           </Box>
 
           <Stack direction="row" spacing={1}>
+            <Button variant="outlined" onClick={() => setIsMapsDialogOpen(true)}>
+              Mapas
+            </Button>
             {onOpenCharacter && (
               <Button variant="contained" onClick={onOpenCharacter}>
                 Ficha
@@ -311,6 +316,11 @@ export default function MasterAppPage({
             )}
           </Stack>
         </Stack>
+
+        <AdventureMapsDialog
+          open={isMapsDialogOpen}
+          onClose={() => setIsMapsDialogOpen(false)}
+        />
 
         <Paper
           variant="outlined"

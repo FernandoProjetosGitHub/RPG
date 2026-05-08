@@ -35,6 +35,7 @@ import {
   type DwSpell,
   type SpellRisk,
 } from "../data/spells";
+import AdventureMapsDialog from "../components/AdventureMapsDialog";
 import CombatDiceRoller from "../components/CombatDiceRoller";
 import AttributeDistributionDrawer from "../components/AttributeDistributionDrawer";
 import {
@@ -124,6 +125,7 @@ export default function CharacterAppPage({
   const [pendingClassId, setPendingClassId] = useState("");
   const [pendingRaceId, setPendingRaceId] = useState("");
   const [isClassDialogOpen, setIsClassDialogOpen] = useState(false);
+  const [isMapsDialogOpen, setIsMapsDialogOpen] = useState(false);
   const [classSelectPulse, setClassSelectPulse] = useState(false);
   const [isAttributeDrawerOpen, setIsAttributeDrawerOpen] = useState(false);
   const [descriptionDialog, setDescriptionDialog] = useState<{
@@ -742,6 +744,10 @@ export default function CharacterAppPage({
               Voltar ao Mestre
             </Button>
           )}
+
+          <Button variant="contained" onClick={() => setIsMapsDialogOpen(true)}>
+            Mapas
+          </Button>
         </Stack>
 
         <Card
@@ -2440,6 +2446,11 @@ export default function CharacterAppPage({
           </Button>
         </DialogActions>
       </Dialog>
+
+      <AdventureMapsDialog
+        open={isMapsDialogOpen}
+        onClose={() => setIsMapsDialogOpen(false)}
+      />
 
       <Dialog
         open={Boolean(descriptionDialog)}
