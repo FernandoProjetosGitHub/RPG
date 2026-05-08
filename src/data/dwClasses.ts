@@ -53,6 +53,22 @@ export type DwClass = {
   advancedSkillsLevel6To10: DwSkill[];
 };
 
+export const unselectedClass: DwClass = {
+  id: "",
+  name: "Classe nao selecionada",
+  description:
+    "Escolha uma classe para liberar detalhes, movimentos, itens iniciais, combate e progresso da ficha.",
+  baseHp: 0,
+  damageDice: "d4",
+  loadBase: 0,
+  usesSpells: false,
+  characteristics: ["Escolha pendente"],
+  races: [],
+  startingSkills: [],
+  advancedSkillsLevel2To5: [],
+  advancedSkillsLevel6To10: [],
+};
+
 export const dwClasses: DwClass[] = [
   {
     id: "barbaro",

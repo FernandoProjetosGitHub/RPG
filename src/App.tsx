@@ -1,15 +1,52 @@
-import { useState } from "react";
+import { useState, type Dispatch, type SetStateAction } from "react";
 import { Box, Button, Container, Paper, Stack, Typography } from "@mui/material";
 
 import CharacterAppPage from "./pages/CharacterAppPage";
 import MasterAppPage from "./pages/MasterAppPage";
-import { initialCharacter } from "./types/character";
+import { dwClasses, unselectedClass } from "./data/dwClasses";
+import { initialCharacter, type Character, type PlayerProfileSummary } from "./types/character";
 
 type CurrentView = "home" | "playerCharacter" | "masterPanel" | "masterCharacter";
 
+const playerCount = 7;
+
+function createInitialTable() {
+  return Array.from({ length: playerCount }, () =>
+    JSON.parse(JSON.stringify(initialCharacter)) as Character,
+  );
+}
+
 export default function App() {
-  const [character, setCharacter] = useState(initialCharacter);
+  const [characters, setCharacters] = useState<Character[]>(createInitialTable);
+  const [selectedPlayerIndex, setSelectedPlayerIndex] = useState(0);
   const [currentView, setCurrentView] = useState<CurrentView>("home");
+  const character = characters[selectedPlayerIndex] ?? characters[0];
+  const setCharacter: Dispatch<SetStateAction<Character>> = (
+    update,
+  ) => {
+    setCharacters((currentCharacters) =>
+      currentCharacters.map((currentCharacter, index) => {
+        if (index !== selectedPlayerIndex) return currentCharacter;
+        return typeof update === "function"
+          ? update(currentCharacter)
+          : update;
+      }),
+    );
+  };
+  const playerProfiles: PlayerProfileSummary[] = characters.map(
+    (currentCharacter, index) => {
+      const currentClass =
+        dwClasses.find((dwClass) => dwClass.id === currentCharacter.classId) ??
+        unselectedClass;
+
+      return {
+        index,
+        label: `Jogador ${index + 1}`,
+        name: currentCharacter.name,
+        className: currentClass.name,
+      };
+    },
+  );
 
   if (currentView === "playerCharacter") {
     return (
@@ -17,6 +54,9 @@ export default function App() {
         mode="player"
         character={character}
         setCharacter={setCharacter}
+        playerProfiles={playerProfiles}
+        selectedPlayerIndex={selectedPlayerIndex}
+        onSelectPlayer={setSelectedPlayerIndex}
         onBackToCodex={() => setCurrentView("home")}
       />
     );
@@ -27,6 +67,9 @@ export default function App() {
       <MasterAppPage
         character={character}
         setCharacter={setCharacter}
+        playerProfiles={playerProfiles}
+        selectedPlayerIndex={selectedPlayerIndex}
+        onSelectPlayer={setSelectedPlayerIndex}
         onBackToCodex={() => setCurrentView("home")}
         onOpenCharacter={() => setCurrentView("masterCharacter")}
       />
@@ -39,6 +82,9 @@ export default function App() {
         mode="master"
         character={character}
         setCharacter={setCharacter}
+        playerProfiles={playerProfiles}
+        selectedPlayerIndex={selectedPlayerIndex}
+        onSelectPlayer={setSelectedPlayerIndex}
         onBackToMaster={() => setCurrentView("masterPanel")}
       />
     );
@@ -90,7 +136,10 @@ export default function App() {
                 fullWidth
                 size="large"
                 variant="contained"
-                onClick={() => setCurrentView("playerCharacter")}
+                onClick={() => {
+                  setSelectedPlayerIndex(0);
+                  setCurrentView("playerCharacter");
+                }}
                 sx={{ py: 1.4 }}
               >
                 Jogador
@@ -105,6 +154,40 @@ export default function App() {
               >
                 Mestre
               </Button>
+
+              <Paper
+                variant="outlined"
+                sx={{
+                  borderColor: "rgba(217,200,159,.14)",
+                  bgcolor: "rgba(255,255,255,.04)",
+                  p: 1.2,
+                }}
+              >
+                <Typography sx={{ color: "#c59b4b", fontWeight: 900, mb: 1 }}>
+                  Perfis da mesa
+                </Typography>
+                <Stack spacing={0.8}>
+                  {playerProfiles.map((profile) => (
+                    <Button
+                      key={profile.index}
+                      fullWidth
+                      variant={
+                        selectedPlayerIndex === profile.index
+                          ? "contained"
+                          : "outlined"
+                      }
+                      onClick={() => {
+                        setSelectedPlayerIndex(profile.index);
+                        setCurrentView("playerCharacter");
+                      }}
+                      sx={{ justifyContent: "space-between" }}
+                    >
+                      <span>{profile.label}</span>
+                      <span>{profile.name || profile.className}</span>
+                    </Button>
+                  ))}
+                </Stack>
+              </Paper>
             </Stack>
           </Stack>
         </Paper>

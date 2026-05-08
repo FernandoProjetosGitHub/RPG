@@ -16,9 +16,9 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { useMemo, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
+import { useEffect, useMemo, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
 import AdventureMapsDialog from "../components/AdventureMapsDialog";
-import { dwClasses } from "../data/dwClasses";
+import { dwClasses, unselectedClass } from "../data/dwClasses";
 import { basicMoves } from "../data/dwMoves";
 import { gmReferenceSections, monsterReferences } from "../data/gmReference";
 import { classStartingItemIds, items } from "../data/items";
@@ -27,6 +27,7 @@ import {
   attributeLabels,
   getXpToNextLevel,
   type Character,
+  type PlayerProfileSummary,
 } from "../types/character";
 
 type MasterAppPageProps = {
@@ -34,6 +35,9 @@ type MasterAppPageProps = {
   setCharacter: Dispatch<SetStateAction<Character>>;
   onBackToCodex?: () => void;
   onOpenCharacter?: () => void;
+  playerProfiles?: PlayerProfileSummary[];
+  selectedPlayerIndex?: number;
+  onSelectPlayer?: (index: number) => void;
 };
 
 type MasterTab =
@@ -58,6 +62,9 @@ export default function MasterAppPage({
   setCharacter,
   onBackToCodex,
   onOpenCharacter,
+  playerProfiles = [],
+  selectedPlayerIndex = 0,
+  onSelectPlayer,
 }: MasterAppPageProps) {
   const [activeTab, setActiveTab] = useState<MasterTab>("criacao");
   const [selectedItem, setSelectedItem] = useState("");
@@ -72,12 +79,18 @@ export default function MasterAppPage({
 
   const selectedClass =
     dwClasses.find((dwClass) => dwClass.id === character.classId) ??
-    dwClasses[0];
+    unselectedClass;
   const draftClass =
-    dwClasses.find((dwClass) => dwClass.id === classDraft) ?? selectedClass;
+    dwClasses.find((dwClass) => dwClass.id === classDraft) ?? unselectedClass;
   const selectedRace = selectedClass.races.find(
     (race) => race.id === character.raceId,
   );
+
+  useEffect(() => {
+    setClassDraft(character.classId);
+    setRaceDraft(character.raceId);
+    setTargetLevel(character.level);
+  }, [character.classId, character.raceId, character.level, selectedPlayerIndex]);
   const classSpells = spells.filter(
     (spell) => spell.tradition === selectedClass.id,
   );
@@ -305,8 +318,7 @@ export default function MasterAppPage({
           <Box>
             <Typography sx={{ fontWeight: 900 }}>Painel do Mestre</Typography>
             <Typography sx={{ color: "#b9a98b", fontSize: ".82rem" }}>
-              {character.name || "Personagem"} · {selectedClass.name}
-              {selectedRace ? ` · ${selectedRace.name}` : ""}
+              Selecione um jogador e abra a ficha apenas quando precisar editar detalhes.
             </Typography>
           </Box>
 
@@ -314,11 +326,6 @@ export default function MasterAppPage({
             <Button variant="outlined" onClick={() => setIsMapsDialogOpen(true)}>
               Mapas
             </Button>
-            {onOpenCharacter && (
-              <Button variant="contained" onClick={onOpenCharacter}>
-                Ficha
-              </Button>
-            )}
             {onBackToCodex && (
               <Button variant="outlined" onClick={onBackToCodex}>
                 Voltar
@@ -332,6 +339,61 @@ export default function MasterAppPage({
           onClose={() => setIsMapsDialogOpen(false)}
           audience="master"
         />
+
+        {playerProfiles.length > 0 && onSelectPlayer && (
+          <SectionCard title="Jogadores da mesa">
+            <Stack spacing={1.2}>
+              <Typography sx={{ color: "#d7c59d", lineHeight: 1.55 }}>
+                A mesa comeca com ate 7 jogadores. Escolha qual perfil o painel
+                do mestre esta controlando antes de aplicar classe, dano, XP,
+                itens, magias ou abrir a ficha completa.
+              </Typography>
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: {
+                    xs: "1fr",
+                    sm: "repeat(2, minmax(0, 1fr))",
+                    md: "repeat(3, minmax(0, 1fr))",
+                  },
+                  gap: 1,
+                }}
+              >
+                {playerProfiles.map((profile) => (
+                  <Button
+                    key={profile.index}
+                    variant={
+                      profile.index === selectedPlayerIndex
+                        ? "contained"
+                        : "outlined"
+                    }
+                    onClick={() => onSelectPlayer(profile.index)}
+                    sx={{
+                      minHeight: 68,
+                      justifyContent: "space-between",
+                      textAlign: "left",
+                      gap: 1,
+                    }}
+                  >
+                    <Box component="span">
+                      <Typography component="span" sx={{ display: "block", fontWeight: 900 }}>
+                        {profile.label}
+                      </Typography>
+                      <Typography component="span" sx={{ display: "block", fontSize: ".76rem", opacity: 0.82 }}>
+                        {profile.name || "Sem nome"} · {profile.className}
+                      </Typography>
+                    </Box>
+                  </Button>
+                ))}
+              </Box>
+              {onOpenCharacter && (
+                <Button variant="contained" onClick={onOpenCharacter}>
+                  Abrir ficha do jogador selecionado
+                </Button>
+              )}
+            </Stack>
+          </SectionCard>
+        )}
 
         <Paper
           variant="outlined"
@@ -377,6 +439,7 @@ export default function MasterAppPage({
                       setRaceDraft(nextClass?.races[0]?.id ?? "");
                     }}
                   >
+                    <MenuItem value="">Classe nao selecionada</MenuItem>
                     {dwClasses.map((dwClass) => (
                       <MenuItem key={dwClass.id} value={dwClass.id}>
                         {dwClass.name}
@@ -391,6 +454,7 @@ export default function MasterAppPage({
                     label="Ancestralidade/Raça"
                     value={raceDraft || draftClass.races[0]?.id || ""}
                     onChange={(event) => setRaceDraft(event.target.value)}
+                    disabled={!classDraft}
                   >
                     {draftClass.races.map((race) => (
                       <MenuItem key={race.id} value={race.id}>
@@ -400,7 +464,11 @@ export default function MasterAppPage({
                   </Select>
                 </FormControl>
 
-                <Button variant="contained" onClick={applyClassAndRace}>
+                <Button
+                  variant="contained"
+                  onClick={applyClassAndRace}
+                  disabled={!classDraft}
+                >
                   Aplicar classe, ancestralidade e itens iniciais
                 </Button>
 

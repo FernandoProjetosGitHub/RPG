@@ -62,6 +62,13 @@ export type Character = {
   spellsLocked: boolean;
 };
 
+export type PlayerProfileSummary = {
+  index: number;
+  label: string;
+  name: string;
+  className: string;
+};
+
 export const attributeLabels: Record<AttributeKey, string> = {
   forca: "Força",
   destreza: "Destreza",
@@ -87,7 +94,7 @@ export function getXpToNextLevel(level: number) {
 }
 
 export const initialCharacter: Character = {
-  name: "Alyn",
+  name: "",
   nameLocked: false,
   level: 1,
   xp: 0,

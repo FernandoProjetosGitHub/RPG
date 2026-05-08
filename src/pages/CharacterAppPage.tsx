@@ -26,7 +26,7 @@ import type { ReactNode } from "react";
 import { useMemo, useRef, useState, useEffect } from "react";
 import { beginnerSheetConcepts, getClassGuide } from "../data/classGuides";
 import { classSelectSounds } from "../data/classSounds";
-import { dwClasses } from "../data/dwClasses";
+import { dwClasses, unselectedClass } from "../data/dwClasses";
 import { basicMoves } from "../data/dwMoves";
 import { classStartingItemIds, items } from "../data/items";
 import {
@@ -44,6 +44,7 @@ import {
   type AttributeKey,
   type Character,
   type EquipmentSlot,
+  type PlayerProfileSummary,
   getXpToNextLevel,
 } from "../types/character";
 import { formatModifier } from "../utils/attributes";
@@ -57,6 +58,9 @@ type CharacterAppPageProps = {
   setCharacter: React.Dispatch<React.SetStateAction<Character>>;
   onBackToCodex?: () => void;
   onBackToMaster?: () => void;
+  playerProfiles?: PlayerProfileSummary[];
+  selectedPlayerIndex?: number;
+  onSelectPlayer?: (index: number) => void;
 };
 
 type CombatAction = {
@@ -120,6 +124,9 @@ export default function CharacterAppPage({
   setCharacter,
   onBackToCodex,
   onBackToMaster,
+  playerProfiles = [],
+  selectedPlayerIndex = 0,
+  onSelectPlayer,
 }: CharacterAppPageProps) {
   const [activeTab, setActiveTab] = useState<AppTab>("personagem");
   const [pendingClassId, setPendingClassId] = useState("");
@@ -150,7 +157,7 @@ export default function CharacterAppPage({
   const selectedClass = useMemo(() => {
     return (
       dwClasses.find((dwClass) => dwClass.id === character.classId) ??
-      dwClasses[0]
+      unselectedClass
     );
   }, [character.classId]);
   const classGuide = getClassGuide(selectedClass.id);
@@ -160,7 +167,8 @@ export default function CharacterAppPage({
   );
   const displayRace = selectedRace ?? selectedClass.races[0];
   const pendingClass =
-    dwClasses.find((dwClass) => dwClass.id === pendingClassId) ?? selectedClass;
+    dwClasses.find((dwClass) => dwClass.id === pendingClassId) ??
+    selectedClass;
   const pendingRace =
     pendingClass.races.find((race) => race.id === pendingRaceId) ??
     pendingClass.races[0];
@@ -436,9 +444,8 @@ export default function CharacterAppPage({
   }
 
   function confirmClassChange() {
-    const newClass =
-      dwClasses.find((dwClass) => dwClass.id === pendingClassId) ??
-      dwClasses[0];
+    const newClass = dwClasses.find((dwClass) => dwClass.id === pendingClassId);
+    if (!newClass) return;
 
     const newMaxHp = newClass.baseHp + character.attributes.constituicao;
     const nextRaceId = pendingRaceId || newClass.races[0]?.id || "";
@@ -732,6 +739,39 @@ export default function CharacterAppPage({
           scrollbarWidth: "thin",
         }}
       >
+        {playerProfiles.length > 0 && onSelectPlayer && (
+          <Paper
+            variant="outlined"
+            sx={{
+              borderColor: "rgba(217,200,159,.14)",
+              bgcolor: "rgba(255,255,255,.04)",
+              p: 1,
+            }}
+          >
+            <Stack spacing={0.8}>
+              <Typography sx={{ color: "#c59b4b", fontWeight: 900, fontSize: ".82rem" }}>
+                Perfil ativo
+              </Typography>
+              <Stack direction="row" useFlexGap flexWrap="wrap" gap={0.8}>
+                {playerProfiles.map((profile) => (
+                  <Button
+                    key={profile.index}
+                    size="small"
+                    variant={
+                      profile.index === selectedPlayerIndex
+                        ? "contained"
+                        : "outlined"
+                    }
+                    onClick={() => onSelectPlayer(profile.index)}
+                  >
+                    {profile.label}
+                  </Button>
+                ))}
+              </Stack>
+            </Stack>
+          </Paper>
+        )}
+
         <Stack direction="row" spacing={1}>
           {mode === "player" && onBackToCodex && (
             <Button variant="outlined" onClick={onBackToCodex}>
@@ -909,6 +949,9 @@ export default function CharacterAppPage({
                         ".MuiSvgIcon-root": { color: "#f7edd9" },
                       }}
                     >
+                      <MenuItem value="">
+                        Classe nao selecionada
+                      </MenuItem>
                       {dwClasses.map((dwClass) => (
                         <MenuItem value={dwClass.id} key={dwClass.id}>
                           {dwClass.name}
