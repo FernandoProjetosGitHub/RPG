@@ -24,6 +24,7 @@ import {
 } from "@mui/material";
 import type { ReactNode } from "react";
 import { useMemo, useRef, useState, useEffect } from "react";
+import { beginnerSheetConcepts, getClassGuide } from "../data/classGuides";
 import { dwClasses } from "../data/dwClasses";
 import { basicMoves } from "../data/dwMoves";
 import { classStartingItemIds, items } from "../data/items";
@@ -147,6 +148,7 @@ export default function CharacterAppPage({
       dwClasses[0]
     );
   }, [character.classId]);
+  const classGuide = getClassGuide(selectedClass.id);
 
   const selectedRace = selectedClass.races.find(
     (race) => race.id === character.raceId,
@@ -1065,6 +1067,7 @@ export default function CharacterAppPage({
               )}
 
               {activeTab === "descricao" && (
+                <Stack spacing={2}>
                 <InfoPanel title={selectedClass.name}>
                   <Typography sx={{ color: "#d7c59d", mb: 2 }}>
                     {selectedClass.description}
@@ -1111,6 +1114,190 @@ export default function CharacterAppPage({
                     ))}
                   </Stack>
                 </InfoPanel>
+
+                  <InfoPanel title={`Guia detalhado: ${selectedClass.name}`}>
+                    <Box
+                      sx={{
+                        display: "grid",
+                        gridTemplateColumns: {
+                          xs: "1fr",
+                          md: "repeat(3, minmax(0, 1fr))",
+                        },
+                        gap: 1.2,
+                        mb: 2,
+                      }}
+                    >
+                      <DescriptionStat
+                        label="Pontos de vida iniciais"
+                        value={`${selectedClass.baseHp} + Constituicao`}
+                      />
+                      <DescriptionStat
+                        label="Dano base"
+                        value={`1${selectedClass.damageDice}`}
+                      />
+                      <DescriptionStat
+                        label="Carga"
+                        value={`${selectedClass.loadBase} + FOR`}
+                      />
+                    </Box>
+
+                    <DescriptionSection
+                      title="Fantasia da classe"
+                      items={classGuide.fantasy}
+                    />
+                    <DescriptionSection
+                      title="Papel na mesa"
+                      items={classGuide.tableRole}
+                    />
+                    <DescriptionSection
+                      title="Primeira sessao"
+                      items={classGuide.firstSession}
+                    />
+                    <DescriptionSection
+                      title="Como ler movimentos"
+                      items={classGuide.moveReading}
+                    />
+
+                    <Paper
+                      variant="outlined"
+                      sx={{
+                        mt: 1.4,
+                        p: 1.4,
+                        borderColor: "rgba(95,182,196,.2)",
+                        bgcolor: "rgba(36,112,109,.12)",
+                      }}
+                    >
+                      <Typography
+                        sx={{ color: "#5fb6c4", fontWeight: 900, mb: 0.6 }}
+                      >
+                        Exemplo em cena
+                      </Typography>
+                      <Typography
+                        sx={{
+                          color: "#d7c59d",
+                          fontSize: ".92rem",
+                          lineHeight: 1.65,
+                        }}
+                      >
+                        {classGuide.example}
+                      </Typography>
+                    </Paper>
+
+                    <Paper
+                      variant="outlined"
+                      sx={{
+                        mt: 1.2,
+                        p: 1.4,
+                        borderColor: "rgba(197,155,75,.22)",
+                        bgcolor: "rgba(197,155,75,.1)",
+                      }}
+                    >
+                      <Typography
+                        sx={{ color: "#c59b4b", fontWeight: 900, mb: 0.6 }}
+                      >
+                        Dica para o mestre
+                      </Typography>
+                      <Typography
+                        sx={{
+                          color: "#d7c59d",
+                          fontSize: ".92rem",
+                          lineHeight: 1.65,
+                        }}
+                      >
+                        {classGuide.gmCue}
+                      </Typography>
+                    </Paper>
+                  </InfoPanel>
+
+                  <InfoPanel title="Como usar esta ficha">
+                    <Typography sx={{ color: "#d7c59d", mb: 1.5, lineHeight: 1.7 }}>
+                      Esta area funciona como uma leitura guiada da ficha para quem
+                      ainda esta aprendendo RPG. Ela explica quando olhar para
+                      numeros, quando olhar para movimentos e quando apenas
+                      descrever a acao do personagem.
+                    </Typography>
+
+                    <Box
+                      sx={{
+                        display: "grid",
+                        gridTemplateColumns: {
+                          xs: "1fr",
+                          sm: "repeat(2, minmax(0, 1fr))",
+                        },
+                        gap: 1.2,
+                      }}
+                    >
+                      {beginnerSheetConcepts.map((concept) => (
+                        <BeginnerConceptCard
+                          key={concept.title}
+                          title={concept.title}
+                          description={concept.description}
+                        />
+                      ))}
+                    </Box>
+                  </InfoPanel>
+
+                  <InfoPanel title="Movimentos iniciais explicados">
+                    <Typography sx={{ color: "#d7c59d", mb: 1.4, lineHeight: 1.7 }}>
+                      Estes sao os movimentos que definem a classe no nivel 1.
+                      Leia cada um procurando tres coisas: quando ele dispara,
+                      qual atributo entra na rolagem e que tipo de consequencia
+                      combina com a cena.
+                    </Typography>
+
+                    <Stack spacing={1.2}>
+                      {selectedClass.startingSkills.map((skill) => (
+                        <Paper
+                          key={skill.id}
+                          variant="outlined"
+                          sx={{
+                            borderColor: "rgba(217,200,159,.14)",
+                            bgcolor: "rgba(255,255,255,.04)",
+                            p: 1.4,
+                          }}
+                        >
+                          <Stack
+                            direction={{ xs: "column", sm: "row" }}
+                            spacing={1}
+                            sx={{
+                              justifyContent: "space-between",
+                              alignItems: { xs: "flex-start", sm: "center" },
+                              mb: 0.6,
+                            }}
+                          >
+                            <Typography sx={{ color: "#c59b4b", fontWeight: 900 }}>
+                              {skill.name}
+                            </Typography>
+                            <Chip
+                              size="small"
+                              label={
+                                skill.rollAttribute
+                                  ? `Rola ${attributeLabels[skill.rollAttribute]}`
+                                  : "Sem rolagem direta"
+                              }
+                              sx={{
+                                color: "#f7edd9",
+                                bgcolor: skill.rollAttribute
+                                  ? "rgba(95,182,196,.16)"
+                                  : "rgba(197,155,75,.13)",
+                              }}
+                            />
+                          </Stack>
+
+                          <Typography
+                            sx={{
+                              color: "#d7c59d",
+                              fontSize: ".92rem",
+                              lineHeight: 1.65,
+                            }}
+                          >
+                            {skill.description}
+                          </Typography>
+                        </Paper>
+                      ))}
+                    </Stack>
+                  </InfoPanel>
+                </Stack>
               )}
 
               {activeTab === "skills" && !selectedClass.usesSpells && (
@@ -2421,6 +2608,84 @@ function InfoPanel({
       </Typography>
 
       {children}
+    </Paper>
+  );
+}
+
+function DescriptionStat({ label, value }: { label: string; value: string }) {
+  return (
+    <Paper
+      variant="outlined"
+      sx={{
+        borderColor: "rgba(217,200,159,.14)",
+        bgcolor: "rgba(255,255,255,.04)",
+        p: 1.2,
+      }}
+    >
+      <Typography sx={{ color: "#b9a98b", fontSize: ".72rem" }}>
+        {label}
+      </Typography>
+      <Typography sx={{ color: "#f7edd9", fontWeight: 900 }}>
+        {value}
+      </Typography>
+    </Paper>
+  );
+}
+
+function DescriptionSection({
+  title,
+  items,
+}: {
+  title: string;
+  items: string[];
+}) {
+  return (
+    <Box sx={{ mt: 1.5 }}>
+      <Typography sx={{ color: "#c59b4b", fontWeight: 900, mb: 0.8 }}>
+        {title}
+      </Typography>
+      <Stack component="ul" spacing={0.8} sx={{ pl: 2.3, m: 0 }}>
+        {items.map((item) => (
+          <Typography
+            key={item}
+            component="li"
+            sx={{
+              color: "#d7c59d",
+              fontSize: ".92rem",
+              lineHeight: 1.65,
+              pl: 0.4,
+            }}
+          >
+            {item}
+          </Typography>
+        ))}
+      </Stack>
+    </Box>
+  );
+}
+
+function BeginnerConceptCard({
+  title,
+  description,
+}: {
+  title: string;
+  description: string;
+}) {
+  return (
+    <Paper
+      variant="outlined"
+      sx={{
+        borderColor: "rgba(95,182,196,.16)",
+        bgcolor: "rgba(255,255,255,.04)",
+        p: 1.35,
+      }}
+    >
+      <Typography sx={{ color: "#5fb6c4", fontWeight: 900, mb: 0.5 }}>
+        {title}
+      </Typography>
+      <Typography sx={{ color: "#d7c59d", fontSize: ".9rem", lineHeight: 1.6 }}>
+        {description}
+      </Typography>
     </Paper>
   );
 }
