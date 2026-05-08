@@ -2450,6 +2450,7 @@ export default function CharacterAppPage({
       <AdventureMapsDialog
         open={isMapsDialogOpen}
         onClose={() => setIsMapsDialogOpen(false)}
+        audience={mode === "master" ? "master" : "player"}
       />
 
       <Dialog

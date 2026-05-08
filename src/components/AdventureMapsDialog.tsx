@@ -16,6 +16,7 @@ import { adventureMaps, type AdventureMapPoint } from "../data/adventureMaps";
 type AdventureMapsDialogProps = {
   open: boolean;
   onClose: () => void;
+  audience?: "player" | "master";
 };
 
 const pointStyles: Record<
@@ -32,6 +33,7 @@ const pointStyles: Record<
 export default function AdventureMapsDialog({
   open,
   onClose,
+  audience = "player",
 }: AdventureMapsDialogProps) {
   const [selectedMapId, setSelectedMapId] = useState(adventureMaps[0].id);
   const selectedMap = useMemo(
@@ -39,6 +41,7 @@ export default function AdventureMapsDialog({
       adventureMaps.find((map) => map.id === selectedMapId) ?? adventureMaps[0],
     [selectedMapId],
   );
+  const isMaster = audience === "master";
 
   return (
     <Dialog
@@ -148,7 +151,7 @@ export default function AdventureMapsDialog({
                   "radial-gradient(circle at 50% 30%, rgba(197,155,75,.08), transparent 18rem), #090907",
               }}
             >
-              <MapSvg mapId={selectedMap.id} />
+              <MapSvg mapId={selectedMap.id} revealSecrets={isMaster} />
             </Box>
           </Paper>
 
@@ -161,13 +164,16 @@ export default function AdventureMapsDialog({
             }}
           >
             <Typography sx={{ color: "#d7c59d", lineHeight: 1.65 }}>
-              {selectedMap.summary}
+              {isMaster
+                ? selectedMap.summary
+                : "Mapa visual para orientacao da mesa. Detalhes de ameacas, segredos, rotas ocultas e notas de conducao ficam reservados ao mestre e aparecem conforme forem descobertos em jogo."}
             </Typography>
             <Typography sx={{ color: "#8f826c", mt: 1, fontSize: ".78rem" }}>
               Base: {selectedMap.source}
             </Typography>
           </Paper>
 
+          {isMaster ? (
           <Box
             sx={{
               display: "grid",
@@ -247,6 +253,25 @@ export default function AdventureMapsDialog({
               </Stack>
             </Paper>
           </Box>
+          ) : (
+            <Paper
+              variant="outlined"
+              sx={{
+                borderColor: "rgba(217,200,159,.14)",
+                bgcolor: "rgba(255,255,255,.04)",
+                p: 1.4,
+              }}
+            >
+              <Typography sx={{ color: "#c59b4b", fontWeight: 900, mb: 0.6 }}>
+                Visao do jogador
+              </Typography>
+              <Typography sx={{ color: "#d7c59d", lineHeight: 1.6 }}>
+                Use este mapa para se localizar, combinar viagens e lembrar
+                lugares ja apresentados. Pontos secretos, monstros, frentes e
+                consequencias ficam no painel do mestre.
+              </Typography>
+            </Paper>
+          )}
         </Stack>
       </DialogContent>
 
@@ -259,7 +284,13 @@ export default function AdventureMapsDialog({
   );
 }
 
-function MapSvg({ mapId }: { mapId: string }) {
+function MapSvg({
+  mapId,
+  revealSecrets,
+}: {
+  mapId: string;
+  revealSecrets: boolean;
+}) {
   const map = adventureMaps.find((currentMap) => currentMap.id === mapId) ?? adventureMaps[0];
 
   return (
@@ -324,19 +355,21 @@ function MapSvg({ mapId }: { mapId: string }) {
               strokeWidth="3"
             />
             <circle cx={point.x} cy={point.y} r="5" fill="#f7edd9" opacity="0.92" />
-            <text
-              x={point.x + labelDx}
-              y={point.y - 17}
-              fill="#f7edd9"
-              fontSize="21"
-              fontWeight="800"
-              textAnchor={anchor}
-              paintOrder="stroke"
-              stroke="#070706"
-              strokeWidth="5"
-            >
-              {point.label}
-            </text>
+            {revealSecrets && (
+              <text
+                x={point.x + labelDx}
+                y={point.y - 17}
+                fill="#f7edd9"
+                fontSize="21"
+                fontWeight="800"
+                textAnchor={anchor}
+                paintOrder="stroke"
+                stroke="#070706"
+                strokeWidth="5"
+              >
+                {point.label}
+              </text>
+            )}
           </g>
         );
       })}

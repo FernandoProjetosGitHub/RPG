@@ -20,6 +20,7 @@ import { useMemo, useState, type Dispatch, type ReactNode, type SetStateAction }
 import AdventureMapsDialog from "../components/AdventureMapsDialog";
 import { dwClasses } from "../data/dwClasses";
 import { basicMoves } from "../data/dwMoves";
+import { gmReferenceSections, monsterReferences } from "../data/gmReference";
 import { classStartingItemIds, items } from "../data/items";
 import { spells } from "../data/spells";
 import {
@@ -35,12 +36,20 @@ type MasterAppPageProps = {
   onOpenCharacter?: () => void;
 };
 
-type MasterTab = "criacao" | "habilidades" | "combate" | "itens";
+type MasterTab =
+  | "criacao"
+  | "habilidades"
+  | "combate"
+  | "guia"
+  | "monstros"
+  | "itens";
 
 const masterTabs: Array<{ value: MasterTab; label: string }> = [
   { value: "criacao", label: "Criação" },
   { value: "habilidades", label: "Habilidades" },
   { value: "combate", label: "Combate" },
+  { value: "guia", label: "Guia MJ" },
+  { value: "monstros", label: "Monstros" },
   { value: "itens", label: "Itens" },
 ];
 
@@ -59,6 +68,7 @@ export default function MasterAppPage({
   const [classDraft, setClassDraft] = useState(character.classId);
   const [raceDraft, setRaceDraft] = useState(character.raceId);
   const [isMapsDialogOpen, setIsMapsDialogOpen] = useState(false);
+  const [expandedMonsterId, setExpandedMonsterId] = useState<string | null>(null);
 
   const selectedClass =
     dwClasses.find((dwClass) => dwClass.id === character.classId) ??
@@ -320,6 +330,7 @@ export default function MasterAppPage({
         <AdventureMapsDialog
           open={isMapsDialogOpen}
           onClose={() => setIsMapsDialogOpen(false)}
+          audience="master"
         />
 
         <Paper
@@ -659,6 +670,55 @@ export default function MasterAppPage({
           </Stack>
         )}
 
+        {activeTab === "guia" && (
+          <Stack spacing={1.5}>
+            <SectionCard title="Guia do mestrante">
+              <Typography sx={{ color: "#d7c59d", lineHeight: 1.65 }}>
+                Referencia rapida para conduzir Dungeon World sem expor
+                segredos aos jogadores. Use esta aba para decidir consequencias,
+                dano, frentes e movimentos quando a mesa olhar para voce.
+              </Typography>
+            </SectionCard>
+
+            {gmReferenceSections.map((section) => (
+              <GmReferenceCard key={section.id} section={section} />
+            ))}
+          </Stack>
+        )}
+
+        {activeTab === "monstros" && (
+          <Stack spacing={1.5}>
+            <SectionCard title="Bestiario do mestre">
+              <Typography sx={{ color: "#d7c59d", lineHeight: 1.65 }}>
+                Monstros, PNJs perigosos e criaturas pertinentes aos PDFs. Os
+                cards ficam recolhidos para caber no celular; abra apenas o que
+                estiver em cena.
+              </Typography>
+            </SectionCard>
+
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: { xs: "1fr", md: "repeat(2, minmax(0, 1fr))" },
+                gap: 1,
+              }}
+            >
+              {monsterReferences.map((monster) => (
+                <MonsterReferenceCard
+                  key={monster.id}
+                  monster={monster}
+                  expanded={expandedMonsterId === monster.id}
+                  onToggle={() =>
+                    setExpandedMonsterId((current) =>
+                      current === monster.id ? null : monster.id,
+                    )
+                  }
+                />
+              ))}
+            </Box>
+          </Stack>
+        )}
+
         {activeTab === "itens" && (
           <Stack spacing={1.5}>
             <SectionCard title="Distribuição de itens">
@@ -750,6 +810,133 @@ function SectionCard({ title, children }: { title: string; children: ReactNode }
         </Stack>
       </CardContent>
     </Card>
+  );
+}
+
+function GmReferenceCard({
+  section,
+}: {
+  section: (typeof gmReferenceSections)[number];
+}) {
+  return (
+    <SectionCard title={section.title}>
+      <Stack spacing={1}>
+        <Chip
+          label={section.source}
+          sx={{
+            alignSelf: "flex-start",
+            bgcolor: "rgba(197,155,75,.14)",
+            color: "#f7edd9",
+          }}
+        />
+        <Stack component="ul" spacing={0.8} sx={{ m: 0, pl: 2.2 }}>
+          {section.bullets.map((bullet) => (
+            <Typography
+              key={bullet}
+              component="li"
+              sx={{ color: "#d7c59d", fontSize: ".92rem", lineHeight: 1.6 }}
+            >
+              {bullet}
+            </Typography>
+          ))}
+        </Stack>
+      </Stack>
+    </SectionCard>
+  );
+}
+
+function MonsterReferenceCard({
+  monster,
+  expanded,
+  onToggle,
+}: {
+  monster: (typeof monsterReferences)[number];
+  expanded: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <Paper
+      variant="outlined"
+      sx={{
+        borderColor: expanded
+          ? "rgba(197,155,75,.42)"
+          : "rgba(217,200,159,.16)",
+        bgcolor: "rgba(17,17,15,.92)",
+        color: "#f7edd9",
+        p: 1.4,
+      }}
+    >
+      <Stack spacing={1.1}>
+        <Stack
+          direction="row"
+          spacing={1}
+          sx={{ justifyContent: "space-between", alignItems: "flex-start" }}
+        >
+          <Box sx={{ minWidth: 0 }}>
+            <Typography sx={{ color: "#c59b4b", fontWeight: 900 }}>
+              {monster.name}
+            </Typography>
+            <Typography sx={{ color: "#b9a98b", fontSize: ".82rem" }}>
+              {monster.source}
+            </Typography>
+          </Box>
+          <Button size="small" variant="outlined" onClick={onToggle}>
+            {expanded ? "Recolher" : "Expandir"}
+          </Button>
+        </Stack>
+
+        <Stack direction="row" useFlexGap flexWrap="wrap" gap={0.8}>
+          <Chip size="small" label={`PV ${monster.hp}`} />
+          <Chip size="small" label={`Armadura ${monster.armor}`} />
+          <Chip size="small" label={monster.damage} />
+        </Stack>
+
+        {expanded && (
+          <Stack spacing={1}>
+            <Stack direction="row" useFlexGap flexWrap="wrap" gap={0.7}>
+              {monster.tags.map((tag) => (
+                <Chip
+                  key={tag}
+                  size="small"
+                  label={tag}
+                  sx={{
+                    bgcolor: "rgba(95,182,196,.14)",
+                    color: "#f7edd9",
+                  }}
+                />
+              ))}
+            </Stack>
+
+            <Typography sx={{ color: "#d7c59d", lineHeight: 1.55 }}>
+              <strong>Instinto:</strong> {monster.instinct}
+            </Typography>
+
+            <Box>
+              <Typography sx={{ color: "#c59b4b", fontWeight: 900, mb: 0.5 }}>
+                Movimentos
+              </Typography>
+              <Stack component="ul" spacing={0.5} sx={{ m: 0, pl: 2.2 }}>
+                {monster.moves.map((move) => (
+                  <Typography
+                    key={move}
+                    component="li"
+                    sx={{ color: "#d7c59d", fontSize: ".9rem", lineHeight: 1.5 }}
+                  >
+                    {move}
+                  </Typography>
+                ))}
+              </Stack>
+            </Box>
+
+            {monster.notes && (
+              <Typography sx={{ color: "#b9a98b", fontSize: ".86rem", lineHeight: 1.5 }}>
+                {monster.notes}
+              </Typography>
+            )}
+          </Stack>
+        )}
+      </Stack>
+    </Paper>
   );
 }
 
