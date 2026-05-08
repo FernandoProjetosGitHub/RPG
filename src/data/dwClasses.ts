@@ -455,7 +455,7 @@ export const dwClasses: DwClass[] = [
         name: "Irmao do Cacador",
         levelRequirement: 2,
         description:
-          "Escolha um movimento da lista do ranger, ligando sua natureza ao instinto de caca.",
+          "Escolha um movimento da lista do patrulheiro, ligando sua natureza ao instinto de caca.",
       },
       {
         id: "druida-garras-dentes-vermelhos",
@@ -1134,7 +1134,7 @@ advancedSkillsLevel6To10: [
 
   {
     id: "ranger",
-    name: "Ranger",
+    name: "Patrulheiro",
     baseHp: 8,
     damageDice: "d8",
     loadBase: 11,

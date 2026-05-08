@@ -269,9 +269,9 @@ export const classGuides: Record<string, ClassGuide> = {
   },
   ranger: {
     fantasy: [
-      "O Ranger e guia, caçador e guardiao de fronteiras. Ele entende lugares perigosos antes que outras pessoas percebam que entraram em territorio hostil.",
+      "O Patrulheiro e guia, caçador e guardiao de fronteiras. Ele entende lugares perigosos antes que outras pessoas percebam que entraram em territorio hostil.",
       "Seu companheiro animal nao e acessorio. Ele tem instintos, treinamento, limites e personalidade que ajudam a resolver problemas de formas que humanos nao fariam.",
-      "Para novatos, o Ranger e excelente quando o jogador quer explorar, rastrear, atirar, perceber ameaças e ter uma parceria constante em cena.",
+      "Para novatos, o Patrulheiro e excelente quando o jogador quer explorar, rastrear, atirar, perceber ameaças e ter uma parceria constante em cena.",
     ],
     tableRole: [
       "Em combate, ele usa distancia, terreno, alvo marcado e coordenação com o companheiro para criar vantagem.",
@@ -289,9 +289,9 @@ export const classGuides: Record<string, ClassGuide> = {
       "Quando atirar, pense em cobertura, munição, linha de visao e posicao. O resultado parcial deve mexer com esses elementos.",
     ],
     example:
-      "Se uma criatura levou uma crianca pela mata, o Ranger pode examinar lama, folhas e cheiro no ar. O companheiro fareja medo enquanto o Ranger decide se corre para alcançar ou segue com cuidado para evitar emboscada.",
+      "Se uma criatura levou uma crianca pela mata, o Patrulheiro pode examinar lama, folhas e cheiro no ar. O companheiro fareja medo enquanto o Patrulheiro decide se corre para alcançar ou segue com cuidado para evitar emboscada.",
     gmCue:
-      "Use trilhas, clima, presas inteligentes, fronteiras politicas e sinais de passagem. O Ranger merece descobrir coisas antes do grupo, desde que esteja olhando para o lugar certo.",
+      "Use trilhas, clima, presas inteligentes, fronteiras politicas e sinais de passagem. O Patrulheiro merece descobrir coisas antes do grupo, desde que esteja olhando para o lugar certo.",
   },
 };
 
