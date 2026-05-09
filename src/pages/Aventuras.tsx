@@ -1,7 +1,4 @@
 import {
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
   Alert,
   Box,
   Button,
@@ -19,9 +16,11 @@ import type { ReactNode } from "react";
 import { MapSvg } from "../components/AdventureMapsDialog";
 import PublicPageShell from "../components/public/PublicPageShell";
 import type { PublicView } from "../components/public/PublicPageShell";
-import { adventureMaps } from "../data/adventureMaps";
+import { adventureMaps, type AdventureMap } from "../data/adventureMaps";
 
 type PlayerCount = 1 | 2 | 3 | 4 | 5 | 6 | 7;
+
+type AdventureSection = "resumo" | "mapas" | "cenas" | "elenco" | "regras";
 
 type EncounterKind = "start" | "npc" | "danger" | "mystery" | "choice" | "reward";
 
@@ -57,6 +56,16 @@ type AdventureNpc = {
   name: string;
   role: string;
   useAtTable: string;
+  motivation?: string;
+  secret?: string;
+  tableCue?: string;
+};
+
+type AdventurePlotBeat = {
+  title: string;
+  purpose: string;
+  escalation: string;
+  question: string;
 };
 
 type AdventureGuide = {
@@ -70,6 +79,7 @@ type AdventureGuide = {
   baseDangerBudget: number;
   premise: string;
   start: string;
+  plot: AdventurePlotBeat[];
   objectives: string[];
   fronts: string[];
   stakes: string[];
@@ -85,6 +95,38 @@ type AdventureGuide = {
 };
 
 const playerCounts: PlayerCount[] = [7, 6, 5, 4, 3, 2, 1];
+
+const adventureSections: Array<{
+  value: AdventureSection;
+  label: string;
+  helper: string;
+}> = [
+  {
+    value: "resumo",
+    label: "Resumo",
+    helper: "enredo, objetivos e frentes",
+  },
+  {
+    value: "mapas",
+    label: "Mapas",
+    helper: "fluxo e atlas",
+  },
+  {
+    value: "cenas",
+    label: "Cenas",
+    helper: "sessao guiada",
+  },
+  {
+    value: "elenco",
+    label: "Elenco",
+    helper: "PNJs e ameacas",
+  },
+  {
+    value: "regras",
+    label: "Regras",
+    helper: "movimentos e escala",
+  },
+];
 
 const encounterStyles: Record<
   EncounterKind,
@@ -179,6 +221,44 @@ const adventures: AdventureGuide[] = [
       "Nekesti coloca os personagens diante de um linchamento publico. O magistrado Kalareth tenta transformar medo popular em poder politico, enquanto templarios, gnomos e uma casa cheia de segredos empurram a mesa para escolhas morais rapidas.",
     start:
       "Abra na praca: um gnomo ferido acabou de ser salvo ou interrompido, a multidao exige sangue e Kalareth tenta virar a cidade contra os herois.",
+    plot: [
+      {
+        title: "A cidade escolhe um culpado",
+        purpose:
+          "Colocar os jogadores no centro de um julgamento injusto antes que eles tenham tempo de se organizar.",
+        escalation:
+          "Kalareth usa cada hesitacao como prova contra os gnomos e contra os proprios herois.",
+        question:
+          "Quem os personagens protegem quando a multidao exige uma resposta simples?",
+      },
+      {
+        title: "Rumores apontam para a casa",
+        purpose:
+          "Transformar a confusao publica em investigacao urbana com aliados, testemunhas e portas fechadas.",
+        escalation:
+          "Guardas e moradores passam a reconhecer os personagens; quanto mais perguntam, mais Nekesti se fecha.",
+        question:
+          "Eles buscam verdade legal, apoio popular ou uma prova que ninguem possa negar?",
+      },
+      {
+        title: "A residencia revela o passado",
+        purpose:
+          "Fazer a casa agir como personagem: cada sala mostra culpa antiga, medo e evidencia.",
+        escalation:
+          "Espiritos, ratos e armadilhas destroem provas se os jogadores demorarem ou falharem.",
+        question:
+          "O que vale mais: sair com vida, salvar a prova ou entender o que Kalareth tentou esconder?",
+      },
+      {
+        title: "A verdade precisa de publico",
+        purpose:
+          "Encerrar com consequencia social, nao apenas com combate.",
+        escalation:
+          "Kalareth tenta fugir, convocar dentes ou virar a cidade pela ultima vez.",
+        question:
+          "A justica de Nekesti sera reparacao, vinganca ou outro acordo imperfeito?",
+      },
+    ],
     objectives: [
       "Proteger o gnomo acusado sem transformar toda a praca em massacre.",
       "Descobrir por que Kalareth e as familias nobres querem os gnomos mortos.",
@@ -208,24 +288,48 @@ const adventures: AdventureGuide[] = [
       {
         name: "Magistrado Kalareth",
         role: "vilao social e politico",
+        motivation:
+          "Manter o controle da cidade provando que somente ele consegue separar puros de culpados.",
+        secret:
+          "Ele precisa que a multidao tema os gnomos para que ninguem olhe tempo demais para sua residencia.",
+        tableCue:
+          "Fale baixo, sempre como se estivesse lamentando a violencia que ele mesmo provoca.",
         useAtTable:
           "Ele nao precisa vencer no braco; ele vence quando faz a cidade acreditar que os herois sao o problema.",
       },
       {
         name: "Gnomo acusado",
         role: "estopim da primeira cena",
+        motivation:
+          "Sobreviver tempo suficiente para contar quem realmente se beneficia da acusacao.",
+        secret:
+          "Ele viu ou carregou uma pista pequena demais para entender sozinho: um dente, uma chave, uma carta ou uma marca da casa.",
+        tableCue:
+          "Responda em frases curtas, com medo de cada rosto na multidao.",
         useAtTable:
           "Use-o para humanizar a disputa: ele sabe uma pista, mas esta machucado, com medo e cercado.",
       },
       {
         name: "Mordomo da residencia",
         role: "porta viva para a casa",
+        motivation:
+          "Manter a rotina da casa intacta porque rotina e a unica coisa que ainda impede o panico.",
+        secret:
+          "Ele sabe qual porta abre sozinha e qual sala nunca deve ficar sem luz.",
+        tableCue:
+          "Olhe para as portas antes de responder, como se pedisse permissao para mentir.",
         useAtTable:
           "Ele treme porque sabe que a casa nao esta vazia. Pode mentir por lealdade, medo ou culpa.",
       },
       {
         name: "Skumm, Rei dos Ratos",
         role: "perigo estranho do sotao",
+        motivation:
+          "Ser reconhecido como soberano das pragas e receber tributo digno de seu titulo absurdo.",
+        secret:
+          "Ele sabe por onde criaturas pequenas entram, fogem e escutam conversas que nobres ignoram.",
+        tableCue:
+          "Trate cada oferta como negociacao de corte real, mesmo que seja por queijo velho.",
         useAtTable:
           "Ele pode aceitar oferta de comida, riqueza ou lealdade. Bom para mostrar que nem todo perigo pede espada.",
       },
@@ -442,6 +546,44 @@ const adventures: AdventureGuide[] = [
       "O grupo esta tres andares abaixo da superficie, no centro de um sambaqui ogro, com os restos de Ludekai Chaeron e um ogro faminto prestes a perceber os intrusos. A guerra entre gnomos Bobinas Lampejantes e kobolds Luz de Velas torna cada rota uma escolha politica.",
     start:
       "Abra com Vh'orr bloqueando a saida, um cavalo inconsciente preso as costas dele, ossos por todos os lados e uma luz azul fraca vindo de buracos no chao.",
+    plot: [
+      {
+        title: "A fuga comeca embaixo do mundo",
+        purpose:
+          "Comecar com perigo fisico imediato e uma saida que nao pode ser simplesmente atravessada.",
+        escalation:
+          "Vh'orr aproxima, o cavalo pesa como refem e os gnomos tentam ajudar do jeito mais barulhento possivel.",
+        question:
+          "Os personagens salvam recursos, aliados ou silencio?",
+      },
+      {
+        title: "A guerra tem dois lados vivos",
+        purpose:
+          "Apresentar gnomos e kobolds como culturas em conflito, nao como faccoes descartaveis.",
+        escalation:
+          "Cada ajuda dada a um lado vira suspeita no outro e altera rotas seguras.",
+        question:
+          "Que promessa eles fazem antes de conhecer toda a historia?",
+      },
+      {
+        title: "Chaeron ainda cobra resposta",
+        purpose:
+          "Puxar o enredo para magia negra, medo pessoal e consequencias de acordos antigos.",
+        escalation:
+          "Sussurros e criaturas tocadas pela escuridao tornam a saida menos importante que a verdade.",
+        question:
+          "Que mentira sobre Chaeron seria mais conveniente levar para a superficie?",
+      },
+      {
+        title: "Subir nao encerra a guerra",
+        purpose:
+          "Fechar a sessao com decisao sobre pendencias, nao com limpeza total do complexo.",
+        escalation:
+          "Vh'orr pode voltar, os kobolds exigem luz, os gnomos exigem futuro.",
+        question:
+          "O grupo foge, arbitra a disputa ou deixa uma frente pronta para explodir depois?",
+      },
+    ],
     objectives: [
       "Sobreviver ao primeiro encontro com Vh'orr sem perder o caminho para a superficie.",
       "Decidir como lidar com a morte de Ludekai Chaeron e com o que ele deixou para tras.",
@@ -471,18 +613,36 @@ const adventures: AdventureGuide[] = [
       {
         name: "Ozzy, Felix e Sassi Bobinas Lampejantes",
         role: "companheiros gnomos",
+        motivation:
+          "Provar que os Bobinas Lampejantes merecem controlar o desfiladeiro e sobreviver para contar vantagem.",
+        secret:
+          "Eles sabem mais sobre o acordo com Chaeron do que admitem quando estao assustados.",
+        tableCue:
+          "Interrompa a cena com uma ideia brilhante demais, perigosa demais ou barulhenta demais.",
         useAtTable:
           "Eles criam vantagem, equipamento, distracao e caos. Use-os como apoio com preco, nao como solucao automatica.",
       },
       {
         name: "Ipmeek Luta e Morde",
         role: "campeao kobold",
+        motivation:
+          "Reivindicar trofeus dos caidos e provar que a luz das velas nao sera tomada de novo.",
+        secret:
+          "Ele respeita coragem visivel, mas nunca dira isso diante de outros kobolds.",
+        tableCue:
+          "Fale como alguem pequeno tentando ocupar o dobro do proprio tamanho.",
         useAtTable:
           "Ele transforma trofeus em identidade. Pode emboscar, negociar por honra ou provar que os kobolds tem memoria.",
       },
       {
         name: "Ludekai Chaeron",
         role: "morto que ainda move a aventura",
+        motivation:
+          "Continuar influenciando vivos por culpa, rito, promessa ou medo mesmo depois da morte.",
+        secret:
+          "Sua caridade e sua corrupcao podem ser verdadeiras ao mesmo tempo; escolha a versao que fere mais a mesa.",
+        tableCue:
+          "Nunca explique tudo. Deixe uma frase incompleta voltar em sussurro quando alguem falhar.",
         useAtTable:
           "Faca perguntas sobre caridade, corrupcao, rito funerario e sinais de magia negra antes de explicar demais.",
       },
@@ -691,6 +851,44 @@ const adventures: AdventureGuide[] = [
       "O Forte de Altai ficou abandonado desde que os templarios derrotaram os lordes minotauros. Agora pastores somem, vilas desaparecem e ha sinais de que Molekh, o Ceifador, voltou a reunir seus companheiros chifrudos.",
     start:
       "Abra em Uryl ou diante do portao congelado. O povo sabe que a montanha voltou a mugir e precisa de herois para descobrir quem retornou, recuperar a espada do Diacono Gorric e manter Molekh morto.",
+    plot: [
+      {
+        title: "A montanha volta a reclamar tributo",
+        purpose:
+          "Dar rosto humano ao perigo antes da masmorra: familias, ibex, vigias e nomes de desaparecidos.",
+        escalation:
+          "Quanto mais o grupo prepara a subida, mais sinais mostram que Uryl pode ser a proxima.",
+        question:
+          "Eles prometem salvar todos ou assumem que alguem ficara para tras?",
+      },
+      {
+        title: "O forte esta morto, mas organizado",
+        purpose:
+          "Criar contraste entre ruina congelada e saloes impecaveis de uma corte impossivel.",
+        escalation:
+          "Lacaios, gelo e saloes limpos demais revelam que Deanera ja reorganiza a fortaleza.",
+        question:
+          "Os personagens tratam lacaios como vitimas, inimigos ou pistas?",
+      },
+      {
+        title: "A espada de Gorric pede escolha",
+        purpose:
+          "Transformar o objetivo de recuperacao em dilema de poder contaminado.",
+        escalation:
+          "Retirar a lamina chama mortos, quebra gelo ou mostra memoria que muda a leitura dos templarios.",
+        question:
+          "O grupo aceita uma arma util se ela tambem deseja massacre?",
+      },
+      {
+        title: "Molekh negocia como conquistador",
+        purpose:
+          "Encerrar com ambicao e tributo, nao so com luta contra um monstro grande.",
+        escalation:
+          "Deanera, altar e minotauros oferecem acordos inaceitaveis quando a violencia nao basta.",
+        question:
+          "Que preco os personagens recusam mesmo que isso torne a vitoria mais dificil?",
+      },
+    ],
     objectives: [
       "Descobrir quem retornou para o forte e com quais intencoes.",
       "Descobrir o que aconteceu com os habitantes das vilas desaparecidas.",
@@ -720,18 +918,36 @@ const adventures: AdventureGuide[] = [
       {
         name: "Habitantes de Uryl",
         role: "povoado em risco",
+        motivation:
+          "Sobreviver sem abandonar as montanhas que sustentam leite, pele e memoria familiar.",
+        secret:
+          "Alguem viu um desaparecido voltar diferente, mas tem medo de admitir que abriu a porta.",
+        tableCue:
+          "Use nomes simples e pedidos concretos: uma filha, um rebanho, uma promessa antiga.",
         useAtTable:
           "Use pastores, leite de ibex, vigias cansados e nomes de desaparecidos para dar peso antes do forte.",
       },
       {
         name: "Princesa Deanera",
         role: "sacerdotisa vampirica e manipuladora",
+        motivation:
+          "Transformar a fortaleza brutal em uma corte digna, alimentada por sangue, magia e obediencia.",
+        secret:
+          "Ela acredita controlar os minotauros, mas Molekh aceita sua ajuda apenas enquanto ela amplia seu poder.",
+        tableCue:
+          "Seja cordial demais. Chame horrores de inconvenientes domesticos.",
         useAtTable:
           "Ela quer viver luxuosamente e roubar essencia. Pode oferecer acordo se os herois servirem melhor que seus lacaios.",
       },
       {
         name: "Diacono Gorric",
         role: "legado templario congelado",
+        motivation:
+          "Mesmo morto, representar a pergunta sobre o que os templarios sacrificaram para vencer Altai.",
+        secret:
+          "A espada nao e apenas reliquia: ela lembra sangue, ordem e contaminacao pelo mal que atravessou.",
+        tableCue:
+          "Mostre por imagem, nao fala: heráldica no gelo, sangue brilhando e um corpo velho demais para a ferida.",
         useAtTable:
           "O corpo e a espada sao prova, tentacao e ferramenta. Retirar a lamina deve ter custo ou pressagio.",
       },
@@ -949,6 +1165,44 @@ const adventures: AdventureGuide[] = [
       "A colonia de formigas cultivava fungos para dominar trolls, mas uma cepa se espalhou para as proprias formigas. A rainha foi infectada, elfos precisam de magisita e uma aranha mercadora esta presa no meio do desastre.",
     start:
       "Comece na sala de distribuicao, cercada por lajes de minerios, vegetais embolorados, fungo imenso e operarias infectadas vindo do corredor sul.",
+    plot: [
+      {
+        title: "O grupo ja esta no fundo do problema",
+        purpose:
+          "Eliminar preparacao lenta e colocar jogadores novatos em acao, escolhas e perguntas imediatas.",
+        escalation:
+          "Operarias chegam do corredor sul enquanto os elfos cobram que a rainha seja destruida.",
+        question:
+          "A prioridade e escapar, entender a infeccao ou cumprir o pedido dos guias?",
+      },
+      {
+        title: "A colonia foi vitima e carcereira",
+        purpose:
+          "Revelar que o fungo usado contra trolls saiu de controle e tornou as formigas prisioneiras da propria arma.",
+        escalation:
+          "Cada pista util tambem aumenta risco de esporos, corrosao ou conflito entre aliados.",
+        question:
+          "Os personagens ainda chamam isso de missao simples depois de saber como a cura funcionava?",
+      },
+      {
+        title: "Aliados querem coisas diferentes",
+        purpose:
+          "Fazer Nostarion, Eleniel e Pii'treb puxarem a aventura para politica e sobrevivencia.",
+        escalation:
+          "Magisita, idioma da aranha e medo de infeccao podem quebrar a cooperacao no pior momento.",
+        question:
+          "Quem o grupo protege quando todos os aliados escondem uma necessidade real?",
+      },
+      {
+        title: "A rainha e o broto final",
+        purpose:
+          "Encerrar com decisao sobre exterminio, contencao e consequencia biologica.",
+        escalation:
+          "Mesmo vencendo a rainha, o epilogo pode carregar um broto para fora.",
+        question:
+          "O que eles aceitam destruir para impedir que a praga aprenda novos hospedeiros?",
+      },
+    ],
     objectives: [
       "Sobreviver a infestacao e impedir que a cepa saia do zigurate.",
       "Decidir se a rainha sera destruida, estudada ou usada como prova politica.",
@@ -981,18 +1235,36 @@ const adventures: AdventureGuide[] = [
       {
         name: "Nostarion",
         role: "guia elfico arqueiro e covarde",
+        motivation:
+          "Voltar vivo com magisita suficiente para justificar o horror que aceitou enfrentar.",
+        secret:
+          "Ele pode desertar para consumir ou recolher magisita se achar que a missao esta perdida.",
+        tableCue:
+          "Fale rapido, olhe para saidas e ofereca ajuda a distancia antes de chegar perto.",
         useAtTable:
           "Ele adiciona dano a disparos quando ajuda, mas seu medo e desejo por magisita podem quebrar confianca.",
       },
       {
         name: "Eleniel",
         role: "guia elfica de combate corpo a corpo",
+        motivation:
+          "Proteger o povo elfico e manter Nostarion vivo, nessa ordem quando a pressao sobe.",
+        secret:
+          "Ela entende que destruir tudo talvez seja mais seguro que salvar qualquer prova.",
+        tableCue:
+          "Responda pouco. Quando agir, descreva peso, espada e uma decisao sem pedir permissao.",
         useAtTable:
           "Ela e estoica e leal ao povo dela. Use-a para proteger alguem ou defender escolhas duras.",
       },
       {
         name: "Pii'treb",
         role: "enviado do povo aranha",
+        motivation:
+          "Escapar vivo e levar noticia confiavel para sua ninhada antes que os dejetos virem tumba.",
+        secret:
+          "Ele sabe que a sobrevivencia dele pode mudar comercio e abrigo para o grupo depois da fuga.",
+        tableCue:
+          "Comece hostil por medo; depois comunique gratidao em gestos, objetos e repeticao de nomes.",
         useAtTable:
           "Escondido nas salas de cura, ataca por medo no inicio. Se salvo, oferece abrigo, noticia e recompensa.",
       },
@@ -1231,6 +1503,7 @@ export default function Aventuras({
 }) {
   const [selectedAdventureId, setSelectedAdventureId] = useState(adventures[0].id);
   const [selectedPlayers, setSelectedPlayers] = useState<PlayerCount>(7);
+  const [activeSection, setActiveSection] = useState<AdventureSection>("resumo");
   const selectedAdventure = getAdventureById(selectedAdventureId);
   const selectedBudget = calculateDangerBudget(
     selectedAdventure.baseDangerBudget,
@@ -1272,6 +1545,8 @@ export default function Aventuras({
             adventure={selectedAdventure}
             selectedPlayers={selectedPlayers}
             selectedBudget={selectedBudget}
+            activeSection={activeSection}
+            onSectionChange={setActiveSection}
           />
         </Box>
       </Stack>
@@ -1385,6 +1660,9 @@ function ScaleSelector({
   // O seletor mostra a mesma conta em todos os degraus de jogadores. Assim o
   // mestre consegue comparar rapidamente o peso da aventura cheia contra uma
   // mesa menor antes de abrir cenas especificas.
+  const activeScale = getScale(selectedPlayers);
+  const activeBudget = calculateDangerBudget(baseBudget, selectedPlayers);
+
   return (
     <Paper
       variant="outlined"
@@ -1418,44 +1696,27 @@ function ScaleSelector({
       <Divider sx={{ borderColor: "rgba(217,200,159,.12)", my: 1.2 }} />
 
       <Stack spacing={0.7}>
-        {playerCounts.map((players) => {
-          const scale = getScale(players);
-          const budget = calculateDangerBudget(baseBudget, players);
-          const active = selectedPlayers === players;
-
-          return (
-            <Box key={players}>
-              <Stack
-                direction="row"
-                spacing={0.8}
-                sx={{
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  color: active ? "#f7edd9" : "#b9a98b",
-                }}
-              >
-                <Typography sx={{ fontSize: ".82rem", fontWeight: active ? 900 : 500 }}>
-                  {players} jogador{players > 1 ? "es" : ""}: {budget} pressao
-                </Typography>
-                <Typography sx={{ fontSize: ".76rem" }}>
-                  {scale.label}
-                </Typography>
-              </Stack>
-              <LinearProgress
-                variant="determinate"
-                value={(budget / baseBudget) * 100}
-                sx={{
-                  height: 5,
-                  borderRadius: 999,
-                  bgcolor: "rgba(255,255,255,.07)",
-                  ".MuiLinearProgress-bar": {
-                    bgcolor: active ? "#f2c76c" : "#5fb6c4",
-                  },
-                }}
-              />
-            </Box>
-          );
-        })}
+        <Stack direction="row" sx={{ justifyContent: "space-between", gap: 1 }}>
+          <Typography sx={{ color: "#f7edd9", fontWeight: 900 }}>
+            {activeBudget}/{baseBudget} pressao
+          </Typography>
+          <Typography sx={{ color: "#b9a98b", fontSize: ".82rem" }}>
+            {activeScale.label}
+          </Typography>
+        </Stack>
+        <LinearProgress
+          variant="determinate"
+          value={(activeBudget / baseBudget) * 100}
+          sx={{
+            height: 8,
+            borderRadius: 999,
+            bgcolor: "rgba(255,255,255,.07)",
+            ".MuiLinearProgress-bar": { bgcolor: "#f2c76c" },
+          }}
+        />
+        <Typography sx={{ color: "#d7c59d", fontSize: ".84rem", lineHeight: 1.45 }}>
+          {activeScale.reserve}
+        </Typography>
       </Stack>
     </Paper>
   );
@@ -1465,10 +1726,14 @@ function AdventureDetail({
   adventure,
   selectedPlayers,
   selectedBudget,
+  activeSection,
+  onSectionChange,
 }: {
   adventure: AdventureGuide;
   selectedPlayers: PlayerCount;
   selectedBudget: number;
+  activeSection: AdventureSection;
+  onSectionChange: (section: AdventureSection) => void;
 }) {
   const map = useMemo(
     () => adventureMaps.find((currentMap) => currentMap.id === adventure.mapId),
@@ -1539,145 +1804,441 @@ function AdventureDetail({
         simultaneous={scale.simultaneous}
       />
 
+      <AdventureSectionNav active={activeSection} onChange={onSectionChange} />
+
+      {activeSection === "resumo" && (
+        <SummarySection adventure={adventure} selectedPlayers={selectedPlayers} />
+      )}
+
+      {activeSection === "mapas" && (
+        <MapsSection adventure={adventure} map={map} />
+      )}
+
+      {activeSection === "cenas" && (
+        <ScenesSection
+          adventure={adventure}
+          selectedPlayers={selectedPlayers}
+        />
+      )}
+
+      {activeSection === "elenco" && <CastSection adventure={adventure} />}
+
+      {activeSection === "regras" && (
+        <RulesSection
+          adventure={adventure}
+          selectedPlayers={selectedPlayers}
+        />
+      )}
+    </Stack>
+  );
+}
+
+function AdventureSectionNav({
+  active,
+  onChange,
+}: {
+  active: AdventureSection;
+  onChange: (section: AdventureSection) => void;
+}) {
+  return (
+    <Paper
+      variant="outlined"
+      sx={{
+        borderColor: "rgba(217,200,159,.16)",
+        bgcolor: "rgba(255,255,255,.04)",
+        p: 1,
+      }}
+    >
+      <Stack direction="row" useFlexGap flexWrap="wrap" gap={0.8}>
+        {adventureSections.map((section) => {
+          const selected = active === section.value;
+
+          return (
+            <Button
+              key={section.value}
+              variant={selected ? "contained" : "outlined"}
+              onClick={() => onChange(section.value)}
+              sx={{
+                flex: { xs: "1 1 42%", sm: "1 1 0" },
+                minWidth: { xs: 132, sm: 0 },
+                py: 0.8,
+              }}
+            >
+              <Stack spacing={0.1} sx={{ alignItems: "center" }}>
+                <Typography sx={{ fontWeight: 900, fontSize: ".82rem" }}>
+                  {section.label}
+                </Typography>
+                <Typography sx={{ fontSize: ".68rem", opacity: 0.78 }}>
+                  {section.helper}
+                </Typography>
+              </Stack>
+            </Button>
+          );
+        })}
+      </Stack>
+    </Paper>
+  );
+}
+
+function SummarySection({
+  adventure,
+  selectedPlayers,
+}: {
+  adventure: AdventureGuide;
+  selectedPlayers: PlayerCount;
+}) {
+  return (
+    <Stack spacing={1.3}>
+      <QuickStart adventure={adventure} />
+      <StoryFlow adventure={adventure} />
+
       <Box
         sx={{
           display: "grid",
-          gridTemplateColumns: { xs: "1fr", xl: "1fr 1fr" },
-          gap: 1.4,
-          alignItems: "stretch",
+          gridTemplateColumns: { xs: "1fr", lg: "1fr 1fr" },
+          gap: 1.2,
         }}
       >
-        <MapCard title="Mapa reimaginado de encontros">
-          <EncounterMap adventure={adventure} />
-        </MapCard>
-
-        <MapCard title="Mapa do atlas da aventura">
-          {map ? (
-            <Stack spacing={1}>
-              <Box sx={{ overflowX: "auto" }}>
-                <MapSvg mapId={map.id} revealSecrets />
-              </Box>
-              <Typography sx={{ color: "#b9a98b", fontSize: ".86rem", lineHeight: 1.45 }}>
-                {map.summary}
-              </Typography>
-            </Stack>
-          ) : (
-            <Typography sx={{ color: "#b9a98b" }}>
-              Mapa ainda nao cadastrado no atlas.
-            </Typography>
-          )}
-        </MapCard>
+        <InfoGrid
+          title="Objetivos da sessao"
+          items={adventure.objectives}
+          accent={adventure.accent}
+        />
+        <InfoGrid
+          title="O que esta em jogo"
+          items={adventure.stakes}
+          accent="#f2c76c"
+        />
       </Box>
 
-      <QuickStart adventure={adventure} />
-
       <InfoGrid
-        title="Objetivos da sessao"
-        items={adventure.objectives}
-        accent={adventure.accent}
+        title={`Frentes ativas para ${selectedPlayers} jogador${
+          selectedPlayers > 1 ? "es" : ""
+        }`}
+        items={adventure.fronts}
+        accent="#aa263d"
+      />
+    </Stack>
+  );
+}
+
+function StoryFlow({ adventure }: { adventure: AdventureGuide }) {
+  return (
+    <Paper
+      variant="outlined"
+      sx={{
+        borderColor: `${adventure.accent}33`,
+        bgcolor: "rgba(255,255,255,.035)",
+        p: 1.2,
+      }}
+    >
+      <Typography sx={{ color: adventure.accent, fontWeight: 900, mb: 1 }}>
+        Enredo em quatro viradas
+      </Typography>
+
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", md: "repeat(2, minmax(0, 1fr))" },
+          gap: 0.9,
+        }}
+      >
+        {adventure.plot.map((beat, index) => (
+          <Paper
+            key={beat.title}
+            variant="outlined"
+            sx={{
+              borderColor: "rgba(217,200,159,.13)",
+              bgcolor: "rgba(0,0,0,.16)",
+              p: 1,
+            }}
+          >
+            <Stack spacing={0.7}>
+              <Stack direction="row" spacing={0.7} sx={{ alignItems: "center" }}>
+                <Chip size="small" label={`${index + 1}`} />
+                <Typography sx={{ color: "#f7edd9", fontWeight: 900 }}>
+                  {beat.title}
+                </Typography>
+              </Stack>
+              <Typography sx={{ color: "#d7c59d", fontSize: ".88rem", lineHeight: 1.45 }}>
+                {beat.purpose}
+              </Typography>
+              <Typography sx={{ color: "#b9a98b", fontSize: ".82rem", lineHeight: 1.45 }}>
+                <strong>Escalada:</strong> {beat.escalation}
+              </Typography>
+              <Typography sx={{ color: "#f2c76c", fontSize: ".82rem", lineHeight: 1.45 }}>
+                {beat.question}
+              </Typography>
+            </Stack>
+          </Paper>
+        ))}
+      </Box>
+    </Paper>
+  );
+}
+
+function MapsSection({
+  adventure,
+  map,
+}: {
+  adventure: AdventureGuide;
+  map?: AdventureMap;
+}) {
+  return (
+    <Box
+      sx={{
+        display: "grid",
+        gridTemplateColumns: { xs: "1fr", xl: "1fr 1fr" },
+        gap: 1.3,
+        alignItems: "stretch",
+      }}
+    >
+      <MapCard title="Fluxo de encontros">
+        <EncounterMap adventure={adventure} />
+      </MapCard>
+
+      <MapCard title="Mapa do atlas">
+        {map ? (
+          <Stack spacing={1}>
+            <Box sx={{ overflowX: "auto" }}>
+              <MapSvg mapId={map.id} revealSecrets />
+            </Box>
+            <Typography sx={{ color: "#b9a98b", fontSize: ".86rem", lineHeight: 1.45 }}>
+              {map.summary}
+            </Typography>
+          </Stack>
+        ) : (
+          <Typography sx={{ color: "#b9a98b" }}>
+            Mapa ainda nao cadastrado no atlas.
+          </Typography>
+        )}
+      </MapCard>
+    </Box>
+  );
+}
+
+function ScenesSection({
+  adventure,
+  selectedPlayers,
+}: {
+  adventure: AdventureGuide;
+  selectedPlayers: PlayerCount;
+}) {
+  return (
+    <Stack spacing={1.1}>
+      {adventure.scenes.map((scene, index) => (
+        <SceneCard
+          key={scene.title}
+          scene={scene}
+          index={index}
+          selectedPlayers={selectedPlayers}
+          accent={adventure.accent}
+        />
+      ))}
+    </Stack>
+  );
+}
+
+function CastSection({ adventure }: { adventure: AdventureGuide }) {
+  return (
+    <Stack spacing={1.3}>
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", lg: "repeat(2, minmax(0, 1fr))" },
+          gap: 1,
+        }}
+      >
+        {adventure.npcs.map((npc) => (
+          <NpcCard key={npc.name} npc={npc} />
+        ))}
+      </Box>
+
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", lg: "repeat(2, minmax(0, 1fr))" },
+          gap: 1,
+        }}
+      >
+        {adventure.threats.map((threat) => (
+          <ThreatCard key={threat.name} threat={threat} />
+        ))}
+      </Box>
+    </Stack>
+  );
+}
+
+function NpcCard({ npc }: { npc: AdventureNpc }) {
+  return (
+    <Paper variant="outlined" sx={cardSx("#5f7f4f")}>
+      <Stack spacing={0.8}>
+        <Stack direction="row" useFlexGap flexWrap="wrap" gap={0.7}>
+          <Chip size="small" label="PNJ" sx={{ bgcolor: "rgba(95,127,79,.24)" }} />
+          <Chip size="small" label={npc.role} />
+        </Stack>
+        <Typography sx={{ color: "#d8efbd", fontWeight: 900 }}>
+          {npc.name}
+        </Typography>
+        {npc.motivation && (
+          <Typography sx={{ color: "#f7edd9", fontSize: ".9rem", lineHeight: 1.45 }}>
+            <strong>Quer:</strong> {npc.motivation}
+          </Typography>
+        )}
+        {npc.secret && (
+          <Typography sx={{ color: "#d7c59d", fontSize: ".88rem", lineHeight: 1.45 }}>
+            <strong>Segredo:</strong> {npc.secret}
+          </Typography>
+        )}
+        {npc.tableCue && (
+          <Typography sx={{ color: "#f2c76c", fontSize: ".84rem", lineHeight: 1.45 }}>
+            <strong>Na mesa:</strong> {npc.tableCue}
+          </Typography>
+        )}
+        <Typography sx={{ color: "#b9a98b", fontSize: ".84rem", lineHeight: 1.45 }}>
+          {npc.useAtTable}
+        </Typography>
+      </Stack>
+    </Paper>
+  );
+}
+
+function ThreatCard({ threat }: { threat: AdventureThreat }) {
+  return (
+    <Paper variant="outlined" sx={cardSx("#8f2637")}>
+      <Stack spacing={0.8}>
+        <Typography sx={{ color: "#ffb2b8", fontWeight: 900 }}>
+          {threat.name}
+        </Typography>
+        <Stack direction="row" useFlexGap flexWrap="wrap" gap={0.6}>
+          <Chip size="small" label={threat.role} />
+          <Chip size="small" label={threat.stats} />
+        </Stack>
+        <Typography sx={{ color: "#f7edd9", fontSize: ".9rem" }}>
+          <strong>Instinto:</strong> {threat.instinct}
+        </Typography>
+        <Stack component="ul" spacing={0.4} sx={{ m: 0, pl: 2.1 }}>
+          {threat.moves.map((move) => (
+            <Typography
+              key={move}
+              component="li"
+              sx={{ color: "#d7c59d", fontSize: ".88rem", lineHeight: 1.45 }}
+            >
+              {move}
+            </Typography>
+          ))}
+        </Stack>
+      </Stack>
+    </Paper>
+  );
+}
+
+function RulesSection({
+  adventure,
+  selectedPlayers,
+}: {
+  adventure: AdventureGuide;
+  selectedPlayers: PlayerCount;
+}) {
+  return (
+    <Stack spacing={1.2}>
+      <ScaleTable
+        baseBudget={adventure.baseDangerBudget}
+        selectedPlayers={selectedPlayers}
       />
 
-      <InfoGrid title="Frentes em movimento" items={adventure.fronts} accent="#aa263d" />
+      <InfoGrid
+        title="Movimentos personalizados"
+        items={adventure.customMoves}
+        accent="#7f6fd9"
+      />
 
-      <InfoGrid title="O que esta em jogo" items={adventure.stakes} accent="#f2c76c" />
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", lg: "1fr 1fr" },
+          gap: 1.2,
+        }}
+      >
+        <InfoGrid title="Ramos provaveis" items={adventure.branches} accent="#c59b4b" />
+        <InfoGrid
+          title="Recompensas e consequencias"
+          items={adventure.rewards}
+          accent="#5fb6c4"
+        />
+      </Box>
 
-      <AccordionBlock title="PNJs principais" defaultExpanded>
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns: { xs: "1fr", md: "repeat(2, minmax(0, 1fr))" },
-            gap: 1,
-          }}
-        >
-          {adventure.npcs.map((npc) => (
-            <Paper key={npc.name} variant="outlined" sx={cardSx("#5f7f4f")}>
-              <Typography sx={{ color: "#d8efbd", fontWeight: 900 }}>
-                {npc.name}
-              </Typography>
-              <Chip size="small" label={npc.role} sx={{ mt: 0.7 }} />
-              <Typography sx={{ color: "#d7c59d", mt: 0.8, lineHeight: 1.55 }}>
-                {npc.useAtTable}
-              </Typography>
-            </Paper>
-          ))}
-        </Box>
-      </AccordionBlock>
+      <InfoGrid
+        title="Principios de conducao"
+        items={adventure.gmPrinciples}
+        accent="#f2c76c"
+      />
+    </Stack>
+  );
+}
 
-      <AccordionBlock title="Monstros, perigos e como usar" defaultExpanded>
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns: { xs: "1fr", lg: "repeat(2, minmax(0, 1fr))" },
-            gap: 1,
-          }}
-        >
-          {adventure.threats.map((threat) => (
-            <Paper key={threat.name} variant="outlined" sx={cardSx("#8f2637")}>
-              <Stack spacing={0.8}>
-                <Typography sx={{ color: "#ffb2b8", fontWeight: 900 }}>
-                  {threat.name}
-                </Typography>
-                <Stack direction="row" useFlexGap flexWrap="wrap" gap={0.6}>
-                  <Chip size="small" label={threat.role} />
-                  <Chip size="small" label={threat.stats} />
+function ScaleTable({
+  baseBudget,
+  selectedPlayers,
+}: {
+  baseBudget: number;
+  selectedPlayers: PlayerCount;
+}) {
+  return (
+    <Paper
+      variant="outlined"
+      sx={{
+        borderColor: "rgba(242,199,108,.2)",
+        bgcolor: "rgba(197,155,75,.07)",
+        p: 1.2,
+      }}
+    >
+      <Typography sx={{ color: "#f2c76c", fontWeight: 900, mb: 1 }}>
+        Tabela de escala 7 &gt; 1
+      </Typography>
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", md: "repeat(2, minmax(0, 1fr))" },
+          gap: 0.8,
+        }}
+      >
+        {playerCounts.map((players) => {
+          const scale = getScale(players);
+          const budget = calculateDangerBudget(baseBudget, players);
+          const active = players === selectedPlayers;
+
+          return (
+            <Paper
+              key={players}
+              variant="outlined"
+              sx={{
+                borderColor: active
+                  ? "rgba(242,199,108,.55)"
+                  : "rgba(217,200,159,.12)",
+                bgcolor: active ? "rgba(242,199,108,.12)" : "rgba(255,255,255,.035)",
+                p: 0.9,
+              }}
+            >
+              <Stack spacing={0.5}>
+                <Stack direction="row" sx={{ justifyContent: "space-between", gap: 1 }}>
+                  <Typography sx={{ color: "#f7edd9", fontWeight: 900 }}>
+                    {players} jogador{players > 1 ? "es" : ""}
+                  </Typography>
+                  <Chip size="small" label={`${budget}/${baseBudget}`} />
                 </Stack>
-                <Typography sx={{ color: "#f7edd9", fontSize: ".9rem" }}>
-                  <strong>Instinto:</strong> {threat.instinct}
+                <Typography sx={{ color: "#d7c59d", fontSize: ".84rem" }}>
+                  {scale.simultaneous}
                 </Typography>
-                <Stack component="ul" spacing={0.4} sx={{ m: 0, pl: 2.1 }}>
-                  {threat.moves.map((move) => (
-                    <Typography
-                      key={move}
-                      component="li"
-                      sx={{ color: "#d7c59d", fontSize: ".88rem", lineHeight: 1.45 }}
-                    >
-                      {move}
-                    </Typography>
-                  ))}
-                </Stack>
+                <Typography sx={{ color: "#b9a98b", fontSize: ".8rem", lineHeight: 1.4 }}>
+                  {scale.reserve}
+                </Typography>
               </Stack>
             </Paper>
-          ))}
-        </Box>
-      </AccordionBlock>
-
-      <AccordionBlock title="Cenas guiadas e escala por jogadores" defaultExpanded>
-        <Stack spacing={1.2}>
-          {adventure.scenes.map((scene, index) => (
-            <SceneCard
-              key={scene.title}
-              scene={scene}
-              index={index}
-              selectedPlayers={selectedPlayers}
-              accent={adventure.accent}
-            />
-          ))}
-        </Stack>
-      </AccordionBlock>
-
-      <AccordionBlock title="Movimentos personalizados e regras da aventura">
-        <Stack spacing={1}>
-          {adventure.customMoves.map((move) => (
-            <Paper key={move} variant="outlined" sx={cardSx("#7f6fd9")}>
-              <Typography sx={{ color: "#d7c59d", lineHeight: 1.6 }}>
-                {move}
-              </Typography>
-            </Paper>
-          ))}
-        </Stack>
-      </AccordionBlock>
-
-      <AccordionBlock title="Decisoes, ramos e finais abertos">
-        <InfoGrid title="Ramos provaveis" items={adventure.branches} accent="#c59b4b" />
-        <Box sx={{ mt: 1.2 }}>
-          <InfoGrid title="Recompensas e consequencias" items={adventure.rewards} accent="#5fb6c4" />
-        </Box>
-      </AccordionBlock>
-
-      <AccordionBlock title="Principios de conducao do mestre">
-        <InfoGrid title="Use durante a sessao" items={adventure.gmPrinciples} accent="#f2c76c" />
-      </AccordionBlock>
-    </Stack>
+          );
+        })}
+      </Box>
+    </Paper>
   );
 }
 
@@ -2069,43 +2630,6 @@ function InfoGrid({
         ))}
       </Box>
     </Paper>
-  );
-}
-
-function AccordionBlock({
-  title,
-  children,
-  defaultExpanded = false,
-}: {
-  title: string;
-  children: ReactNode;
-  defaultExpanded?: boolean;
-}) {
-  return (
-    <Accordion
-      defaultExpanded={defaultExpanded}
-      sx={{
-        bgcolor: "rgba(17,17,15,.92)",
-        color: "#f7edd9",
-        border: "1px solid rgba(217,200,159,.16)",
-        borderRadius: "10px !important",
-        overflow: "hidden",
-        "&:before": { display: "none" },
-      }}
-    >
-      <AccordionSummary
-        expandIcon={
-          <Typography sx={{ color: "#f7edd9", fontWeight: 900 }}>
-            +
-          </Typography>
-        }
-      >
-        <Typography sx={{ color: "#c59b4b", fontWeight: 900 }}>
-          {title}
-        </Typography>
-      </AccordionSummary>
-      <AccordionDetails>{children}</AccordionDetails>
-    </Accordion>
   );
 }
 
