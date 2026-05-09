@@ -85,9 +85,11 @@ export default function App() {
   if (currentView === "maps") {
     return <MapsPage onNavigate={setCurrentView} />;
   }
+
   if (currentView === "aventuras") {
-  return <Aventuras onNavigate={setCurrentView} />;
-}
+    return <Aventuras onNavigate={setCurrentView} />;
+  }
+
   if (currentView === "apps") {
     return (
       <AppsAccessPage

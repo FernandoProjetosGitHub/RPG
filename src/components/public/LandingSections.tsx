@@ -112,6 +112,13 @@ export function LandingHero({
           >
             Ver mapas
           </Button>
+          <Button
+            size="large"
+            variant="outlined"
+            onClick={() => onNavigate("aventuras")}
+          >
+            Ver aventuras
+          </Button>
         </Stack>
       </Stack>
     </Box>
