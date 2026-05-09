@@ -50,6 +50,7 @@ export type ConsumableItem = {
   useText: string;
   restText?: string;
   effect: ConsumableEffect;
+  canTargetAlly?: boolean;
   classIds?: string[];
 };
 
@@ -346,6 +347,7 @@ export const consumableItems: ConsumableItem[] = [
     restText:
       "Se o grupo nao tiver comida ou seguranca, o descanso nao deve apagar consequencias: o MJ pode separar o grupo, gastar recursos, mostrar perigo ou negar a cura.",
     effect: { type: "healHalf", label: "Descanso: cura metade dos PV maximos" },
+    canTargetAlly: true,
   },
   {
     id: "bandagens",
@@ -359,6 +361,7 @@ export const consumableItems: ConsumableItem[] = [
     useText:
       "Consumir 1 uso para recuperar 4 PV quando houver tempo e seguranca para cuidar do ferimento.",
     effect: { type: "heal", amount: 4, label: "Recupera 4 PV" },
+    canTargetAlly: true,
   },
   {
     id: "pocao-cura",
@@ -371,6 +374,7 @@ export const consumableItems: ConsumableItem[] = [
       "Frasco pequeno de energia restauradora. E direto, valioso e costuma chamar atencao de aventureiros experientes.",
     useText: "Consumir a pocao para recuperar 10 PV imediatamente.",
     effect: { type: "heal", amount: 10, label: "Recupera 10 PV" },
+    canTargetAlly: true,
   },
   {
     id: "antitoxina",
@@ -384,6 +388,7 @@ export const consumableItems: ConsumableItem[] = [
     useText:
       "Consumir 1 uso para neutralizar veneno comum ou dar base ficcional para remover/amenizar uma condicao toxica.",
     effect: { type: "fiction", label: "Remove ou ameniza veneno comum" },
+    canTargetAlly: true,
   },
   {
     id: "cataplasmas-ervas",
@@ -397,6 +402,7 @@ export const consumableItems: ConsumableItem[] = [
     useText:
       "Consumir 1 uso para recuperar 7 PV fora do imediatismo do combate.",
     effect: { type: "heal", amount: 7, label: "Recupera 7 PV" },
+    canTargetAlly: true,
     classIds: ["druida"],
   },
   {
@@ -411,6 +417,7 @@ export const consumableItems: ConsumableItem[] = [
     useText:
       "Consumir 1 uso para purificar algo pequeno, ferir/afastar morto-vivo na ficcao ou justificar uma vantagem sagrada.",
     effect: { type: "fiction", label: "Purifica e cria vantagem sagrada" },
+    canTargetAlly: true,
     classIds: ["clerigo", "paladino"],
   },
   {

@@ -4,6 +4,7 @@ import { Box, Button, Container, Paper, Stack, Typography } from "@mui/material"
 import CharacterAppPage from "./pages/CharacterAppPage";
 import MasterAppPage from "./pages/MasterAppPage";
 import { dwClasses, unselectedClass } from "./data/dwClasses";
+import { consumableItems, items } from "./data/items";
 import { initialCharacter, type Character, type PlayerProfileSummary } from "./types/character";
 
 type CurrentView = "home" | "playerCharacter" | "masterPanel" | "masterCharacter";
@@ -14,6 +15,19 @@ function createInitialTable() {
   return Array.from({ length: playerCount }, () =>
     JSON.parse(JSON.stringify(initialCharacter)) as Character,
   );
+}
+
+function getMaxHpForCharacter(character: Character) {
+  const selectedClass =
+    dwClasses.find((dwClass) => dwClass.id === character.classId) ??
+    unselectedClass;
+  const equippedBonusHp = Object.values(character.equipment)
+    .filter((itemId): itemId is string => Boolean(itemId))
+    .map((itemId) => items.find((item) => item.id === itemId))
+    .filter((item): item is (typeof items)[number] => Boolean(item))
+    .reduce((acc, item) => acc + (item.modifiers.hp ?? 0), 0);
+
+  return selectedClass.baseHp + character.attributes.constituicao + equippedBonusHp;
 }
 
 export default function App() {
@@ -48,6 +62,54 @@ export default function App() {
     },
   );
 
+  function applyConsumableToPlayer(consumableId: string, targetIndex: number) {
+    const consumable = consumableItems.find((item) => item.id === consumableId);
+    if (!consumable) return;
+
+    setCharacters((currentCharacters) => {
+      const source = currentCharacters[selectedPlayerIndex];
+      if (!source || (source.consumables[consumableId] ?? 0) <= 0) {
+        return currentCharacters;
+      }
+
+      return currentCharacters.map((currentCharacter, index) => {
+        let nextCharacter = currentCharacter;
+
+        if (index === selectedPlayerIndex) {
+          nextCharacter = {
+            ...nextCharacter,
+            consumables: {
+              ...nextCharacter.consumables,
+              [consumableId]: Math.max(
+                0,
+                (nextCharacter.consumables[consumableId] ?? 0) - 1,
+              ),
+            },
+          };
+        }
+
+        if (index !== targetIndex) return nextCharacter;
+
+        const maxHp = getMaxHpForCharacter(nextCharacter);
+        let nextHp = nextCharacter.hp.current;
+        if (consumable.effect.type === "heal") {
+          nextHp = Math.min(maxHp, nextHp + consumable.effect.amount);
+        }
+        if (consumable.effect.type === "healHalf") {
+          nextHp = Math.min(maxHp, nextHp + Math.ceil(maxHp / 2));
+        }
+
+        return {
+          ...nextCharacter,
+          hp: {
+            ...nextCharacter.hp,
+            current: nextHp,
+          },
+        };
+      });
+    });
+  }
+
   if (currentView === "playerCharacter") {
     return (
       <CharacterAppPage
@@ -57,6 +119,7 @@ export default function App() {
         playerProfiles={playerProfiles}
         selectedPlayerIndex={selectedPlayerIndex}
         onSelectPlayer={setSelectedPlayerIndex}
+        onApplyConsumableToPlayer={applyConsumableToPlayer}
         onBackToCodex={() => setCurrentView("home")}
       />
     );
@@ -85,6 +148,7 @@ export default function App() {
         playerProfiles={playerProfiles}
         selectedPlayerIndex={selectedPlayerIndex}
         onSelectPlayer={setSelectedPlayerIndex}
+        onApplyConsumableToPlayer={applyConsumableToPlayer}
         onBackToMaster={() => setCurrentView("masterPanel")}
       />
     );

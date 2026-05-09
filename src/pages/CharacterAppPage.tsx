@@ -72,6 +72,7 @@ type CharacterAppPageProps = {
   playerProfiles?: PlayerProfileSummary[];
   selectedPlayerIndex?: number;
   onSelectPlayer?: (index: number) => void;
+  onApplyConsumableToPlayer?: (consumableId: string, targetIndex: number) => void;
 };
 
 type CombatAction = {
@@ -211,6 +212,7 @@ export default function CharacterAppPage({
   playerProfiles = [],
   selectedPlayerIndex = 0,
   onSelectPlayer,
+  onApplyConsumableToPlayer,
 }: CharacterAppPageProps) {
   const [activeTab, setActiveTab] = useState<AppTab>("personagem");
   const [pendingClassId, setPendingClassId] = useState("");
@@ -237,6 +239,9 @@ export default function CharacterAppPage({
   const [spellCastRoll, setSpellCastRoll] = useState<SpellCastRoll | null>(
     null,
   );
+  const [consumableTargets, setConsumableTargets] = useState<
+    Record<string, number>
+  >({});
   const combatSceneRef = useRef<HTMLDivElement | null>(null);
   const classAudioContextRef = useRef<AudioContext | null>(null);
   const classAudioBuffersRef = useRef<Record<string, AudioBuffer>>({});
@@ -751,10 +756,15 @@ export default function CharacterAppPage({
     });
   }
 
-  function useConsumable(consumableId: string) {
+  function useConsumable(consumableId: string, targetIndex = selectedPlayerIndex) {
     const consumable = consumableItems.find((item) => item.id === consumableId);
     const currentUses = character.consumables[consumableId] ?? 0;
     if (!consumable || currentUses <= 0) return;
+
+    if (onApplyConsumableToPlayer) {
+      onApplyConsumableToPlayer(consumableId, targetIndex);
+      return;
+    }
 
     setCharacter((current) => {
       const nextUses = Math.max(0, (current.consumables[consumableId] ?? 0) - 1);
@@ -2732,6 +2742,8 @@ export default function CharacterAppPage({
                         .map((item) => {
                           const currentUses = character.consumables[item.id] ?? 0;
                           const hasUses = currentUses > 0;
+                          const targetIndex =
+                            consumableTargets[item.id] ?? selectedPlayerIndex;
 
                           return (
                             <Paper
@@ -2795,12 +2807,52 @@ export default function CharacterAppPage({
                                     {item.restText}
                                   </Typography>
                                 )}
+                                {item.canTargetAlly && (
+                                  <FormControl fullWidth size="small">
+                                    <InputLabel>Usar em</InputLabel>
+                                    <Select
+                                      label="Usar em"
+                                      value={targetIndex}
+                                      onChange={(event) =>
+                                        setConsumableTargets((current) => ({
+                                          ...current,
+                                          [item.id]: Number(event.target.value),
+                                        }))
+                                      }
+                                    >
+                                      {playerProfiles.map((profile) => (
+                                        <MenuItem
+                                          key={profile.index}
+                                          value={profile.index}
+                                        >
+                                          {profile.label} -{" "}
+                                          {profile.name || "Sem nome"} -{" "}
+                                          {profile.className}
+                                        </MenuItem>
+                                      ))}
+                                    </Select>
+                                  </FormControl>
+                                )}
                                 <Button
                                   variant="contained"
                                   disabled={!hasUses}
-                                  onClick={() => useConsumable(item.id)}
+                                  onClick={() =>
+                                    useConsumable(
+                                      item.id,
+                                      item.canTargetAlly
+                                        ? targetIndex
+                                        : selectedPlayerIndex,
+                                    )
+                                  }
                                 >
-                                  Usar: {item.effect.label}
+                                  Usar
+                                  {item.canTargetAlly
+                                    ? ` em ${
+                                        playerProfiles[targetIndex]?.label ??
+                                        "jogador"
+                                      }`
+                                    : ""}
+                                  : {item.effect.label}
                                 </Button>
                               </Stack>
                             </Paper>
