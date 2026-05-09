@@ -35,6 +35,11 @@ import {
 import { dwClasses, unselectedClass } from "../data/dwClasses";
 import { basicMoves } from "../data/dwMoves";
 import {
+  dwRollOutcomes,
+  getDwRollOutcome,
+  type DwRollOutcomeKey,
+} from "../data/dwRollOutcomes";
+import {
   classStartingConsumables,
   classStartingItemIds,
   consumableItems,
@@ -48,6 +53,7 @@ import {
 } from "../data/spells";
 import AdventureMapsDialog from "../components/AdventureMapsDialog";
 import CombatDiceRoller from "../components/CombatDiceRoller";
+import MoveOutcomeGuide from "../components/dw/MoveOutcomeGuide";
 import AttributeDistributionDrawer from "../components/AttributeDistributionDrawer";
 import {
   attributeKeys,
@@ -103,7 +109,17 @@ type SpellCastRoll = {
   modifier: number;
   penalty: number;
   total: number;
-  outcome: "success" | "partial" | "miss";
+  outcome: DwRollOutcomeKey;
+};
+
+type MoveRoll = {
+  moveName: string;
+  attribute: AttributeKey;
+  attributeValue: number;
+  modifier: number;
+  rolls: number[];
+  total: number;
+  outcome: DwRollOutcomeKey;
 };
 
 const tabLabels: Record<AppTab, string> = {
@@ -239,6 +255,7 @@ export default function CharacterAppPage({
   const [spellCastRoll, setSpellCastRoll] = useState<SpellCastRoll | null>(
     null,
   );
+  const [moveRoll, setMoveRoll] = useState<MoveRoll | null>(null);
   const [consumableTargets, setConsumableTargets] = useState<
     Record<string, number>
   >({});
@@ -848,6 +865,31 @@ export default function CharacterAppPage({
     setSpellCastRoll(null);
   }
 
+  function rollMove(move: { name: string; rollAttribute?: AttributeKey }) {
+    if (!move.rollAttribute) return;
+
+    const rolls = [
+      Math.floor(Math.random() * 6) + 1,
+      Math.floor(Math.random() * 6) + 1,
+    ];
+    const attributeValue = finalAttributes[move.rollAttribute];
+    const modifier = getAttributeModifier(attributeValue);
+    const total = rolls[0] + rolls[1] + modifier;
+
+    // Movimentos de Dungeon World usam 2d6 + modificador, nao o valor bruto
+    // do atributo. Isso separa resolucao narrativa da rolagem de dano da aba
+    // Combate, que soma o valor do atributo por decisao de interface da mesa.
+    setMoveRoll({
+      moveName: move.name,
+      attribute: move.rollAttribute,
+      attributeValue,
+      modifier,
+      rolls,
+      total,
+      outcome: getDwRollOutcome(total),
+    });
+  }
+
   function castSpell(spell: DwSpell) {
     if (!preparedSpellIds.has(spell.id) || exhaustedSpellIds.has(spell.id)) {
       return;
@@ -859,8 +901,6 @@ export default function CharacterAppPage({
     ];
     const total =
       rolls[0] + rolls[1] + spellCastingModifier + spellCastPenalty;
-    const outcome =
-      total >= 10 ? "success" : total >= 7 ? "partial" : "miss";
 
     setSpellCastRoll({
       spell,
@@ -868,7 +908,7 @@ export default function CharacterAppPage({
       modifier: spellCastingModifier,
       penalty: spellCastPenalty,
       total,
-      outcome,
+      outcome: getDwRollOutcome(total),
     });
   }
 
@@ -1605,7 +1645,7 @@ export default function CharacterAppPage({
 
               {activeTab === "descricao" && (
                 <Stack spacing={2}>
-                <InfoPanel title={selectedClass.name}>
+                  <InfoPanel title={selectedClass.name}>
                   <Typography sx={{ color: "#d7c59d", mb: 2 }}>
                     {selectedClass.description}
                   </Typography>
@@ -1830,10 +1870,32 @@ export default function CharacterAppPage({
                           >
                             {skill.description}
                           </Typography>
+
+                          <Box sx={{ mt: 1 }}>
+                            <MoveOutcomeGuide
+                              moveName={skill.name}
+                              attribute={skill.rollAttribute}
+                              compact
+                              showNoRoll
+                            />
+                          </Box>
+
+                          {skill.rollAttribute && (
+                            <Button
+                              variant="outlined"
+                              size="small"
+                              sx={{ mt: 1, color: "#f2c76c" }}
+                              onClick={() => rollMove(skill)}
+                            >
+                              Rolar movimento
+                            </Button>
+                          )}
                         </Paper>
                       ))}
                     </Stack>
                   </InfoPanel>
+
+                  {moveRoll && <MoveRollResultPanel roll={moveRoll} />}
                 </Stack>
               )}
 
@@ -1847,6 +1909,8 @@ export default function CharacterAppPage({
                   />
 
                   <BasicMovesPanel />
+
+                  {moveRoll && <MoveRollResultPanel roll={moveRoll} />}
 
                   <InfoPanel title="Habilidades Iniciais">
                     <Stack spacing={1.2}>
@@ -1881,18 +1945,37 @@ export default function CharacterAppPage({
                             {skill.description}
                           </Typography>
 
-                          <Button
-                            variant="text"
-                            sx={{ mt: 1, color: "#f2c76c" }}
-                            onClick={() =>
-                              setDescriptionDialog({
-                                title: skill.name,
-                                body: skill.description,
-                              })
-                            }
-                          >
-                            Ler descricao completa
-                          </Button>
+                          <MoveOutcomeGuide
+                            moveName={skill.name}
+                            attribute={skill.rollAttribute}
+                            compact
+                            showNoRoll
+                          />
+
+                          <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+                            <Button
+                              variant="text"
+                              sx={{ color: "#f2c76c" }}
+                              onClick={() =>
+                                setDescriptionDialog({
+                                  title: skill.name,
+                                  body: skill.description,
+                                })
+                              }
+                            >
+                              Ler descricao completa
+                            </Button>
+
+                            {skill.rollAttribute && (
+                              <Button
+                                variant="outlined"
+                                size="small"
+                                onClick={() => rollMove(skill)}
+                              >
+                                Rolar movimento
+                              </Button>
+                            )}
+                          </Stack>
                         </Paper>
                       ))}
                     </Stack>
@@ -1969,6 +2052,12 @@ export default function CharacterAppPage({
                                       {skill.description}
                                     </Typography>
 
+                                    <MoveOutcomeGuide
+                                      moveName={skill.name}
+                                      attribute={skill.rollAttribute}
+                                      compact
+                                    />
+
                                     <Button
                                       variant="text"
                                       sx={{
@@ -1984,6 +2073,22 @@ export default function CharacterAppPage({
                                     >
                                       Ler descricao completa
                                     </Button>
+
+                                    {skill.rollAttribute && (
+                                      <Button
+                                        variant="outlined"
+                                        size="small"
+                                        disabled={
+                                          !alreadySelected || requirementBlocked
+                                        }
+                                        sx={{ alignSelf: "flex-start" }}
+                                        onClick={() => rollMove(skill)}
+                                      >
+                                        {alreadySelected
+                                          ? "Rolar movimento"
+                                          : "Aprenda para rolar"}
+                                      </Button>
+                                    )}
 
                                     {skill.levelRequirement && (
                                       <Chip
@@ -2138,6 +2243,12 @@ export default function CharacterAppPage({
                                       {skill.description}
                                     </Typography>
 
+                                    <MoveOutcomeGuide
+                                      moveName={skill.name}
+                                      attribute={skill.rollAttribute}
+                                      compact
+                                    />
+
                                     <Button
                                       variant="text"
                                       sx={{
@@ -2153,6 +2264,22 @@ export default function CharacterAppPage({
                                     >
                                       Ler descricao completa
                                     </Button>
+
+                                    {skill.rollAttribute && (
+                                      <Button
+                                        variant="outlined"
+                                        size="small"
+                                        disabled={
+                                          !alreadySelected || requirementBlocked
+                                        }
+                                        sx={{ alignSelf: "flex-start" }}
+                                        onClick={() => rollMove(skill)}
+                                      >
+                                        {alreadySelected
+                                          ? "Rolar movimento"
+                                          : "Aprenda para rolar"}
+                                      </Button>
+                                    )}
 
                                     {skill.levelRequirement && (
                                       <Chip
@@ -2253,6 +2380,8 @@ export default function CharacterAppPage({
 
                   <BasicMovesPanel />
 
+                  {moveRoll && <MoveRollResultPanel roll={moveRoll} />}
+
                   <InfoPanel title="Preparo arcano">
                     <Stack spacing={1.2}>
                       <Stack
@@ -2306,8 +2435,9 @@ export default function CharacterAppPage({
                       <Typography sx={{ color: "#b9a98b", fontSize: ".9rem" }}>
                         Rotinas, oracoes e truques custam 0 e ficam sempre prontos.
                         Magias e efeitos de nivel 1 ou maior ocupam preparo ate
-                        o limite nivel + 1. Em 7-9, escolha uma consequencia de
-                        Dungeon World.
+                        o limite nivel + 1. Ao conjurar, role 2d6 + atributo:
+                        10+ ativa limpo, 7-9 ativa com uma consequencia, 6-
+                        marca XP e entrega um movimento ao MJ.
                       </Typography>
 
                       <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
@@ -3609,9 +3739,55 @@ function BasicMovesPanel() {
               <Typography sx={{ color: "#b9a98b", fontSize: ".82rem" }}>
                 {move.partial}
               </Typography>
+
+              <Typography sx={{ color: "#ffb0b8", fontSize: ".82rem" }}>
+                {move.miss}
+              </Typography>
             </Stack>
           </Paper>
         ))}
+      </Stack>
+    </InfoPanel>
+  );
+}
+
+function MoveRollResultPanel({ roll }: { roll: MoveRoll }) {
+  const outcome = dwRollOutcomes[roll.outcome];
+
+  return (
+    <InfoPanel title="Resultado do movimento">
+      <Stack spacing={1.2}>
+        <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
+          <Chip label={roll.moveName} />
+          <Chip label={`2d6: ${roll.rolls.join(" + ")}`} />
+          <Chip label={`Atributo ${roll.attributeValue}`} />
+          <Chip label={`Mod ${roll.modifier >= 0 ? "+" : ""}${roll.modifier}`} />
+          <Chip label={`Total ${roll.total}`} />
+        </Stack>
+
+        <Paper
+          variant="outlined"
+          sx={{
+            borderColor: `${outcome.color}66`,
+            bgcolor: `${outcome.color}14`,
+            p: 1.2,
+          }}
+        >
+          <Stack spacing={0.7}>
+            <Typography sx={{ color: outcome.color, fontWeight: 900 }}>
+              {outcome.band} - {outcome.title}
+            </Typography>
+            <Typography sx={{ color: "#d7c59d", fontSize: ".9rem", lineHeight: 1.55 }}>
+              {outcome.playerText}
+            </Typography>
+            {roll.outcome === "miss" && (
+              <Typography sx={{ color: "#ffb0b8", fontSize: ".86rem", lineHeight: 1.5 }}>
+                Anote XP e chame o MJ para transformar a falha em consequencia
+                concreta da cena, como dano, perda de recurso ou novo perigo.
+              </Typography>
+            )}
+          </Stack>
+        </Paper>
       </Stack>
     </InfoPanel>
   );
@@ -3628,12 +3804,8 @@ function SpellCastResultPanel({
   onApplyPenalty: () => void;
   onExhaustSpell: () => void;
 }) {
-  const outcomeLabel =
-    roll.outcome === "success"
-      ? "10+ sucesso total"
-      : roll.outcome === "partial"
-        ? "7-9 sucesso com custo"
-        : "6- o MJ faz um movimento";
+  const outcome = dwRollOutcomes[roll.outcome];
+  const outcomeLabel = `${outcome.band} ${outcome.title}`;
 
   return (
     <InfoPanel title="Rolagem de magia">
@@ -3648,17 +3820,21 @@ function SpellCastResultPanel({
 
         <Typography
           sx={{
-            color: roll.outcome === "miss" ? "#ffb0b8" : "#f2c76c",
+            color: outcome.color,
             fontWeight: 900,
           }}
         >
           {outcomeLabel}
         </Typography>
 
+        <Typography sx={{ color: "#d7c59d", fontSize: ".9rem", lineHeight: 1.55 }}>
+          {outcome.playerText}
+        </Typography>
+
         {roll.outcome === "partial" && (
           <Stack spacing={1}>
             <Typography sx={{ color: "#d7c59d", fontSize: ".9rem" }}>
-              Escolha uma consequencia:
+              Escolha uma consequencia da conjuracao:
             </Typography>
             <Paper variant="outlined" sx={{ p: 1.2, bgcolor: "rgba(255,255,255,.04)" }}>
               <Typography sx={{ color: "#b9a98b", fontSize: ".88rem" }}>
@@ -3682,8 +3858,8 @@ function SpellCastResultPanel({
 
         {roll.outcome === "miss" && (
           <Typography sx={{ color: "#b9a98b", fontSize: ".9rem" }}>
-            A magia ainda pode acontecer, mas o MJ faz um movimento tao forte
-            quanto a ficcao pedir.
+            Marque XP. A magia ainda pode acontecer, falhar ou sair distorcida,
+            mas o MJ faz um movimento tao forte quanto a ficcao pedir.
           </Typography>
         )}
       </Stack>
@@ -3817,6 +3993,11 @@ function CombatActionCard({
           {action.detail}
         </Typography>
 
+        <Typography sx={{ color: "#b9a98b", fontSize: ".78rem", lineHeight: 1.45 }}>
+          Esta rolagem representa o dano executado. Se a ficcao tambem disparar
+          um movimento, resolva antes com 2d6 e leia 10+, 7-9 ou 6-.
+        </Typography>
+
         <Button variant="contained" onClick={onRoll}>
           Usar e rolar
         </Button>
@@ -3843,6 +4024,11 @@ function CombatSceneResult({ roll }: { roll: CombatRoll }) {
           color: "#5fb6c4",
           glow: "rgba(95,182,196,.32)",
         };
+  const narrative = roll.isCritical
+    ? "Extremo alto no dado: descreva impacto limpo, pressao no inimigo ou vantagem imediata."
+    : roll.isCriticalFailure
+      ? "Extremo baixo no dado: o dano saiu mal e o MJ pode ligar isso a uma complicacao da cena."
+      : "Dano resolvido. Se a acao disparou um movimento, use tambem a regra 10+, 7-9 ou 6-.";
 
   return (
     <Box
@@ -3889,6 +4075,10 @@ function CombatSceneResult({ roll }: { roll: CombatRoll }) {
 
         <Typography sx={{ color: "#b9a98b", fontSize: ".75rem" }}>
           Rolagens naturais: {roll.rolls.join(" + ")}
+        </Typography>
+
+        <Typography sx={{ color: "#d7c59d", fontSize: ".75rem", lineHeight: 1.35 }}>
+          {narrative}
         </Typography>
       </Stack>
     </Box>

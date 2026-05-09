@@ -27,6 +27,7 @@ import {
 } from "../data/classCreation";
 import { dwClasses, unselectedClass } from "../data/dwClasses";
 import { basicMoves } from "../data/dwMoves";
+import { getDwMoveOutcomeSummary } from "../data/dwRollOutcomes";
 import { gmReferenceSections, monsterReferences } from "../data/gmReference";
 import {
   classStartingConsumables,
@@ -1040,7 +1041,7 @@ export default function MasterAppPage({
                       move.attribute ? `+${attributeLabels[move.attribute]}` : "variável",
                     ]}
                     body={move.trigger}
-                    footer={move.partial}
+                    footer={`${move.hit} ${move.partial} ${move.miss}`}
                   />
                 ))}
               </MoveCardGrid>
@@ -1067,9 +1068,19 @@ export default function MasterAppPage({
                     ].filter(Boolean)}
                     body={skill.description}
                     footer={
-                      skill.requiresSkillId
-                        ? `Requer: ${skill.requiresSkillId}`
-                        : undefined
+                      [
+                        skill.rollAttribute
+                          ? getDwMoveOutcomeSummary(
+                              skill.name,
+                              skill.rollAttribute,
+                            )
+                          : undefined,
+                        skill.requiresSkillId
+                          ? `Requer: ${skill.requiresSkillId}`
+                          : undefined,
+                      ]
+                        .filter(Boolean)
+                        .join(" ") || undefined
                     }
                   />
                 ))}

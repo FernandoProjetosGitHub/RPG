@@ -13,6 +13,8 @@ import {
   items,
 } from "../../data/items";
 import { spells } from "../../data/spells";
+import type { AttributeKey } from "../../types/character";
+import MoveOutcomeGuide from "../dw/MoveOutcomeGuide";
 import ClassMark from "./ClassMark";
 
 export default function ClassReferenceCard({ dwClass }: { dwClass: DwClass }) {
@@ -140,7 +142,12 @@ export default function ClassReferenceCard({ dwClass }: { dwClass: DwClass }) {
 
         <ReferenceSection title="Movimentos iniciais">
           {dwClass.startingSkills.map((skill) => (
-            <ReferenceMove key={skill.id} title={skill.name} body={skill.description} />
+            <ReferenceMove
+              key={skill.id}
+              title={skill.name}
+              body={skill.description}
+              rollAttribute={skill.rollAttribute}
+            />
           ))}
         </ReferenceSection>
 
@@ -152,6 +159,7 @@ export default function ClassReferenceCard({ dwClass }: { dwClass: DwClass }) {
                 title={skill.name}
                 body={skill.description}
                 chip={skill.levelRequirement ? `Nivel ${skill.levelRequirement}+` : undefined}
+                rollAttribute={skill.rollAttribute}
               />
             ),
           )}
@@ -235,10 +243,12 @@ function ReferenceMove({
   title,
   body,
   chip,
+  rollAttribute,
 }: {
   title: string;
   body: string;
   chip?: string;
+  rollAttribute?: AttributeKey;
 }) {
   return (
     <Paper
@@ -258,6 +268,11 @@ function ReferenceMove({
       <Typography sx={{ color: "#d7c59d", fontSize: ".9rem", lineHeight: 1.55 }}>
         {body}
       </Typography>
+      <MoveOutcomeGuide
+        moveName={title}
+        attribute={rollAttribute}
+        compact
+      />
     </Paper>
   );
 }
