@@ -1,13 +1,21 @@
 import { useState, type Dispatch, type SetStateAction } from "react";
-import { Box, Button, Container, Paper, Stack, Typography } from "@mui/material";
 
+import AppsAccessPage from "./pages/AppsAccessPage";
+import ClassCatalogPage from "./pages/ClassCatalogPage";
 import CharacterAppPage from "./pages/CharacterAppPage";
+import LandingPage from "./pages/LandingPage";
+import MapsPage from "./pages/MapsPage";
 import MasterAppPage from "./pages/MasterAppPage";
 import { dwClasses, unselectedClass } from "./data/dwClasses";
 import { consumableItems, items } from "./data/items";
 import { initialCharacter, type Character, type PlayerProfileSummary } from "./types/character";
+import type { PublicView } from "./pages/PublicPageShell";
 
-type CurrentView = "home" | "playerCharacter" | "masterPanel" | "masterCharacter";
+type CurrentView =
+  | PublicView
+  | "playerCharacter"
+  | "masterPanel"
+  | "masterCharacter";
 
 const playerCount = 7;
 
@@ -33,7 +41,7 @@ function getMaxHpForCharacter(character: Character) {
 export default function App() {
   const [characters, setCharacters] = useState<Character[]>(createInitialTable);
   const [selectedPlayerIndex, setSelectedPlayerIndex] = useState(0);
-  const [currentView, setCurrentView] = useState<CurrentView>("home");
+  const [currentView, setCurrentView] = useState<CurrentView>("landing");
   const character = characters[selectedPlayerIndex] ?? characters[0];
   const setCharacter: Dispatch<SetStateAction<Character>> = (
     update,
@@ -120,7 +128,7 @@ export default function App() {
         selectedPlayerIndex={selectedPlayerIndex}
         onSelectPlayer={setSelectedPlayerIndex}
         onApplyConsumableToPlayer={applyConsumableToPlayer}
-        onBackToCodex={() => setCurrentView("home")}
+        onBackToCodex={() => setCurrentView("apps")}
       />
     );
   }
@@ -133,7 +141,7 @@ export default function App() {
         playerProfiles={playerProfiles}
         selectedPlayerIndex={selectedPlayerIndex}
         onSelectPlayer={setSelectedPlayerIndex}
-        onBackToCodex={() => setCurrentView("home")}
+        onBackToCodex={() => setCurrentView("apps")}
         onOpenCharacter={() => setCurrentView("masterCharacter")}
       />
     );
@@ -154,108 +162,28 @@ export default function App() {
     );
   }
 
-  return (
-    <Box
-      component="main"
-      sx={{
-        minHeight: "100vh",
-        display: "grid",
-        placeItems: "center",
-        bgcolor: "#070706",
-        background:
-          "radial-gradient(circle at 50% 0%, rgba(170,38,61,.24), transparent 22rem), radial-gradient(circle at 20% 100%, rgba(197,155,75,.16), transparent 18rem), linear-gradient(180deg, #12100d 0%, #070706 100%)",
-        color: "#f7edd9",
-        px: 2,
-      }}
-    >
-      <Container maxWidth="sm">
-        <Paper
-          variant="outlined"
-          sx={{
-            borderColor: "rgba(217,200,159,.18)",
-            borderRadius: 4,
-            bgcolor: "rgba(17,17,15,.92)",
-            color: "#f7edd9",
-            p: { xs: 2.5, sm: 4 },
-            boxShadow: "0 22px 70px rgba(0,0,0,.58)",
-          }}
-        >
-          <Stack spacing={3}>
-            <Box>
-              <Typography sx={{ color: "#c59b4b", fontWeight: 900 }}>
-                Dungeon World
-              </Typography>
+  if (currentView === "classes") {
+    return <ClassCatalogPage onNavigate={setCurrentView} />;
+  }
 
-              <Typography variant="h3" sx={{ fontWeight: 900, mt: 0.5 }}>
-                App de ficha
-              </Typography>
+  if (currentView === "maps") {
+    return <MapsPage onNavigate={setCurrentView} />;
+  }
 
-              <Typography sx={{ color: "#b9a98b", mt: 1, lineHeight: 1.6 }}>
-                Escolha como deseja abrir a mesa.
-              </Typography>
-            </Box>
+  if (currentView === "apps") {
+    return (
+      <AppsAccessPage
+        playerProfiles={playerProfiles}
+        selectedPlayerIndex={selectedPlayerIndex}
+        onNavigate={setCurrentView}
+        onOpenMaster={() => setCurrentView("masterPanel")}
+        onOpenPlayer={(index) => {
+          setSelectedPlayerIndex(index);
+          setCurrentView("playerCharacter");
+        }}
+      />
+    );
+  }
 
-            <Stack spacing={1.4}>
-              <Button
-                fullWidth
-                size="large"
-                variant="contained"
-                onClick={() => {
-                  setSelectedPlayerIndex(0);
-                  setCurrentView("playerCharacter");
-                }}
-                sx={{ py: 1.4 }}
-              >
-                Jogador
-              </Button>
-
-              <Button
-                fullWidth
-                size="large"
-                variant="outlined"
-                onClick={() => setCurrentView("masterPanel")}
-                sx={{ py: 1.4 }}
-              >
-                Mestre
-              </Button>
-
-              <Paper
-                variant="outlined"
-                sx={{
-                  borderColor: "rgba(217,200,159,.14)",
-                  bgcolor: "rgba(255,255,255,.04)",
-                  p: 1.2,
-                }}
-              >
-                <Typography sx={{ color: "#c59b4b", fontWeight: 900, mb: 1 }}>
-                  Perfis da mesa
-                </Typography>
-                <Stack spacing={0.8}>
-                  {playerProfiles.map((profile) => (
-                    <Button
-                      key={profile.index}
-                      fullWidth
-                      variant={
-                        selectedPlayerIndex === profile.index
-                          ? "contained"
-                          : "outlined"
-                      }
-                      onClick={() => {
-                        setSelectedPlayerIndex(profile.index);
-                        setCurrentView("playerCharacter");
-                      }}
-                      sx={{ justifyContent: "space-between" }}
-                    >
-                      <span>{profile.label}</span>
-                      <span>{profile.name || profile.className}</span>
-                    </Button>
-                  ))}
-                </Stack>
-              </Paper>
-            </Stack>
-          </Stack>
-        </Paper>
-      </Container>
-    </Box>
-  );
+  return <LandingPage onNavigate={setCurrentView} />;
 }

@@ -19,7 +19,7 @@ type AdventureMapsDialogProps = {
   audience?: "player" | "master";
 };
 
-const pointStyles: Record<
+export const pointStyles: Record<
   AdventureMapPoint["type"],
   { fill: string; stroke: string; label: string }
 > = {
@@ -289,7 +289,7 @@ export default function AdventureMapsDialog({
   );
 }
 
-function MapSvg({
+export function MapSvg({
   mapId,
   revealSecrets,
 }: {
