@@ -24,6 +24,35 @@ export type Item = {
   modifiers: ItemModifier
 }
 
+export type ConsumableEffect =
+  | {
+      type: "heal";
+      amount: number;
+      label: string;
+    }
+  | {
+      type: "healHalf";
+      label: string;
+    }
+  | {
+      type: "fiction";
+      label: string;
+    };
+
+export type ConsumableItem = {
+  id: string;
+  name: string;
+  maxUses: number;
+  weight: number;
+  tags: string[];
+  source: string;
+  description: string;
+  useText: string;
+  restText?: string;
+  effect: ConsumableEffect;
+  classIds?: string[];
+};
+
 export const items: Item[] = [
   {
     id: 'florete-duelo',
@@ -301,3 +330,114 @@ export const classStartingItemIds: Record<string, string[]> = {
   paladino: ['espada-longa', 'armadura-escamas'],
   ranger: ['arco-desgastado', 'espada-curta', 'armadura-couro'],
 }
+
+export const consumableItems: ConsumableItem[] = [
+  {
+    id: "racao-masmorra",
+    name: "Racao de masmorra",
+    maxUses: 5,
+    weight: 1,
+    tags: ["consumivel", "5 usos", "descanso"],
+    source: "Equipamento comum das fichas de classe",
+    description:
+      "Comida compacta para exploracao. Em Dungeon World, acampar em lugar perigoso pede consumir racoes para conseguir descansar de verdade.",
+    useText:
+      "Consumir 1 uso durante descanso. O app cura metade dos PV maximos, limitado ao maximo atual.",
+    restText:
+      "Se o grupo nao tiver comida ou seguranca, o descanso nao deve apagar consequencias: o MJ pode separar o grupo, gastar recursos, mostrar perigo ou negar a cura.",
+    effect: { type: "healHalf", label: "Descanso: cura metade dos PV maximos" },
+  },
+  {
+    id: "bandagens",
+    name: "Bandagens",
+    maxUses: 3,
+    weight: 0,
+    tags: ["consumivel", "3 usos", "cura"],
+    source: "Equipamento inicial de algumas classes",
+    description:
+      "Faixas, panos limpos e compressas simples. Sao uteis para estabilizar ferimentos apos a cena violenta, sem parecer milagre.",
+    useText:
+      "Consumir 1 uso para recuperar 4 PV quando houver tempo e seguranca para cuidar do ferimento.",
+    effect: { type: "heal", amount: 4, label: "Recupera 4 PV" },
+  },
+  {
+    id: "pocao-cura",
+    name: "Pocao de cura",
+    maxUses: 1,
+    weight: 0,
+    tags: ["consumivel", "cura", "magico"],
+    source: "Opcao de equipamento do manual de classes",
+    description:
+      "Frasco pequeno de energia restauradora. E direto, valioso e costuma chamar atencao de aventureiros experientes.",
+    useText: "Consumir a pocao para recuperar 10 PV imediatamente.",
+    effect: { type: "heal", amount: 10, label: "Recupera 10 PV" },
+  },
+  {
+    id: "antitoxina",
+    name: "Antitoxina",
+    maxUses: 3,
+    weight: 0,
+    tags: ["consumivel", "3 usos", "veneno"],
+    source: "Equipamento de druida e exploradores",
+    description:
+      "Mistura amarga contra venenos comuns. Nao apaga automaticamente venenos poderosos, mas justifica resistir, reduzir ou ganhar tempo.",
+    useText:
+      "Consumir 1 uso para neutralizar veneno comum ou dar base ficcional para remover/amenizar uma condicao toxica.",
+    effect: { type: "fiction", label: "Remove ou ameniza veneno comum" },
+  },
+  {
+    id: "cataplasmas-ervas",
+    name: "Cataplasmas e ervas",
+    maxUses: 2,
+    weight: 1,
+    tags: ["consumivel", "2 usos", "cura", "natural"],
+    source: "Equipamento de druida",
+    description:
+      "Ervas, resinas e compressas de campo. Funcionam melhor quando a cura vem de paciencia, natureza e conhecimento pratico.",
+    useText:
+      "Consumir 1 uso para recuperar 7 PV fora do imediatismo do combate.",
+    effect: { type: "heal", amount: 7, label: "Recupera 7 PV" },
+    classIds: ["druida"],
+  },
+  {
+    id: "agua-benta",
+    name: "Agua benta",
+    maxUses: 1,
+    weight: 0,
+    tags: ["consumivel", "sagrado", "clerigo"],
+    source: "Oracao Santificar do clerigo, adaptada para uso no app",
+    description:
+      "Agua, comida ou pequeno objeto santificado pela fe. Contra mortos-vivos, profanacao e corrupcao espiritual, seu valor e principalmente ficcional.",
+    useText:
+      "Consumir 1 uso para purificar algo pequeno, ferir/afastar morto-vivo na ficcao ou justificar uma vantagem sagrada.",
+    effect: { type: "fiction", label: "Purifica e cria vantagem sagrada" },
+    classIds: ["clerigo", "paladino"],
+  },
+  {
+    id: "energia-dispositivo",
+    name: "Carga de dispositivo",
+    maxUses: 3,
+    weight: 0,
+    tags: ["consumivel", "magitecnico", "engenheiro"],
+    source: "Preparar dispositivos do Engenheiro Arcano",
+    description:
+      "Baterias, cristais e pequenas bobinas instaveis que seguram uma ativacao emergencial.",
+    useText:
+      "Consumir 1 carga para justificar reativar, estabilizar ou alimentar um efeito magitecnico simples.",
+    effect: { type: "fiction", label: "Alimenta um efeito magitecnico" },
+    classIds: ["engenheiro-arcano"],
+  },
+];
+
+export const classStartingConsumables: Record<string, Record<string, number>> = {
+  barbaro: { "racao-masmorra": 5 },
+  bardo: { "racao-masmorra": 5 },
+  clerigo: { "racao-masmorra": 5, "agua-benta": 1 },
+  druida: { "racao-masmorra": 5, "cataplasmas-ervas": 2, antitoxina: 3 },
+  "engenheiro-arcano": { "racao-masmorra": 5, "energia-dispositivo": 3 },
+  guerreiro: { "racao-masmorra": 5 },
+  ladrao: { "racao-masmorra": 5 },
+  mago: { "racao-masmorra": 5 },
+  paladino: { "racao-masmorra": 5, "agua-benta": 1 },
+  ranger: { "racao-masmorra": 5 },
+};

@@ -28,7 +28,12 @@ import {
 import { dwClasses, unselectedClass } from "../data/dwClasses";
 import { basicMoves } from "../data/dwMoves";
 import { gmReferenceSections, monsterReferences } from "../data/gmReference";
-import { classStartingItemIds, items } from "../data/items";
+import {
+  classStartingConsumables,
+  classStartingItemIds,
+  consumableItems,
+  items,
+} from "../data/items";
 import { spells } from "../data/spells";
 import {
   attributeLabels,
@@ -113,6 +118,8 @@ export default function MasterAppPage({
 }: MasterAppPageProps) {
   const [activeTab, setActiveTab] = useState<MasterTab>("criacao");
   const [selectedItem, setSelectedItem] = useState("");
+  const [selectedConsumable, setSelectedConsumable] = useState("racao-masmorra");
+  const [consumableAmount, setConsumableAmount] = useState(1);
   const [damageValue, setDamageValue] = useState(0);
   const [healValue, setHealValue] = useState(0);
   const [xpValue, setXpValue] = useState(0);
@@ -198,6 +205,7 @@ export default function MasterAppPage({
 
     const nextRaceId = raceDraft || nextClass.races[0]?.id || "";
     const startingItemIds = classStartingItemIds[nextClass.id] ?? [];
+    const startingConsumables = classStartingConsumables[nextClass.id] ?? {};
     const nextMaxHp = nextClass.baseHp + character.attributes.constituicao;
 
     setCharacter((current) => ({
@@ -212,6 +220,15 @@ export default function MasterAppPage({
       availableItems: Array.from(
         new Set([...current.availableItems, ...startingItemIds]),
       ),
+      consumables: {
+        ...current.consumables,
+        ...Object.fromEntries(
+          Object.entries(startingConsumables).map(([id, amount]) => [
+            id,
+            Math.max(current.consumables[id] ?? 0, amount),
+          ]),
+        ),
+      },
       preparedSpellIds: [],
       exhaustedSpellIds: [],
       spellCastPenalty: 0,
@@ -248,6 +265,43 @@ export default function MasterAppPage({
       availableItems: current.availableItems.includes(selectedItem)
         ? current.availableItems
         : [...current.availableItems, selectedItem],
+    }));
+  }
+
+  function setConsumableUses(consumableId: string, amount: number) {
+    const consumable = consumableItems.find((item) => item.id === consumableId);
+    if (!consumable) return;
+
+    setCharacter((current) => ({
+      ...current,
+      consumables: {
+        ...current.consumables,
+        [consumableId]: Math.max(0, Math.min(consumable.maxUses, amount)),
+      },
+    }));
+  }
+
+  function restoreSelectedConsumable() {
+    const current = character.consumables[selectedConsumable] ?? 0;
+    setConsumableUses(selectedConsumable, current + consumableAmount);
+  }
+
+  function restoreAllConsumables() {
+    setCharacter((current) => ({
+      ...current,
+      consumables: consumableItems.reduce(
+        (acc, item) => {
+          if (
+            (current.consumables[item.id] ?? 0) > 0 ||
+            !item.classIds ||
+            item.classIds.includes(selectedClass.id)
+          ) {
+            acc[item.id] = item.maxUses;
+          }
+          return acc;
+        },
+        { ...current.consumables },
+      ),
     }));
   }
 
@@ -1203,6 +1257,89 @@ export default function MasterAppPage({
                     })
                   )}
                 </Stack>
+              </Stack>
+            </SectionCard>
+
+            <SectionCard title="Consumiveis">
+              <Stack spacing={1.3}>
+                <Typography sx={{ color: "#d7c59d", lineHeight: 1.55 }}>
+                  Controle os usos maximos do jogador. Restaurar tudo volta
+                  cada consumivel pertinente para seu limite, como racao 5/5 ou
+                  antitoxina 3/3.
+                </Typography>
+
+                <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+                  <FormControl fullWidth size="small">
+                    <InputLabel>Consumivel</InputLabel>
+                    <Select
+                      value={selectedConsumable}
+                      label="Consumivel"
+                      onChange={(event) =>
+                        setSelectedConsumable(event.target.value)
+                      }
+                    >
+                      {consumableItems.map((item) => (
+                        <MenuItem key={item.id} value={item.id}>
+                          {item.name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                  <TextField
+                    type="number"
+                    size="small"
+                    label="Quantidade"
+                    value={consumableAmount}
+                    onChange={(event) =>
+                      setConsumableAmount(Number(event.target.value))
+                    }
+                    fullWidth
+                  />
+                </Stack>
+
+                <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    onClick={restoreSelectedConsumable}
+                    disabled={consumableAmount <= 0}
+                  >
+                    Restaurar quantidade
+                  </Button>
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    onClick={restoreAllConsumables}
+                  >
+                    Restaurar tudo
+                  </Button>
+                </Stack>
+
+                <MoveCardGrid>
+                  {consumableItems
+                    .filter(
+                      (item) =>
+                        (character.consumables[item.id] ?? 0) > 0 ||
+                        !item.classIds ||
+                        item.classIds.includes(selectedClass.id),
+                    )
+                    .map((item) => {
+                      const currentUses = character.consumables[item.id] ?? 0;
+                      return (
+                        <MoveCard
+                          key={item.id}
+                          title={item.name}
+                          chips={[
+                            `${currentUses}/${item.maxUses}`,
+                            `peso ${item.weight}`,
+                            ...item.tags,
+                          ]}
+                          body={`${item.description} ${item.useText}`}
+                          footer={item.restText ?? item.source}
+                        />
+                      );
+                    })}
+                </MoveCardGrid>
               </Stack>
             </SectionCard>
 

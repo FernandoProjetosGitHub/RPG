@@ -34,7 +34,12 @@ import {
 } from "../data/classCreation";
 import { dwClasses, unselectedClass } from "../data/dwClasses";
 import { basicMoves } from "../data/dwMoves";
-import { classStartingItemIds, items } from "../data/items";
+import {
+  classStartingConsumables,
+  classStartingItemIds,
+  consumableItems,
+  items,
+} from "../data/items";
 import {
   defaultSpellRisks,
   spells,
@@ -360,7 +365,15 @@ export default function CharacterAppPage({
   const currentLoad = character.availableItems
     .map((itemId) => items.find((item) => item.id === itemId))
     .filter((item): item is (typeof items)[number] => Boolean(item))
-    .reduce((acc, item) => acc + item.weight, 0);
+    .reduce((acc, item) => acc + item.weight, 0) +
+    consumableItems.reduce(
+      (acc, item) =>
+        acc +
+        (character.consumables[item.id] && character.consumables[item.id] > 0
+          ? item.weight
+          : 0),
+      0,
+    );
 
   const armor = equippedItemsData.reduce(
     (acc, item) => acc + (item.modifiers.armor ?? 0),
@@ -577,6 +590,7 @@ export default function CharacterAppPage({
     const newMaxHp = newClass.baseHp + character.attributes.constituicao;
     const nextRaceId = pendingRaceId || newClass.races[0]?.id || "";
     const startingItemIds = classStartingItemIds[newClass.id] ?? [];
+    const startingConsumables = classStartingConsumables[newClass.id] ?? {};
 
     setCharacter((current) => ({
       ...current,
@@ -597,6 +611,15 @@ export default function CharacterAppPage({
       availableItems: Array.from(
         new Set([...current.availableItems, ...startingItemIds]),
       ),
+      consumables: {
+        ...current.consumables,
+        ...Object.fromEntries(
+          Object.entries(startingConsumables).map(([id, amount]) => [
+            id,
+            Math.max(current.consumables[id] ?? 0, amount),
+          ]),
+        ),
+      },
       hp: {
         ...current.hp,
         current: newMaxHp,
@@ -724,6 +747,40 @@ export default function CharacterAppPage({
       return {
         ...current,
         equipment: updatedEquipment,
+      };
+    });
+  }
+
+  function useConsumable(consumableId: string) {
+    const consumable = consumableItems.find((item) => item.id === consumableId);
+    const currentUses = character.consumables[consumableId] ?? 0;
+    if (!consumable || currentUses <= 0) return;
+
+    setCharacter((current) => {
+      const nextUses = Math.max(0, (current.consumables[consumableId] ?? 0) - 1);
+      const nextConsumables = {
+        ...current.consumables,
+        [consumableId]: nextUses,
+      };
+
+      let nextHp = current.hp.current;
+      if (consumable.effect.type === "heal") {
+        nextHp = Math.min(maxHp, current.hp.current + consumable.effect.amount);
+      }
+      if (consumable.effect.type === "healHalf") {
+        nextHp = Math.min(
+          maxHp,
+          current.hp.current + Math.ceil(maxHp / 2),
+        );
+      }
+
+      return {
+        ...current,
+        consumables: nextConsumables,
+        hp: {
+          ...current.hp,
+          current: nextHp,
+        },
       };
     });
   }
@@ -2652,6 +2709,104 @@ export default function CharacterAppPage({
                         );
                       })}
                     </Box>
+                  </InfoPanel>
+
+                  <InfoPanel title="Consumiveis">
+                    <Stack spacing={1.2}>
+                      <Typography sx={{ color: "#b9a98b", fontSize: ".9rem" }}>
+                        Recursos com usos limitados. Ao usar, o app consome uma
+                        unidade e aplica cura quando houver efeito mecanico.
+                        Efeitos ficcionais entram como apoio para a conversa
+                        com o mestre.
+                      </Typography>
+
+                      {consumableItems
+                        .filter((item) => {
+                          const amount = character.consumables[item.id] ?? 0;
+                          return (
+                            amount > 0 ||
+                            !item.classIds ||
+                            item.classIds.includes(selectedClass.id)
+                          );
+                        })
+                        .map((item) => {
+                          const currentUses = character.consumables[item.id] ?? 0;
+                          const hasUses = currentUses > 0;
+
+                          return (
+                            <Paper
+                              key={item.id}
+                              variant="outlined"
+                              sx={{
+                                borderColor: hasUses
+                                  ? "rgba(95,182,196,.32)"
+                                  : "rgba(217,200,159,.12)",
+                                bgcolor: hasUses
+                                  ? "rgba(95,182,196,.09)"
+                                  : "rgba(255,255,255,.035)",
+                                color: "#f7edd9",
+                                p: 1.35,
+                              }}
+                            >
+                              <Stack spacing={1}>
+                                <Stack
+                                  direction="row"
+                                  spacing={1}
+                                  sx={{ flexWrap: "wrap" }}
+                                >
+                                  <Chip
+                                    label={`${currentUses}/${item.maxUses}`}
+                                    sx={{
+                                      bgcolor: hasUses
+                                        ? "rgba(95,182,196,.18)"
+                                        : "rgba(170,38,61,.16)",
+                                      color: "#f7edd9",
+                                    }}
+                                  />
+                                  <Chip label={`peso ${item.weight}`} />
+                                  {item.tags.map((tag) => (
+                                    <Chip key={tag} label={tag} />
+                                  ))}
+                                </Stack>
+
+                                <Typography
+                                  sx={{ color: "#5fb6c4", fontWeight: 900 }}
+                                >
+                                  {item.name}
+                                </Typography>
+                                <Typography
+                                  sx={{
+                                    color: "#d7c59d",
+                                    fontSize: ".9rem",
+                                    lineHeight: 1.6,
+                                  }}
+                                >
+                                  {item.description}
+                                </Typography>
+                                <Typography
+                                  sx={{ color: "#b9a98b", fontSize: ".85rem" }}
+                                >
+                                  {item.useText}
+                                </Typography>
+                                {item.restText && (
+                                  <Typography
+                                    sx={{ color: "#ffcf8a", fontSize: ".82rem" }}
+                                  >
+                                    {item.restText}
+                                  </Typography>
+                                )}
+                                <Button
+                                  variant="contained"
+                                  disabled={!hasUses}
+                                  onClick={() => useConsumable(item.id)}
+                                >
+                                  Usar: {item.effect.label}
+                                </Button>
+                              </Stack>
+                            </Paper>
+                          );
+                        })}
+                    </Stack>
                   </InfoPanel>
 
                   <InfoPanel title="Inventario virtual">

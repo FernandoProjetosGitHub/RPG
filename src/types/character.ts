@@ -46,6 +46,7 @@ export type Character = {
   };
 
   availableItems: string[];
+  consumables: Record<string, number>;
 
   equipment: {
     arma: string | null;
@@ -142,6 +143,7 @@ export const initialCharacter: Character = {
   },
 
   availableItems: [],
+  consumables: {},
 
   equipment: {
     arma: null,
