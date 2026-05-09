@@ -745,14 +745,39 @@ export default function CharacterAppPage({
             sx={{
               borderColor: "rgba(217,200,159,.14)",
               bgcolor: "rgba(255,255,255,.04)",
-              p: 1,
+              p: { xs: 0.9, sm: 1 },
             }}
           >
-            <Stack spacing={0.8}>
-              <Typography sx={{ color: "#c59b4b", fontWeight: 900, fontSize: ".82rem" }}>
+            <Stack
+              direction={{ xs: "column", sm: "row" }}
+              spacing={{ xs: 0.2, sm: 1 }}
+              sx={{
+                alignItems: { xs: "flex-start", sm: "center" },
+                justifyContent: "space-between",
+                minWidth: 0,
+              }}
+            >
+              <Typography
+                sx={{
+                  color: "#c59b4b",
+                  fontWeight: 900,
+                  fontSize: ".78rem",
+                  flex: "0 0 auto",
+                }}
+              >
                 Perfil ativo
               </Typography>
-              <Typography sx={{ color: "#d7c59d", fontSize: ".9rem" }}>
+              <Typography
+                sx={{
+                  color: "#d7c59d",
+                  fontSize: ".88rem",
+                  minWidth: 0,
+                  maxWidth: "100%",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
                 {playerProfiles[selectedPlayerIndex]?.label ?? "Jogador"} -{" "}
                 {character.name || "Sem nome"} - {selectedClass.name}
               </Typography>
@@ -760,7 +785,12 @@ export default function CharacterAppPage({
           </Paper>
         )}
 
-        <Stack direction="row" spacing={1}>
+        <Stack
+          direction="row"
+          spacing={1}
+          useFlexGap
+          sx={{ flexWrap: "wrap" }}
+        >
           {mode === "player" && onBackToCodex && (
             <Button variant="outlined" onClick={onBackToCodex}>
               Codex
