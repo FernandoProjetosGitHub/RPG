@@ -1,7 +1,7 @@
 import { Box, Button, Container, Stack, Typography } from "@mui/material";
 import type { ReactNode } from "react";
 
-export type PublicView = "landing" | "classes" | "maps" | "apps";
+export type PublicView = "landing" | "classes" | "maps" | "aventuras" | "apps";
 
 type PublicPageShellProps = {
   active: PublicView;
@@ -13,7 +13,9 @@ const navItems: Array<{ value: PublicView; label: string }> = [
   { value: "landing", label: "Inicio" },
   { value: "classes", label: "Classes" },
   { value: "maps", label: "Mapas" },
+  { value: "aventuras", label: "Aventuras" },
   { value: "apps", label: "Aplicativos" },
+
 ];
 
 export default function PublicPageShell({
