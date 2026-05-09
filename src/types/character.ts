@@ -29,6 +29,7 @@ export type Character = {
 
   creationChoices: Record<string, string>;
   creationChoicesLocked: boolean;
+  bondsLocked: boolean;
 
   attributesLocked: boolean;
 
@@ -109,6 +110,7 @@ export const initialCharacter: Character = {
 
   creationChoices: {},
   creationChoicesLocked: false,
+  bondsLocked: false,
 
   attributesLocked: false,
 

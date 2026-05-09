@@ -130,7 +130,7 @@ function buildDefaultCreationChoices(
   playerProfiles: PlayerProfileSummary[] = [],
   selectedPlayerIndex?: number,
 ) {
-  const rules = getCreationRulesFor(classId, raceId);
+  const rules = getCreationRulesFor(classId, raceId, "identity");
 
   return rules.reduce<Record<string, string>>((acc, rule) => {
     const options = getOptionsForCreationRule(
@@ -159,6 +159,42 @@ function formatCreationChoiceValue(
     ).find((option) => option.value === value)
       ?.label ?? value
   );
+}
+
+function getTopIdentitySummary(
+  choices: Record<string, string>,
+  rules: ReturnType<typeof getCreationRulesFor>,
+  playerProfiles: PlayerProfileSummary[],
+  selectedPlayerIndex: number,
+) {
+  const highlightedRuleIds = new Set([
+    "cleric-deity",
+    "cleric-domain",
+    "wizard-spellbook-style",
+    "ranger-animal",
+    "paladin-quest",
+    "barbarian-appetite",
+    "fighter-signature-weapon",
+    "rogue-poison",
+    "engineer-codex",
+  ]);
+
+  return rules
+    .filter((rule) => highlightedRuleIds.has(rule.id))
+    .map((rule) => {
+      const value = choices[rule.id];
+      if (!value) return null;
+      return {
+        label: rule.label,
+        value: formatCreationChoiceValue(
+          rule,
+          value,
+          playerProfiles,
+          selectedPlayerIndex,
+        ),
+      };
+    })
+    .filter((item): item is { label: string; value: string } => Boolean(item));
 }
 
 export default function CharacterAppPage({
@@ -221,10 +257,7 @@ export default function CharacterAppPage({
   const pendingCreationRules = getCreationRulesFor(
     pendingClass.id,
     pendingRace?.id ?? "",
-  );
-  const activeCreationRules = getCreationRulesFor(
-    selectedClass.id,
-    character.raceId,
+    "identity",
   );
   const activeIdentityRules = getCreationRulesFor(
     selectedClass.id,
@@ -236,6 +269,12 @@ export default function CharacterAppPage({
     character.raceId,
     "bond",
   );
+  const bondChoicesComplete =
+    activeBondRules.length > 0 &&
+    activeBondRules.every((rule) => {
+      if (!rule.required) return true;
+      return Boolean(character.creationChoices[rule.id]?.trim());
+    });
   const activeCreationBenefits = getCreationBenefits(character.creationChoices);
   const pendingCreationComplete = pendingCreationRules.every((rule) => {
     if (!rule.required) return true;
@@ -545,8 +584,12 @@ export default function CharacterAppPage({
       classLocked: true,
       raceId: nextRaceId,
       raceLocked: Boolean(nextRaceId),
-      creationChoices: pendingCreationChoices,
+      creationChoices: {
+        ...current.creationChoices,
+        ...pendingCreationChoices,
+      },
       creationChoicesLocked: true,
+      bondsLocked: false,
       preparedSpellIds: [],
       exhaustedSpellIds: [],
       spellCastPenalty: 0,
@@ -570,6 +613,24 @@ export default function CharacterAppPage({
       setClassSelectPulse(false);
     }, 700);
   }
+
+  function updateBondChoice(ruleId: string, value: string) {
+    if (character.bondsLocked) return;
+
+    setCharacter((current) => ({
+      ...current,
+      creationChoices: {
+        ...current.creationChoices,
+        [ruleId]: value,
+      },
+    }));
+  }
+
+  function confirmBondChoices() {
+    if (!bondChoicesComplete) return;
+    setCharacter((current) => ({ ...current, bondsLocked: true }));
+  }
+
   function canLearnSkill(skill: {
     levelRequirement?: number;
     requiresSkillId?: string;
@@ -1041,39 +1102,74 @@ export default function CharacterAppPage({
 
               {activeTab === "personagem" && (
                 <>
-                  <FormControl fullWidth size="small">
-                    <InputLabel sx={{ color: "#b9a98b" }}>Classe</InputLabel>
-                    <Select
-                      label="Classe"
-                      value={character.classId}
-                      disabled={character.classLocked}
-                      onChange={(event) =>
-                        requestClassChange(event.target.value as string)
-                      }
+                  {character.classLocked ? (
+                    <Paper
+                      variant="outlined"
                       sx={{
+                        borderColor: "rgba(197,155,75,.24)",
+                        bgcolor: "rgba(197,155,75,.08)",
                         color: "#f7edd9",
-                        ".MuiOutlinedInput-notchedOutline": {
-                          borderColor: "rgba(217,200,159,.22)",
-                        },
-                        ".MuiSvgIcon-root": { color: "#f7edd9" },
+                        p: 1.25,
                       }}
                     >
-                      <MenuItem value="">
-                        Classe nao selecionada
-                      </MenuItem>
-                      {dwClasses.map((dwClass) => (
-                        <MenuItem value={dwClass.id} key={dwClass.id}>
-                          {dwClass.name}
-                        </MenuItem>
-                      ))}
-                    </Select>
-
-                    {character.classLocked && (
-                      <Typography sx={{ color: "#c59b4b", fontSize: 12 }}>
-                        Classe definida.
+                      <Typography sx={{ color: "#c59b4b", fontWeight: 900 }}>
+                        Classe definida
                       </Typography>
-                    )}
-                  </FormControl>
+                      <Stack
+                        direction="row"
+                        spacing={1}
+                        sx={{ flexWrap: "wrap", mt: 1 }}
+                      >
+                        <Chip label={selectedClass.name} />
+                        {displayRace && <Chip label={displayRace.name} />}
+                        {getTopIdentitySummary(
+                          character.creationChoices,
+                          activeIdentityRules,
+                          playerProfiles,
+                          selectedPlayerIndex,
+                        ).map((summary) => (
+                          <Chip
+                            key={`${summary.label}-${summary.value}`}
+                            label={`${summary.label}: ${summary.value}`}
+                            sx={{
+                              bgcolor: "rgba(95,182,196,.14)",
+                              color: "#dff7ff",
+                              height: "auto",
+                              py: 0.4,
+                              ".MuiChip-label": {
+                                whiteSpace: "normal",
+                              },
+                            }}
+                          />
+                        ))}
+                      </Stack>
+                    </Paper>
+                  ) : (
+                    <FormControl fullWidth size="small">
+                      <InputLabel sx={{ color: "#b9a98b" }}>Classe</InputLabel>
+                      <Select
+                        label="Classe"
+                        value={character.classId}
+                        onChange={(event) =>
+                          requestClassChange(event.target.value as string)
+                        }
+                        sx={{
+                          color: "#f7edd9",
+                          ".MuiOutlinedInput-notchedOutline": {
+                            borderColor: "rgba(217,200,159,.22)",
+                          },
+                          ".MuiSvgIcon-root": { color: "#f7edd9" },
+                        }}
+                      >
+                        <MenuItem value="">Classe nao selecionada</MenuItem>
+                        {dwClasses.map((dwClass) => (
+                          <MenuItem value={dwClass.id} key={dwClass.id}>
+                            {dwClass.name}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  )}
                 </>
               )}
 
@@ -1228,11 +1324,14 @@ export default function CharacterAppPage({
                       <Stack spacing={1}>
                         {activeBondRules.map((rule) => {
                           const value = character.creationChoices[rule.id];
-                          const selectedOption = getOptionsForCreationRule(
+                          const options = getOptionsForCreationRule(
                             rule,
                             playerProfiles,
                             selectedPlayerIndex,
-                          ).find((option) => option.value === value);
+                          );
+                          const selectedOption = options.find(
+                            (option) => option.value === value,
+                          );
 
                           return (
                             <Paper
@@ -1240,9 +1339,11 @@ export default function CharacterAppPage({
                               variant="outlined"
                               sx={{
                                 borderColor: value
-                                  ? "rgba(95,182,196,.32)"
+                                  ? "rgba(95,182,196,.55)"
                                   : "rgba(170,38,61,.28)",
-                                bgcolor: "rgba(255,255,255,.04)",
+                                bgcolor: value
+                                  ? "rgba(95,182,196,.12)"
+                                  : "rgba(255,255,255,.04)",
                                 color: "#f7edd9",
                                 p: 1.2,
                               }}
@@ -1262,9 +1363,61 @@ export default function CharacterAppPage({
                               >
                                 {selectedOption?.description ?? rule.helper}
                               </Typography>
+                              {!character.bondsLocked && (
+                                <FormControl
+                                  fullWidth
+                                  size="small"
+                                  sx={{ mt: 1 }}
+                                >
+                                  <InputLabel>{rule.label}</InputLabel>
+                                  <Select
+                                    label={rule.label}
+                                    value={value ?? ""}
+                                    onChange={(event) =>
+                                      updateBondChoice(
+                                        rule.id,
+                                        event.target.value as string,
+                                      )
+                                    }
+                                  >
+                                    {options.map((option) => (
+                                      <MenuItem
+                                        key={option.value}
+                                        value={option.value}
+                                      >
+                                        <Box>
+                                          <Typography sx={{ fontWeight: 900 }}>
+                                            {option.label}
+                                          </Typography>
+                                          <Typography
+                                            sx={{
+                                              color: "#b9a98b",
+                                              fontSize: ".78rem",
+                                              whiteSpace: "normal",
+                                            }}
+                                          >
+                                            {option.description}
+                                          </Typography>
+                                        </Box>
+                                      </MenuItem>
+                                    ))}
+                                  </Select>
+                                </FormControl>
+                              )}
                             </Paper>
                           );
                         })}
+                        <Button
+                          variant="contained"
+                          disabled={
+                            character.bondsLocked || !bondChoicesComplete
+                          }
+                          onClick={confirmBondChoices}
+                        >
+                          {character.bondsLocked
+                            ? "Vinculos travados"
+                            : "Confirmar vinculos"}
+                        </Button>
                       </Stack>
                     </InfoPanel>
                   )}

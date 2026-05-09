@@ -70,7 +70,7 @@ function buildDefaultCreationChoices(
   playerProfiles: PlayerProfileSummary[] = [],
   selectedPlayerIndex?: number,
 ) {
-  return getCreationRulesFor(classId, raceId).reduce<Record<string, string>>(
+  return getCreationRulesFor(classId, raceId, "identity").reduce<Record<string, string>>(
     (acc, rule) => {
       const options = getOptionsForCreationRule(
         rule,
@@ -133,10 +133,16 @@ export default function MasterAppPage({
   const selectedRace = selectedClass.races.find(
     (race) => race.id === character.raceId,
   );
-  const draftCreationRules = getCreationRulesFor(classDraft, raceDraft);
+  const draftCreationRules = getCreationRulesFor(classDraft, raceDraft, "identity");
   const activeCreationRules = getCreationRulesFor(
     selectedClass.id,
     character.raceId,
+    "identity",
+  );
+  const activeBondRules = getCreationRulesFor(
+    selectedClass.id,
+    character.raceId,
+    "bond",
   );
   const activeCreationBenefits = getCreationBenefits(character.creationChoices);
 
@@ -198,7 +204,10 @@ export default function MasterAppPage({
       ...current,
       classId: nextClass.id,
       raceId: nextRaceId,
-      creationChoices: creationChoiceDraft,
+      creationChoices: {
+        ...current.creationChoices,
+        ...creationChoiceDraft,
+      },
       creationChoicesLocked: true,
       availableItems: Array.from(
         new Set([...current.availableItems, ...startingItemIds]),
@@ -217,14 +226,17 @@ export default function MasterAppPage({
   function saveCreationChoices() {
     setCharacter((current) => ({
       ...current,
-      creationChoices: creationChoiceDraft,
+      creationChoices: {
+        ...current.creationChoices,
+        ...creationChoiceDraft,
+      },
       creationChoicesLocked: true,
       exhaustedSpellIds: [],
       spellCastPenalty: 0,
     }));
   }
 
-  function setLock(field: "classLocked" | "raceLocked" | "creationChoicesLocked" | "attributesLocked" | "skillsLocked" | "spellsLocked", value: boolean) {
+  function setLock(field: "classLocked" | "raceLocked" | "creationChoicesLocked" | "bondsLocked" | "attributesLocked" | "skillsLocked" | "spellsLocked", value: boolean) {
     setCharacter((current) => ({ ...current, [field]: value }));
   }
 
@@ -743,6 +755,12 @@ export default function MasterAppPage({
                     onUnlock={() => setLock("creationChoicesLocked", false)}
                   />
                   <LockButton
+                    label="Vinculos"
+                    locked={character.bondsLocked}
+                    onLock={() => setLock("bondsLocked", true)}
+                    onUnlock={() => setLock("bondsLocked", false)}
+                  />
+                  <LockButton
                     label="Atributos"
                     locked={character.attributesLocked}
                     onLock={() => setLock("attributesLocked", true)}
@@ -803,6 +821,44 @@ export default function MasterAppPage({
                         }}
                       />
                     ))}
+                  </Stack>
+                )}
+                {activeBondRules.length > 0 && (
+                  <Stack spacing={0.8}>
+                    <Typography sx={{ color: "#d7c59d", fontWeight: 900 }}>
+                      Vinculos atuais
+                    </Typography>
+                    {activeBondRules.map((rule) => {
+                      const value = character.creationChoices[rule.id];
+                      return (
+                        <Chip
+                          key={rule.id}
+                          label={`${rule.label}: ${
+                            value
+                              ? formatCreationChoiceValue(
+                                  rule,
+                                  value,
+                                  playerProfiles,
+                                  selectedPlayerIndex,
+                                )
+                              : "pendente"
+                          }`}
+                          sx={{
+                            justifyContent: "flex-start",
+                            bgcolor: value
+                              ? "rgba(95,182,196,.16)"
+                              : "rgba(170,38,61,.14)",
+                            color: value ? "#dff7ff" : "#f7edd9",
+                            height: "auto",
+                            py: 0.55,
+                            ".MuiChip-label": {
+                              whiteSpace: "normal",
+                              textAlign: "left",
+                            },
+                          }}
+                        />
+                      );
+                    })}
                   </Stack>
                 )}
               </Stack>
