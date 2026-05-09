@@ -56,6 +56,14 @@ export default function AttributeDistributionDrawer({
     }));
   }
 
+  function clearAttribute(attribute: AttributeKey) {
+    setDraftAttributes((current) => {
+      const next = { ...current };
+      delete next[attribute];
+      return next;
+    });
+  }
+
   function handleConfirm() {
     if (!isComplete) return;
 
@@ -92,23 +100,47 @@ export default function AttributeDistributionDrawer({
           </Box>
 
           {attributeKeys.map((attribute) => (
-            <FormControl fullWidth size="small" key={attribute}>
-              <InputLabel>{attributeLabels[attribute]}</InputLabel>
+            <Stack
+              key={attribute}
+              direction="row"
+              spacing={1}
+              sx={{ alignItems: "center" }}
+            >
+              <FormControl fullWidth size="small">
+                <InputLabel>{attributeLabels[attribute]}</InputLabel>
 
-              <Select
-                label={attributeLabels[attribute]}
-                value={draftAttributes[attribute] ?? ""}
-                onChange={(event) =>
-                  handleChange(attribute, Number(event.target.value))
-                }
-              >
-                {getAvailableValues(attribute).map((value) => (
-                  <MenuItem value={value} key={value}>
-                    {value} ({formatModifier(value)})
+                <Select
+                  label={attributeLabels[attribute]}
+                  value={draftAttributes[attribute] ?? ""}
+                  onChange={(event) => {
+                    const value = event.target.value;
+                    if (value === "") {
+                      clearAttribute(attribute);
+                      return;
+                    }
+                    handleChange(attribute, Number(value));
+                  }}
+                >
+                  <MenuItem value="">
+                    Reescolher este atributo
                   </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+                  {getAvailableValues(attribute).map((value) => (
+                    <MenuItem value={value} key={value}>
+                      {value} ({formatModifier(value)})
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <Button
+                variant="outlined"
+                size="small"
+                disabled={!draftAttributes[attribute]}
+                onClick={() => clearAttribute(attribute)}
+                sx={{ minWidth: 82 }}
+              >
+                Limpar
+              </Button>
+            </Stack>
           ))}
 
           <Stack spacing={1}>

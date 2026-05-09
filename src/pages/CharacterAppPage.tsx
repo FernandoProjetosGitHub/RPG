@@ -124,11 +124,20 @@ const tabIcons: Record<AppTab, ReactNode> = {
   combate: <SwordsIcon />,
 };
 
-function buildDefaultCreationChoices(classId: string, raceId: string) {
+function buildDefaultCreationChoices(
+  classId: string,
+  raceId: string,
+  playerProfiles: PlayerProfileSummary[] = [],
+  selectedPlayerIndex?: number,
+) {
   const rules = getCreationRulesFor(classId, raceId);
 
   return rules.reduce<Record<string, string>>((acc, rule) => {
-    const options = getOptionsForCreationRule(rule);
+    const options = getOptionsForCreationRule(
+      rule,
+      playerProfiles,
+      selectedPlayerIndex,
+    );
     if (rule.kind === "select" && options.length > 0) {
       acc[rule.id] = options[0].value;
     }
@@ -136,9 +145,18 @@ function buildDefaultCreationChoices(classId: string, raceId: string) {
   }, {});
 }
 
-function formatCreationChoiceValue(rule: ReturnType<typeof getCreationRulesFor>[number], value: string) {
+function formatCreationChoiceValue(
+  rule: ReturnType<typeof getCreationRulesFor>[number],
+  value: string,
+  playerProfiles: PlayerProfileSummary[] = [],
+  selectedPlayerIndex?: number,
+) {
   return (
-    getOptionsForCreationRule(rule).find((option) => option.value === value)
+    getOptionsForCreationRule(
+      rule,
+      playerProfiles,
+      selectedPlayerIndex,
+    ).find((option) => option.value === value)
       ?.label ?? value
   );
 }
@@ -207,6 +225,16 @@ export default function CharacterAppPage({
   const activeCreationRules = getCreationRulesFor(
     selectedClass.id,
     character.raceId,
+  );
+  const activeIdentityRules = getCreationRulesFor(
+    selectedClass.id,
+    character.raceId,
+    "identity",
+  );
+  const activeBondRules = getCreationRulesFor(
+    selectedClass.id,
+    character.raceId,
+    "bond",
   );
   const activeCreationBenefits = getCreationBenefits(character.creationChoices);
   const pendingCreationComplete = pendingCreationRules.every((rule) => {
@@ -492,7 +520,12 @@ export default function CharacterAppPage({
     setPendingClassId(classId);
     setPendingRaceId(nextRaceId);
     setPendingCreationChoices(
-      buildDefaultCreationChoices(classId, nextRaceId),
+      buildDefaultCreationChoices(
+        classId,
+        nextRaceId,
+        playerProfiles,
+        selectedPlayerIndex,
+      ),
     );
     setIsClassDialogOpen(true);
   }
@@ -1109,10 +1142,10 @@ export default function CharacterAppPage({
                     />
                   </Stack>
 
-                  {activeCreationRules.length > 0 && (
+                  {activeIdentityRules.length > 0 && (
                     <InfoPanel title="Escolhas de criacao">
                       <Stack spacing={1}>
-                        {activeCreationRules.map((rule) => {
+                        {activeIdentityRules.map((rule) => {
                           if (
                             rule.id === "ranger-animal-custom" &&
                             character.creationChoices["ranger-animal"] !==
@@ -1145,9 +1178,28 @@ export default function CharacterAppPage({
                                 sx={{ color: "#d7c59d", fontSize: ".9rem" }}
                               >
                                 {value
-                                  ? formatCreationChoiceValue(rule, value)
+                                  ? formatCreationChoiceValue(
+                                      rule,
+                                      value,
+                                      playerProfiles,
+                                      selectedPlayerIndex,
+                                    )
                                   : "Pendente"}
                               </Typography>
+                              {value && (
+                                <Typography
+                                  sx={{ color: "#9f9277", fontSize: ".78rem" }}
+                                >
+                                  {
+                                    getOptionsForCreationRule(
+                                      rule,
+                                      playerProfiles,
+                                      selectedPlayerIndex,
+                                    ).find((option) => option.value === value)
+                                      ?.description
+                                  }
+                                </Typography>
+                              )}
                               <Typography
                                 sx={{ color: "#9f9277", fontSize: ".78rem" }}
                               >
@@ -1168,6 +1220,51 @@ export default function CharacterAppPage({
                             }}
                           />
                         ))}
+                      </Stack>
+                    </InfoPanel>
+                  )}
+                  {activeBondRules.length > 0 && (
+                    <InfoPanel title="Vinculos">
+                      <Stack spacing={1}>
+                        {activeBondRules.map((rule) => {
+                          const value = character.creationChoices[rule.id];
+                          const selectedOption = getOptionsForCreationRule(
+                            rule,
+                            playerProfiles,
+                            selectedPlayerIndex,
+                          ).find((option) => option.value === value);
+
+                          return (
+                            <Paper
+                              key={rule.id}
+                              variant="outlined"
+                              sx={{
+                                borderColor: value
+                                  ? "rgba(95,182,196,.32)"
+                                  : "rgba(170,38,61,.28)",
+                                bgcolor: "rgba(255,255,255,.04)",
+                                color: "#f7edd9",
+                                p: 1.2,
+                              }}
+                            >
+                              <Typography
+                                sx={{ color: "#5fb6c4", fontWeight: 900 }}
+                              >
+                                {rule.label}
+                              </Typography>
+                              <Typography
+                                sx={{ color: "#d7c59d", fontSize: ".9rem" }}
+                              >
+                                {selectedOption?.label ?? value ?? "Pendente"}
+                              </Typography>
+                              <Typography
+                                sx={{ color: "#9f9277", fontSize: ".78rem" }}
+                              >
+                                {selectedOption?.description ?? rule.helper}
+                              </Typography>
+                            </Paper>
+                          );
+                        })}
                       </Stack>
                     </InfoPanel>
                   )}
@@ -2582,7 +2679,12 @@ export default function CharacterAppPage({
                     const nextRaceId = event.target.value as string;
                     setPendingRaceId(nextRaceId);
                     setPendingCreationChoices(
-                      buildDefaultCreationChoices(pendingClass.id, nextRaceId),
+                      buildDefaultCreationChoices(
+                        pendingClass.id,
+                        nextRaceId,
+                        playerProfiles,
+                        selectedPlayerIndex,
+                      ),
                     );
                   }}
                   sx={{
@@ -2651,7 +2753,11 @@ export default function CharacterAppPage({
                       return null;
                     }
 
-                    const options = getOptionsForCreationRule(rule);
+                    const options = getOptionsForCreationRule(
+                      rule,
+                      playerProfiles,
+                      selectedPlayerIndex,
+                    );
 
                     return rule.kind === "select" ? (
                       <FormControl fullWidth size="small" key={rule.id}>
@@ -2677,7 +2783,20 @@ export default function CharacterAppPage({
                         >
                           {options.map((option) => (
                             <MenuItem key={option.value} value={option.value}>
-                              {option.label}
+                              <Box>
+                                <Typography sx={{ fontWeight: 900 }}>
+                                  {option.label}
+                                </Typography>
+                                <Typography
+                                  sx={{
+                                    color: "#b9a98b",
+                                    fontSize: ".78rem",
+                                    whiteSpace: "normal",
+                                  }}
+                                >
+                                  {option.description}
+                                </Typography>
+                              </Box>
                             </MenuItem>
                           ))}
                         </Select>

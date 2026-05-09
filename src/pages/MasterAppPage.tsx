@@ -64,10 +64,19 @@ const masterTabs: Array<{ value: MasterTab; label: string }> = [
   { value: "itens", label: "Itens" },
 ];
 
-function buildDefaultCreationChoices(classId: string, raceId: string) {
+function buildDefaultCreationChoices(
+  classId: string,
+  raceId: string,
+  playerProfiles: PlayerProfileSummary[] = [],
+  selectedPlayerIndex?: number,
+) {
   return getCreationRulesFor(classId, raceId).reduce<Record<string, string>>(
     (acc, rule) => {
-      const options = getOptionsForCreationRule(rule);
+      const options = getOptionsForCreationRule(
+        rule,
+        playerProfiles,
+        selectedPlayerIndex,
+      );
       if (rule.kind === "select" && options.length > 0) {
         acc[rule.id] = options[0].value;
       }
@@ -80,9 +89,15 @@ function buildDefaultCreationChoices(classId: string, raceId: string) {
 function formatCreationChoiceValue(
   rule: ReturnType<typeof getCreationRulesFor>[number],
   value: string,
+  playerProfiles: PlayerProfileSummary[] = [],
+  selectedPlayerIndex?: number,
 ) {
   return (
-    getOptionsForCreationRule(rule).find((option) => option.value === value)
+    getOptionsForCreationRule(
+      rule,
+      playerProfiles,
+      selectedPlayerIndex,
+    ).find((option) => option.value === value)
       ?.label ?? value
   );
 }
@@ -551,7 +566,12 @@ export default function MasterAppPage({
                       setClassDraft(nextClassId);
                       setRaceDraft(nextRaceId);
                       setCreationChoiceDraft(
-                        buildDefaultCreationChoices(nextClassId, nextRaceId),
+                        buildDefaultCreationChoices(
+                          nextClassId,
+                          nextRaceId,
+                          playerProfiles,
+                          selectedPlayerIndex,
+                        ),
                       );
                     }}
                   >
@@ -573,7 +593,12 @@ export default function MasterAppPage({
                       const nextRaceId = event.target.value;
                       setRaceDraft(nextRaceId);
                       setCreationChoiceDraft(
-                        buildDefaultCreationChoices(classDraft, nextRaceId),
+                        buildDefaultCreationChoices(
+                          classDraft,
+                          nextRaceId,
+                          playerProfiles,
+                          selectedPlayerIndex,
+                        ),
                       );
                     }}
                     disabled={!classDraft || character.raceLocked}
@@ -607,7 +632,11 @@ export default function MasterAppPage({
                           return null;
                         }
 
-                        const options = getOptionsForCreationRule(rule);
+                        const options = getOptionsForCreationRule(
+                          rule,
+                          playerProfiles,
+                          selectedPlayerIndex,
+                        );
 
                         return rule.kind === "select" ? (
                           <FormControl fullWidth size="small" key={rule.id}>
@@ -625,7 +654,20 @@ export default function MasterAppPage({
                             >
                               {options.map((option) => (
                                 <MenuItem key={option.value} value={option.value}>
-                                  {option.label}
+                                  <Box>
+                                    <Typography sx={{ fontWeight: 900 }}>
+                                      {option.label}
+                                    </Typography>
+                                    <Typography
+                                      sx={{
+                                        color: "#b9a98b",
+                                        fontSize: ".78rem",
+                                        whiteSpace: "normal",
+                                      }}
+                                    >
+                                      {option.description}
+                                    </Typography>
+                                  </Box>
                                 </MenuItem>
                               ))}
                             </Select>
@@ -726,7 +768,16 @@ export default function MasterAppPage({
                       return (
                         <Chip
                           key={rule.id}
-                          label={`${rule.label}: ${value ? formatCreationChoiceValue(rule, value) : "pendente"}`}
+                          label={`${rule.label}: ${
+                            value
+                              ? formatCreationChoiceValue(
+                                  rule,
+                                  value,
+                                  playerProfiles,
+                                  selectedPlayerIndex,
+                                )
+                              : "pendente"
+                          }`}
                           sx={{
                             justifyContent: "flex-start",
                             bgcolor: "rgba(255,255,255,.07)",
