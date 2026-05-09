@@ -118,6 +118,11 @@ export default function AdventureMapsDialog({
                     bgcolor: `${style.fill}55`,
                     border: `1px solid ${style.stroke}55`,
                     color: "#f7edd9",
+                    maxWidth: "100%",
+                    "& .MuiChip-label": {
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                    },
                   }}
                 />
               ))}
@@ -193,7 +198,7 @@ export default function AdventureMapsDialog({
                 Pontos do mapa
               </Typography>
               <Stack spacing={1}>
-                {selectedMap.points.map((point) => {
+                {selectedMap.points.map((point, index) => {
                   const style = pointStyles[point.type];
 
                   return (
@@ -210,7 +215,7 @@ export default function AdventureMapsDialog({
                           }}
                         />
                         <Typography sx={{ color: "#f7edd9", fontWeight: 900 }}>
-                          {point.label}
+                          {index + 1}. {point.label}
                         </Typography>
                       </Stack>
                       <Typography
@@ -339,10 +344,8 @@ function MapSvg({
         />
       ))}
 
-      {map.points.map((point) => {
+      {map.points.map((point, index) => {
         const style = pointStyles[point.type];
-        const labelDx = point.x > 720 ? -14 : 14;
-        const anchor = point.x > 720 ? "end" : "start";
 
         return (
           <g key={point.id}>
@@ -355,21 +358,19 @@ function MapSvg({
               strokeWidth="3"
             />
             <circle cx={point.x} cy={point.y} r="5" fill="#f7edd9" opacity="0.92" />
-            {revealSecrets && (
-              <text
-                x={point.x + labelDx}
-                y={point.y - 17}
-                fill="#f7edd9"
-                fontSize="21"
-                fontWeight="800"
-                textAnchor={anchor}
-                paintOrder="stroke"
-                stroke="#070706"
-                strokeWidth="5"
-              >
-                {point.label}
-              </text>
-            )}
+            <text
+              x={point.x}
+              y={point.y + 31}
+              fill="#f7edd9"
+              fontSize="18"
+              fontWeight="900"
+              textAnchor="middle"
+              paintOrder="stroke"
+              stroke="#070706"
+              strokeWidth="4"
+            >
+              {revealSecrets ? index + 1 : ""}
+            </text>
           </g>
         );
       })}

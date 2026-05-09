@@ -13,6 +13,9 @@ export type MonsterReference = {
   hp: number;
   armor: number;
   damage: string;
+  damageDetail?: string;
+  effects?: string[];
+  rollMoves?: string[];
   instinct: string;
   moves: string[];
   notes?: string;
@@ -169,6 +172,15 @@ export const monsterReferences: MonsterReference[] = [
     hp: 18,
     armor: 1,
     damage: "Foice manchada 1d10+2, alcance, grotesca",
+    damageDetail:
+      "Role 1d10+2. Alcance e grotesca. A Foice do Ceifador pode conceder dano +3 apos matar recentemente; sem sangue, cobra visoes vermelhas e confusao (-1 SAB) ate que uma vida seja tirada.",
+    effects: [
+      "Investida pode derrubar, atropelar, separar ou empurrar alguem contra parede ou inimigo.",
+      "Pode exigir tributo, rendicao ou acordo para ganhar mais poder.",
+    ],
+    rollMoves: [
+      "Redirecionar investida de minotauro: role +CON. Em sucesso, direciona para parede, inimigo ou alvo proximo; em 10+ tambem evita dano.",
+    ],
     instinct: "Ver inimigos caidos diante de si.",
     moves: [
       "Atropelar inimigos sob os cascos.",
@@ -186,6 +198,13 @@ export const monsterReferences: MonsterReference[] = [
     hp: 15,
     armor: 2,
     damage: "Rajada do caos m[d10], poderosa, ignora armadura",
+    damageDetail:
+      "Role o melhor de d10. Corpo a corpo, poderosa e ignora armadura.",
+    effects: [
+      "Rouba essencia: sangue, magia ou emocao.",
+      "Amaldicoa com fragilidade, furia ou estupidez.",
+      "Invoca lacaios mortos-vivos quando precisa transformar a cena em cerco.",
+    ],
     instinct: "Viver luxuosamente.",
     moves: [
       "Roubar essencia: sangue, magia ou emocao.",
@@ -201,6 +220,12 @@ export const monsterReferences: MonsterReference[] = [
     hp: 12,
     armor: 0,
     damage: "Chifres e garras 1d8+1, alcance",
+    damageDetail:
+      "Role 1d8+1. Alcance permite ameacar personagens antes que armas curtas cheguem sem risco.",
+    effects: [
+      "Mugido alerta outras criptas e acelera reforcos.",
+      "Danifica objetos delicados, portas, gelo e estruturas.",
+    ],
     instinct: "Destruir em nome dos mestres.",
     moves: ["Mugir um grito selvagem.", "Danificar algo delicado."],
   },
@@ -212,6 +237,13 @@ export const monsterReferences: MonsterReference[] = [
     hp: 15,
     armor: 2,
     damage: "Pior surra da vida p[2d4]",
+    damageDetail:
+      "Role o pior de 2d4. Corpo a corpo; use o dano junto de humilhacao publica, empurrao da multidao ou perda de posicao.",
+    effects: [
+      "Vira o povo contra inimigos.",
+      "Desaparece na multidao.",
+      "Convoca o Exercito Dentado se encurralado.",
+    ],
     instinct: "Consolidar seu poder.",
     moves: [
       "Voltar o povo contra inimigos.",
@@ -227,6 +259,12 @@ export const monsterReferences: MonsterReference[] = [
     hp: 3,
     armor: 1,
     damage: "Porretes de ferro 1d6",
+    damageDetail:
+      "Role 1d6. Em horda, se varios guardas atacarem o mesmo PJ, use o maior dado e some +1 por guarda adicional alem do primeiro.",
+    effects: [
+      "Pode prender, cercar, julgar ou empurrar personagens para fogueira e multidao.",
+      "A autoridade templaria transforma dano fisico em pressao social.",
+    ],
     instinct: "Esconjurar pecadores.",
     moves: ["Seguir ordens dos justos.", "Julgar ou queimar uma bruxa."],
   },
@@ -238,6 +276,13 @@ export const monsterReferences: MonsterReference[] = [
     hp: 6,
     armor: 0,
     damage: "Laminas mordedoras 1d6, 1 penetrante",
+    damageDetail:
+      "Role 1d6 com 1 penetrante, reduzindo armadura efetiva em 1.",
+    effects: [
+      "Convocado por bolsa de dentes e palavra magica.",
+      "Segue comandos simples por alguns minutos antes de desaparecer.",
+      "Pode assumir forma de quaisquer dentes usados na convocacao.",
+    ],
     instinct: "Servir quem segura a bolsa.",
     moves: [
       "Seguir comandos simples.",
@@ -252,6 +297,12 @@ export const monsterReferences: MonsterReference[] = [
     hp: 3,
     armor: 4,
     damage: "Dentões p[2d10]",
+    damageDetail:
+      "Role o pior de 2d10. Armadura 4 faz Skumm ser dificil de ferir apesar do tamanho.",
+    effects: [
+      "Convoca sequito de ratos para cercar, distrair ou carregar objetos.",
+      "Aceita ofertas de riqueza, comida ou lealdade.",
+    ],
     instinct: "Reinar sobre as pragas.",
     moves: [
       "Convocar sequito de ratos.",
@@ -267,6 +318,15 @@ export const monsterReferences: MonsterReference[] = [
     hp: 9,
     armor: 4,
     damage: "Cutelo gigante 1d10, alcance, grotesco",
+    damageDetail:
+      "Role 1d10. Alcance e grotesco; armadura 4 representa tamanho, couro duro, sucata e resistencia absurda.",
+    effects: [
+      "Arranca pedacos com mordida e pode atravessar rocha solida.",
+      "Pode voltar depois de ter 'morrido', especialmente quando o grupo relaxa.",
+    ],
+    rollMoves: [
+      "Quando Vh'orr tiver 'morrido' e o grupo estiver ocupado, role +SAB. 10+: atacara em breve e a direcao e clara. 7-9: vem em breve, mas ha duas direcoes possiveis. 6-: sai da parede bem na frente.",
+    ],
     instinct: "Esmagar, comer, esmagar e comer.",
     moves: [
       "Arrancar um pedaco com mordida.",
@@ -283,6 +343,16 @@ export const monsterReferences: MonsterReference[] = [
     hp: 18,
     armor: 0,
     damage: "Frio sepulcral 1d8, distante, ignora armadura",
+    damageDetail:
+      "Role 1d8. Distante e ignora armadura; por ser incorporeo, narre frio, medo, sombra ou forca espiritual.",
+    effects: [
+      "Incorporeo: armas comuns precisam de ficcao adequada para afetar.",
+      "Sussurros podem expor o maior medo do personagem.",
+      "Pode abrir fenda para o vazio das profundezas.",
+    ],
+    rollMoves: [
+      "Quando alguem escuta Chaeron sussurrar no ouvido, role +SAB. 10+: faz uma pergunta sobre a fonte e recebe resposta honesta. 7-9: fica inquieto, mas ileso. 6-: o mestre pergunta sobre o maior medo e o jogador responde honestamente.",
+    ],
     instinct: "Invocar mais demonios das profundezas.",
     moves: [
       "Enganar ou zombar dos viajantes.",
@@ -298,6 +368,13 @@ export const monsterReferences: MonsterReference[] = [
     hp: 12,
     armor: 3,
     damage: "Morde-queixo m[2d8], grotesco",
+    damageDetail:
+      "Role o melhor de 2d8. Corpo a corpo e grotesco; bom para mordida brutal ou armadura de trofeus esmagando o alvo.",
+    effects: [
+      "Espera escondido como pilha de lixo velho.",
+      "Usa escuridao em beneficio proprio.",
+      "Trofeus de engrenagens e lampadas denunciam mortes passadas.",
+    ],
     instinct: "Reivindicar trofeus dos caidos.",
     moves: [
       "Esperar escondido como pilha de lixo velho.",
@@ -313,6 +390,13 @@ export const monsterReferences: MonsterReference[] = [
     hp: 6,
     armor: 1,
     damage: "Vela em haste 1d4, alcance, 1 penetrante",
+    damageDetail:
+      "Role 1d4 com alcance e 1 penetrante. Fere pouco, mas passa defesa e controla espaco.",
+    effects: [
+      "Ilumina um local, queimando objeto ou pessoa se a cena pedir.",
+      "Foge se a luz sagrada estiver ameacada.",
+      "Se os PJs usarem flor luminosa como iluminacao, kobolds podem julga-los hereges.",
+    ],
     instinct: "Proteger a luz.",
     moves: [
       "Iluminar um local.",
@@ -328,6 +412,13 @@ export const monsterReferences: MonsterReference[] = [
     hp: 3,
     armor: 0,
     damage: "Ataque aterrorizado p[2d6]",
+    damageDetail:
+      "Role o pior de 2d6. O dano e menos perigoso que o panico e a corrupcao que eles anunciam.",
+    effects: [
+      "Balbuciam de maneira incompreensivel.",
+      "Fogem de ajuda ou comunicacao.",
+      "Cambaleiam cegamente para perigo maior.",
+    ],
     instinct: "Cambalear em direcao ao perigo.",
     moves: [
       "Balbuciar de maneira incompreensivel.",
@@ -342,7 +433,14 @@ export const monsterReferences: MonsterReference[] = [
     tags: ["Grupo", "Grande", "Aterrorizante", "Mesquinho"],
     hp: 9,
     armor: 0,
-    damage: "Graa  m[2d8], alcance",
+    damage: "Graa m[2d8], alcance",
+    damageDetail:
+      "Role o melhor de 2d8. Alcance; ataques de mergulho vindos de cima ameacam posicao e podem carregar comida.",
+    effects: [
+      "Canto doce pode atrair, distrair ou assustar.",
+      "Voam para longe com comida ou tesouro.",
+      "Voam alto onde o ar e particularmente ruim.",
+    ],
     instinct: "Acumular comida e proteger o ninho.",
     moves: [
       "Cantar docemente.",
@@ -359,6 +457,16 @@ export const monsterReferences: MonsterReference[] = [
     hp: 6,
     armor: 1,
     damage: "Mandibulas e peso do enxame 1d6",
+    damageDetail:
+      "Valor adaptado para uso rapido. Role 1d6; em enxame, some +1 por formiga adicional engajada alem da primeira, seguindo a regra de multiplos atacantes.",
+    effects: [
+      "Esporos podem expor, detectar ou contaminar conforme a cena.",
+      "Bloqueiam rotas com corpos doentes e fungo.",
+      "Levam vitimas para perto do fungo gigante, minas ou camara da rainha.",
+    ],
+    rollMoves: [
+      "Na entrada do Formigueiro, todos podem rolar +DES para evitar esporos amarelos; Especialista em Armadilhas recebe +1 adiante. 10+: evita exposicao silenciosamente. 7-9: evita exposicao ou deteccao, escolha. 6-: nao evita nenhuma.",
+    ],
     instinct: "Espalhar a infeccao da colonia.",
     moves: [
       "Cambalear em massa pelo corredor sul.",
@@ -376,6 +484,12 @@ export const monsterReferences: MonsterReference[] = [
     hp: 6,
     armor: 0,
     damage: "Presa curta 1d4",
+    damageDetail:
+      "Role 1d4 apenas se for necessario. Pii'treb e mais importante como PNJ de negociacao do que como combatente.",
+    effects: [
+      "Se escapar vivo, as noticias das acoes do grupo se espalham entre as aranhas.",
+      "Pode oferecer abrigo com a ninhada e recompensa em suprimentos de mercador.",
+    ],
     instinct: "Sobreviver e voltar a ninhada.",
     moves: [
       "Oferecer abrigo ou recompensa futura.",

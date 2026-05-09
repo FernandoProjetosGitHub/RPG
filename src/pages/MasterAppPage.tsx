@@ -348,9 +348,39 @@ export default function MasterAppPage({
                 do mestre esta controlando antes de aplicar classe, dano, XP,
                 itens, magias ou abrir a ficha completa.
               </Typography>
+              <FormControl fullWidth size="small">
+                <InputLabel>Jogador ativo</InputLabel>
+                <Select
+                  label="Jogador ativo"
+                  value={selectedPlayerIndex}
+                  onChange={(event) => onSelectPlayer(Number(event.target.value))}
+                >
+                  {playerProfiles.map((profile) => (
+                    <MenuItem key={profile.index} value={profile.index}>
+                      {profile.label} - {profile.name || "Sem nome"} - {profile.className}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <Paper
+                variant="outlined"
+                sx={{
+                  borderColor: "rgba(217,200,159,.12)",
+                  bgcolor: "rgba(255,255,255,.04)",
+                  p: 1.2,
+                }}
+              >
+                <Typography sx={{ color: "#c59b4b", fontWeight: 900 }}>
+                  {playerProfiles[selectedPlayerIndex]?.label ?? "Jogador"}
+                </Typography>
+                <Typography sx={{ color: "#d7c59d", fontSize: ".9rem" }}>
+                  {character.name || "Sem nome"} - {selectedClass.name}
+                  {selectedRace ? ` - ${selectedRace.name}` : ""}
+                </Typography>
+              </Paper>
               <Box
                 sx={{
-                  display: "grid",
+                  display: "none",
                   gridTemplateColumns: {
                     xs: "1fr",
                     sm: "repeat(2, minmax(0, 1fr))",
@@ -554,6 +584,7 @@ export default function MasterAppPage({
 
         {activeTab === "habilidades" && (
           <Stack spacing={1.5}>
+            <MasterTabBack onBack={() => setActiveTab("criacao")} />
             <SectionCard title="Controle de habilidades e magias">
               <Stack spacing={1.2}>
                 <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
@@ -740,6 +771,7 @@ export default function MasterAppPage({
 
         {activeTab === "guia" && (
           <Stack spacing={1.5}>
+            <MasterTabBack onBack={() => setActiveTab("criacao")} />
             <SectionCard title="Guia do mestrante">
               <Typography sx={{ color: "#d7c59d", lineHeight: 1.65 }}>
                 Referencia rapida para conduzir Dungeon World sem expor
@@ -756,6 +788,7 @@ export default function MasterAppPage({
 
         {activeTab === "monstros" && (
           <Stack spacing={1.5}>
+            <MasterTabBack onBack={() => setActiveTab("criacao")} />
             <SectionCard title="Bestiario do mestre">
               <Typography sx={{ color: "#d7c59d", lineHeight: 1.65 }}>
                 Monstros, PNJs perigosos e criaturas pertinentes aos PDFs. Os
@@ -789,6 +822,7 @@ export default function MasterAppPage({
 
         {activeTab === "itens" && (
           <Stack spacing={1.5}>
+            <MasterTabBack onBack={() => setActiveTab("criacao")} />
             <SectionCard title="Distribuição de itens">
               <Stack spacing={1.3}>
                 <FormControl fullWidth size="small">
@@ -881,6 +915,18 @@ function SectionCard({ title, children }: { title: string; children: ReactNode }
   );
 }
 
+function MasterTabBack({ onBack }: { onBack: () => void }) {
+  return (
+    <Button
+      variant="outlined"
+      onClick={onBack}
+      sx={{ alignSelf: "flex-start" }}
+    >
+      Voltar ao painel do mestre
+    </Button>
+  );
+}
+
 function GmReferenceCard({
   section,
 }: {
@@ -956,7 +1002,7 @@ function MonsterReferenceCard({
         <Stack direction="row" useFlexGap flexWrap="wrap" gap={0.8}>
           <Chip size="small" label={`PV ${monster.hp}`} />
           <Chip size="small" label={`Armadura ${monster.armor}`} />
-          <Chip size="small" label={monster.damage} />
+          <Chip size="small" label={`Dano: ${monster.damage}`} />
         </Stack>
 
         {expanded && (
@@ -978,6 +1024,50 @@ function MonsterReferenceCard({
             <Typography sx={{ color: "#d7c59d", lineHeight: 1.55 }}>
               <strong>Instinto:</strong> {monster.instinct}
             </Typography>
+
+            {monster.damageDetail && (
+              <Typography sx={{ color: "#d7c59d", lineHeight: 1.55 }}>
+                <strong>Dano e adicionais:</strong> {monster.damageDetail}
+              </Typography>
+            )}
+
+            {monster.effects && monster.effects.length > 0 && (
+              <Box>
+                <Typography sx={{ color: "#c59b4b", fontWeight: 900, mb: 0.5 }}>
+                  Condicoes e efeitos
+                </Typography>
+                <Stack component="ul" spacing={0.5} sx={{ m: 0, pl: 2.2 }}>
+                  {monster.effects.map((effect) => (
+                    <Typography
+                      key={effect}
+                      component="li"
+                      sx={{ color: "#d7c59d", fontSize: ".9rem", lineHeight: 1.5 }}
+                    >
+                      {effect}
+                    </Typography>
+                  ))}
+                </Stack>
+              </Box>
+            )}
+
+            {monster.rollMoves && monster.rollMoves.length > 0 && (
+              <Box>
+                <Typography sx={{ color: "#c59b4b", fontWeight: 900, mb: 0.5 }}>
+                  Rolagens especiais
+                </Typography>
+                <Stack component="ul" spacing={0.5} sx={{ m: 0, pl: 2.2 }}>
+                  {monster.rollMoves.map((rollMove) => (
+                    <Typography
+                      key={rollMove}
+                      component="li"
+                      sx={{ color: "#d7c59d", fontSize: ".9rem", lineHeight: 1.5 }}
+                    >
+                      {rollMove}
+                    </Typography>
+                  ))}
+                </Stack>
+              </Box>
+            )}
 
             <Box>
               <Typography sx={{ color: "#c59b4b", fontWeight: 900, mb: 0.5 }}>
