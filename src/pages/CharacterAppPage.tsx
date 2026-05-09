@@ -739,7 +739,7 @@ export default function CharacterAppPage({
           scrollbarWidth: "thin",
         }}
       >
-        {playerProfiles.length > 0 && onSelectPlayer && (
+        {playerProfiles.length > 0 && (
           <Paper
             variant="outlined"
             sx={{
@@ -752,22 +752,10 @@ export default function CharacterAppPage({
               <Typography sx={{ color: "#c59b4b", fontWeight: 900, fontSize: ".82rem" }}>
                 Perfil ativo
               </Typography>
-              <Stack direction="row" useFlexGap flexWrap="wrap" gap={0.8}>
-                {playerProfiles.map((profile) => (
-                  <Button
-                    key={profile.index}
-                    size="small"
-                    variant={
-                      profile.index === selectedPlayerIndex
-                        ? "contained"
-                        : "outlined"
-                    }
-                    onClick={() => onSelectPlayer(profile.index)}
-                  >
-                    {profile.label}
-                  </Button>
-                ))}
-              </Stack>
+              <Typography sx={{ color: "#d7c59d", fontSize: ".9rem" }}>
+                {playerProfiles[selectedPlayerIndex]?.label ?? "Jogador"} -{" "}
+                {character.name || "Sem nome"} - {selectedClass.name}
+              </Typography>
             </Stack>
           </Paper>
         )}

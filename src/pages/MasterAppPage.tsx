@@ -431,15 +431,35 @@ export default function MasterAppPage({
           sx={{
             borderColor: "rgba(217,200,159,.18)",
             bgcolor: "rgba(8,8,7,.88)",
-            overflow: "hidden",
+            overflow: "visible",
+            p: { xs: 1, sm: 0 },
           }}
         >
+          <FormControl
+            fullWidth
+            size="small"
+            sx={{ display: { xs: "block", sm: "none" } }}
+          >
+            <InputLabel>Seção do mestre</InputLabel>
+            <Select
+              label="Seção do mestre"
+              value={activeTab}
+              onChange={(event) => setActiveTab(event.target.value as MasterTab)}
+            >
+              {masterTabs.map((tab) => (
+                <MenuItem key={tab.value} value={tab.value}>
+                  {tab.label}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
           <Tabs
             value={activeTab}
             variant="scrollable"
             scrollButtons="auto"
             onChange={(_, value: MasterTab) => setActiveTab(value)}
             sx={{
+              display: { xs: "none", sm: "flex" },
               minHeight: 52,
               ".MuiTab-root": { color: "#b9a98b", fontWeight: 900, minHeight: 52 },
               ".Mui-selected": { color: "#f2c76c" },
