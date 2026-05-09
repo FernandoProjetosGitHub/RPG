@@ -1013,14 +1013,29 @@ function MonsterReferenceCard({
 }) {
   return (
     <Paper
+      component="button"
       variant="outlined"
+      onClick={onToggle}
       sx={{
+        appearance: "none",
+        width: "100%",
+        textAlign: "left",
+        cursor: "pointer",
         borderColor: expanded
           ? "rgba(197,155,75,.42)"
           : "rgba(217,200,159,.16)",
         bgcolor: "rgba(17,17,15,.92)",
         color: "#f7edd9",
         p: 1.4,
+        transition: "border-color .18s ease, transform .18s ease",
+        "&:hover": {
+          borderColor: "rgba(242,199,108,.55)",
+          transform: "translateY(-1px)",
+        },
+        "&:focus-visible": {
+          outline: "2px solid #f2c76c",
+          outlineOffset: 2,
+        },
       }}
     >
       <Stack spacing={1.1}>
@@ -1037,7 +1052,12 @@ function MonsterReferenceCard({
               {monster.source}
             </Typography>
           </Box>
-          <Button size="small" variant="outlined" onClick={onToggle}>
+          <Button
+            size="small"
+            variant="outlined"
+            component="span"
+            sx={{ pointerEvents: "none" }}
+          >
             {expanded ? "Recolher" : "Expandir"}
           </Button>
         </Stack>
