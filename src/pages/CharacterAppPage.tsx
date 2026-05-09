@@ -26,6 +26,12 @@ import type { ReactNode } from "react";
 import { useMemo, useRef, useState, useEffect } from "react";
 import { beginnerSheetConcepts, getClassGuide } from "../data/classGuides";
 import { classSelectSounds } from "../data/classSounds";
+import {
+  getCreationBenefits,
+  getCreationRulesFor,
+  getGrantedSpellIds,
+  getOptionsForCreationRule,
+} from "../data/classCreation";
 import { dwClasses, unselectedClass } from "../data/dwClasses";
 import { basicMoves } from "../data/dwMoves";
 import { classStartingItemIds, items } from "../data/items";
@@ -118,6 +124,25 @@ const tabIcons: Record<AppTab, ReactNode> = {
   combate: <SwordsIcon />,
 };
 
+function buildDefaultCreationChoices(classId: string, raceId: string) {
+  const rules = getCreationRulesFor(classId, raceId);
+
+  return rules.reduce<Record<string, string>>((acc, rule) => {
+    const options = getOptionsForCreationRule(rule);
+    if (rule.kind === "select" && options.length > 0) {
+      acc[rule.id] = options[0].value;
+    }
+    return acc;
+  }, {});
+}
+
+function formatCreationChoiceValue(rule: ReturnType<typeof getCreationRulesFor>[number], value: string) {
+  return (
+    getOptionsForCreationRule(rule).find((option) => option.value === value)
+      ?.label ?? value
+  );
+}
+
 export default function CharacterAppPage({
   mode,
   character,
@@ -131,6 +156,9 @@ export default function CharacterAppPage({
   const [activeTab, setActiveTab] = useState<AppTab>("personagem");
   const [pendingClassId, setPendingClassId] = useState("");
   const [pendingRaceId, setPendingRaceId] = useState("");
+  const [pendingCreationChoices, setPendingCreationChoices] = useState<
+    Record<string, string>
+  >({});
   const [isClassDialogOpen, setIsClassDialogOpen] = useState(false);
   const [isMapsDialogOpen, setIsMapsDialogOpen] = useState(false);
   const [classSelectPulse, setClassSelectPulse] = useState(false);
@@ -172,6 +200,25 @@ export default function CharacterAppPage({
   const pendingRace =
     pendingClass.races.find((race) => race.id === pendingRaceId) ??
     pendingClass.races[0];
+  const pendingCreationRules = getCreationRulesFor(
+    pendingClass.id,
+    pendingRace?.id ?? "",
+  );
+  const activeCreationRules = getCreationRulesFor(
+    selectedClass.id,
+    character.raceId,
+  );
+  const activeCreationBenefits = getCreationBenefits(character.creationChoices);
+  const pendingCreationComplete = pendingCreationRules.every((rule) => {
+    if (!rule.required) return true;
+    if (
+      rule.id === "ranger-animal-custom" &&
+      pendingCreationChoices["ranger-animal"] !== "Outro"
+    ) {
+      return true;
+    }
+    return Boolean(pendingCreationChoices[rule.id]?.trim());
+  });
 
   const equippedWeapon = character.equipment.arma
     ? items.find((item) => item.id === character.equipment.arma)
@@ -260,8 +307,11 @@ export default function CharacterAppPage({
       ? Math.min(100, Math.round((character.xp / xpToNextLevel) * 100))
       : 0;
 
+  const grantedSpellIds = getGrantedSpellIds(character.creationChoices);
   const classSpells = spells.filter(
-    (spell) => spell.tradition === selectedClass.id,
+    (spell) =>
+      spell.tradition === selectedClass.id ||
+      grantedSpellIds.includes(spell.id),
   );
   const availableSpells = classSpells.filter(
     (spell) => spell.level <= character.level,
@@ -438,14 +488,19 @@ export default function CharacterAppPage({
     if (character.classLocked) return;
 
     const nextClass = dwClasses.find((dwClass) => dwClass.id === classId);
+    const nextRaceId = nextClass?.races[0]?.id ?? "";
     setPendingClassId(classId);
-    setPendingRaceId(nextClass?.races[0]?.id ?? "");
+    setPendingRaceId(nextRaceId);
+    setPendingCreationChoices(
+      buildDefaultCreationChoices(classId, nextRaceId),
+    );
     setIsClassDialogOpen(true);
   }
 
   function confirmClassChange() {
     const newClass = dwClasses.find((dwClass) => dwClass.id === pendingClassId);
     if (!newClass) return;
+    if (!pendingCreationComplete) return;
 
     const newMaxHp = newClass.baseHp + character.attributes.constituicao;
     const nextRaceId = pendingRaceId || newClass.races[0]?.id || "";
@@ -457,6 +512,8 @@ export default function CharacterAppPage({
       classLocked: true,
       raceId: nextRaceId,
       raceLocked: Boolean(nextRaceId),
+      creationChoices: pendingCreationChoices,
+      creationChoicesLocked: true,
       preparedSpellIds: [],
       exhaustedSpellIds: [],
       spellCastPenalty: 0,
@@ -471,6 +528,7 @@ export default function CharacterAppPage({
     }));
 
     setIsClassDialogOpen(false);
+    setPendingCreationChoices({});
     setClassSelectPulse(true);
     void playClassSelectSound(newClass.id);
 
@@ -1050,6 +1108,69 @@ export default function CharacterAppPage({
                       }}
                     />
                   </Stack>
+
+                  {activeCreationRules.length > 0 && (
+                    <InfoPanel title="Escolhas de criacao">
+                      <Stack spacing={1}>
+                        {activeCreationRules.map((rule) => {
+                          if (
+                            rule.id === "ranger-animal-custom" &&
+                            character.creationChoices["ranger-animal"] !==
+                              "Outro"
+                          ) {
+                            return null;
+                          }
+
+                          const value = character.creationChoices[rule.id];
+
+                          return (
+                            <Paper
+                              key={rule.id}
+                              variant="outlined"
+                              sx={{
+                                borderColor: value
+                                  ? "rgba(197,155,75,.22)"
+                                  : "rgba(170,38,61,.28)",
+                                bgcolor: "rgba(255,255,255,.04)",
+                                color: "#f7edd9",
+                                p: 1.2,
+                              }}
+                            >
+                              <Typography
+                                sx={{ color: "#c59b4b", fontWeight: 900 }}
+                              >
+                                {rule.label}
+                              </Typography>
+                              <Typography
+                                sx={{ color: "#d7c59d", fontSize: ".9rem" }}
+                              >
+                                {value
+                                  ? formatCreationChoiceValue(rule, value)
+                                  : "Pendente"}
+                              </Typography>
+                              <Typography
+                                sx={{ color: "#9f9277", fontSize: ".78rem" }}
+                              >
+                                {rule.helper}
+                              </Typography>
+                            </Paper>
+                          );
+                        })}
+
+                        {activeCreationBenefits.map((benefit) => (
+                          <Chip
+                            key={`${benefit.label}-${benefit.value}`}
+                            label={`${benefit.label}: ${benefit.value}`}
+                            sx={{
+                              alignSelf: "flex-start",
+                              bgcolor: "rgba(95,182,196,.16)",
+                              color: "#dff7ff",
+                            }}
+                          />
+                        ))}
+                      </Stack>
+                    </InfoPanel>
+                  )}
                   <InfoPanel title="Atributos">
                     <Box
                       sx={{
@@ -2457,9 +2578,13 @@ export default function CharacterAppPage({
                 <Select
                   label="Raça"
                   value={pendingRaceId || pendingClass.races[0]?.id || ""}
-                  onChange={(event) =>
-                    setPendingRaceId(event.target.value as string)
-                  }
+                  onChange={(event) => {
+                    const nextRaceId = event.target.value as string;
+                    setPendingRaceId(nextRaceId);
+                    setPendingCreationChoices(
+                      buildDefaultCreationChoices(pendingClass.id, nextRaceId),
+                    );
+                  }}
                   sx={{
                     color: "#f7edd9",
                     ".MuiOutlinedInput-notchedOutline": {
@@ -2496,13 +2621,104 @@ export default function CharacterAppPage({
                 </Typography>
               </Paper>
             )}
+
+            {pendingCreationRules.length > 0 && (
+              <Paper
+                variant="outlined"
+                sx={{
+                  borderColor: "rgba(217,200,159,.16)",
+                  bgcolor: "rgba(255,255,255,.035)",
+                  color: "#f7edd9",
+                  p: 1.5,
+                }}
+              >
+                <Stack spacing={1.4}>
+                  <Box>
+                    <Typography sx={{ color: "#f2c76c", fontWeight: 900 }}>
+                      Condicoes e beneficios da criacao
+                    </Typography>
+                    <Typography sx={{ color: "#b9a98b", fontSize: ".88rem" }}>
+                      Campos obrigatorios precisam ser confirmados junto da
+                      classe. Depois disso, o mestre pode destravar ajustes.
+                    </Typography>
+                  </Box>
+
+                  {pendingCreationRules.map((rule) => {
+                    if (
+                      rule.id === "ranger-animal-custom" &&
+                      pendingCreationChoices["ranger-animal"] !== "Outro"
+                    ) {
+                      return null;
+                    }
+
+                    const options = getOptionsForCreationRule(rule);
+
+                    return rule.kind === "select" ? (
+                      <FormControl fullWidth size="small" key={rule.id}>
+                        <InputLabel sx={{ color: "#b9a98b" }}>
+                          {rule.label}
+                        </InputLabel>
+                        <Select
+                          label={rule.label}
+                          value={pendingCreationChoices[rule.id] ?? ""}
+                          onChange={(event) =>
+                            setPendingCreationChoices((current) => ({
+                              ...current,
+                              [rule.id]: event.target.value as string,
+                            }))
+                          }
+                          sx={{
+                            color: "#f7edd9",
+                            ".MuiOutlinedInput-notchedOutline": {
+                              borderColor: "rgba(217,200,159,.22)",
+                            },
+                            ".MuiSvgIcon-root": { color: "#f7edd9" },
+                          }}
+                        >
+                          {options.map((option) => (
+                            <MenuItem key={option.value} value={option.value}>
+                              {option.label}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                        <Typography sx={{ color: "#b9a98b", fontSize: 12 }}>
+                          {rule.helper}
+                          {rule.required ? " Obrigatorio." : ""}
+                        </Typography>
+                      </FormControl>
+                    ) : (
+                      <TextField
+                        key={rule.id}
+                        size="small"
+                        fullWidth
+                        multiline
+                        minRows={2}
+                        label={rule.label}
+                        value={pendingCreationChoices[rule.id] ?? ""}
+                        onChange={(event) =>
+                          setPendingCreationChoices((current) => ({
+                            ...current,
+                            [rule.id]: event.target.value,
+                          }))
+                        }
+                        helperText={`${rule.helper}${rule.required ? " Obrigatorio." : ""}`}
+                      />
+                    );
+                  })}
+                </Stack>
+              </Paper>
+            )}
           </Stack>
         </DialogContent>
 
         <DialogActions>
           <Button onClick={() => setIsClassDialogOpen(false)}>Cancelar</Button>
 
-          <Button variant="contained" onClick={confirmClassChange}>
+          <Button
+            variant="contained"
+            onClick={confirmClassChange}
+            disabled={!pendingCreationComplete}
+          >
             Confirmar escolha
           </Button>
         </DialogActions>

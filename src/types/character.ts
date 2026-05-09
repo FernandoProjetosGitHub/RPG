@@ -27,6 +27,9 @@ export type Character = {
   raceId: string;
   raceLocked: boolean;
 
+  creationChoices: Record<string, string>;
+  creationChoicesLocked: boolean;
+
   attributesLocked: boolean;
 
   hp: {
@@ -103,6 +106,9 @@ export const initialCharacter: Character = {
 
   raceId: "",
   raceLocked: false,
+
+  creationChoices: {},
+  creationChoicesLocked: false,
 
   attributesLocked: false,
 

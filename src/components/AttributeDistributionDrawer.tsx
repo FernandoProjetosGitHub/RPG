@@ -63,8 +63,13 @@ export default function AttributeDistributionDrawer({
     setDraftAttributes({});
   }
 
+  function handleCancel() {
+    setDraftAttributes({});
+    onClose();
+  }
+
   return (
-    <Drawer anchor="right" open={open} onClose={onClose}>
+    <Drawer anchor="right" open={open} onClose={handleCancel}>
       <Box
         sx={{
           width: { xs: 320, sm: 420 },
@@ -115,7 +120,7 @@ export default function AttributeDistributionDrawer({
               Confirmar atributos
             </Button>
 
-            <Button variant="outlined" onClick={onClose}>
+            <Button variant="outlined" onClick={handleCancel}>
               Cancelar
             </Button>
           </Stack>

@@ -19,6 +19,12 @@ import {
 } from "@mui/material";
 import { useEffect, useMemo, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
 import AdventureMapsDialog from "../components/AdventureMapsDialog";
+import {
+  getCreationBenefits,
+  getCreationRulesFor,
+  getGrantedSpellIds,
+  getOptionsForCreationRule,
+} from "../data/classCreation";
 import { dwClasses, unselectedClass } from "../data/dwClasses";
 import { basicMoves } from "../data/dwMoves";
 import { gmReferenceSections, monsterReferences } from "../data/gmReference";
@@ -58,6 +64,29 @@ const masterTabs: Array<{ value: MasterTab; label: string }> = [
   { value: "itens", label: "Itens" },
 ];
 
+function buildDefaultCreationChoices(classId: string, raceId: string) {
+  return getCreationRulesFor(classId, raceId).reduce<Record<string, string>>(
+    (acc, rule) => {
+      const options = getOptionsForCreationRule(rule);
+      if (rule.kind === "select" && options.length > 0) {
+        acc[rule.id] = options[0].value;
+      }
+      return acc;
+    },
+    {},
+  );
+}
+
+function formatCreationChoiceValue(
+  rule: ReturnType<typeof getCreationRulesFor>[number],
+  value: string,
+) {
+  return (
+    getOptionsForCreationRule(rule).find((option) => option.value === value)
+      ?.label ?? value
+  );
+}
+
 export default function MasterAppPage({
   character,
   setCharacter,
@@ -75,6 +104,9 @@ export default function MasterAppPage({
   const [targetLevel, setTargetLevel] = useState(character.level);
   const [classDraft, setClassDraft] = useState(character.classId);
   const [raceDraft, setRaceDraft] = useState(character.raceId);
+  const [creationChoiceDraft, setCreationChoiceDraft] = useState(
+    character.creationChoices,
+  );
   const [isMapsDialogOpen, setIsMapsDialogOpen] = useState(false);
   const [expandedMonsterId, setExpandedMonsterId] = useState<string | null>(null);
 
@@ -86,14 +118,30 @@ export default function MasterAppPage({
   const selectedRace = selectedClass.races.find(
     (race) => race.id === character.raceId,
   );
+  const draftCreationRules = getCreationRulesFor(classDraft, raceDraft);
+  const activeCreationRules = getCreationRulesFor(
+    selectedClass.id,
+    character.raceId,
+  );
+  const activeCreationBenefits = getCreationBenefits(character.creationChoices);
 
   useEffect(() => {
     setClassDraft(character.classId);
     setRaceDraft(character.raceId);
+    setCreationChoiceDraft(character.creationChoices);
     setTargetLevel(character.level);
-  }, [character.classId, character.raceId, character.level, selectedPlayerIndex]);
+  }, [
+    character.classId,
+    character.raceId,
+    character.creationChoices,
+    character.level,
+    selectedPlayerIndex,
+  ]);
+  const grantedSpellIds = getGrantedSpellIds(character.creationChoices);
   const classSpells = spells.filter(
-    (spell) => spell.tradition === selectedClass.id,
+    (spell) =>
+      spell.tradition === selectedClass.id ||
+      grantedSpellIds.includes(spell.id),
   );
   const preparedSpellCost = classSpells
     .filter((spell) => character.preparedSpellIds.includes(spell.id))
@@ -135,6 +183,8 @@ export default function MasterAppPage({
       ...current,
       classId: nextClass.id,
       raceId: nextRaceId,
+      creationChoices: creationChoiceDraft,
+      creationChoicesLocked: true,
       availableItems: Array.from(
         new Set([...current.availableItems, ...startingItemIds]),
       ),
@@ -149,7 +199,17 @@ export default function MasterAppPage({
     }));
   }
 
-  function setLock(field: "classLocked" | "raceLocked" | "attributesLocked" | "skillsLocked" | "spellsLocked", value: boolean) {
+  function saveCreationChoices() {
+    setCharacter((current) => ({
+      ...current,
+      creationChoices: creationChoiceDraft,
+      creationChoicesLocked: true,
+      exhaustedSpellIds: [],
+      spellCastPenalty: 0,
+    }));
+  }
+
+  function setLock(field: "classLocked" | "raceLocked" | "creationChoicesLocked" | "attributesLocked" | "skillsLocked" | "spellsLocked", value: boolean) {
     setCharacter((current) => ({ ...current, [field]: value }));
   }
 
@@ -481,13 +541,18 @@ export default function MasterAppPage({
                   <Select
                     label="Classe"
                     value={classDraft}
+                    disabled={character.classLocked}
                     onChange={(event) => {
                       const nextClassId = event.target.value;
                       const nextClass = dwClasses.find(
                         (dwClass) => dwClass.id === nextClassId,
                       );
+                      const nextRaceId = nextClass?.races[0]?.id ?? "";
                       setClassDraft(nextClassId);
-                      setRaceDraft(nextClass?.races[0]?.id ?? "");
+                      setRaceDraft(nextRaceId);
+                      setCreationChoiceDraft(
+                        buildDefaultCreationChoices(nextClassId, nextRaceId),
+                      );
                     }}
                   >
                     <MenuItem value="">Classe nao selecionada</MenuItem>
@@ -504,8 +569,14 @@ export default function MasterAppPage({
                   <Select
                     label="Ancestralidade/Raça"
                     value={raceDraft || draftClass.races[0]?.id || ""}
-                    onChange={(event) => setRaceDraft(event.target.value)}
-                    disabled={!classDraft}
+                    onChange={(event) => {
+                      const nextRaceId = event.target.value;
+                      setRaceDraft(nextRaceId);
+                      setCreationChoiceDraft(
+                        buildDefaultCreationChoices(classDraft, nextRaceId),
+                      );
+                    }}
+                    disabled={!classDraft || character.raceLocked}
                   >
                     {draftClass.races.map((race) => (
                       <MenuItem key={race.id} value={race.id}>
@@ -515,10 +586,97 @@ export default function MasterAppPage({
                   </Select>
                 </FormControl>
 
+                {draftCreationRules.length > 0 && (
+                  <Paper
+                    variant="outlined"
+                    sx={{
+                      borderColor: "rgba(217,200,159,.14)",
+                      bgcolor: "rgba(255,255,255,.035)",
+                      p: 1.2,
+                    }}
+                  >
+                    <Stack spacing={1.2}>
+                      <Typography sx={{ color: "#f2c76c", fontWeight: 900 }}>
+                        Condicoes, beneficios e escolhas obrigatorias
+                      </Typography>
+                      {draftCreationRules.map((rule) => {
+                        if (
+                          rule.id === "ranger-animal-custom" &&
+                          creationChoiceDraft["ranger-animal"] !== "Outro"
+                        ) {
+                          return null;
+                        }
+
+                        const options = getOptionsForCreationRule(rule);
+
+                        return rule.kind === "select" ? (
+                          <FormControl fullWidth size="small" key={rule.id}>
+                            <InputLabel>{rule.label}</InputLabel>
+                            <Select
+                              label={rule.label}
+                              value={creationChoiceDraft[rule.id] ?? ""}
+                              disabled={character.creationChoicesLocked}
+                              onChange={(event) =>
+                                setCreationChoiceDraft((current) => ({
+                                  ...current,
+                                  [rule.id]: event.target.value as string,
+                                }))
+                              }
+                            >
+                              {options.map((option) => (
+                                <MenuItem key={option.value} value={option.value}>
+                                  {option.label}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                            <Typography sx={{ color: "#b9a98b", fontSize: 12 }}>
+                              {rule.helper}
+                              {rule.required ? " Obrigatorio." : ""}
+                            </Typography>
+                          </FormControl>
+                        ) : (
+                          <TextField
+                            key={rule.id}
+                            size="small"
+                            fullWidth
+                            multiline
+                            minRows={2}
+                            label={rule.label}
+                            value={creationChoiceDraft[rule.id] ?? ""}
+                            disabled={character.creationChoicesLocked}
+                            onChange={(event) =>
+                              setCreationChoiceDraft((current) => ({
+                                ...current,
+                                [rule.id]: event.target.value,
+                              }))
+                            }
+                            helperText={`${rule.helper}${rule.required ? " Obrigatorio." : ""}`}
+                          />
+                        );
+                      })}
+                    </Stack>
+                  </Paper>
+                )}
+
+                {draftCreationRules.length > 0 && (
+                  <Button
+                    variant="outlined"
+                    onClick={saveCreationChoices}
+                    disabled={character.creationChoicesLocked}
+                  >
+                    Salvar escolhas de criacao
+                  </Button>
+                )}
+
                 <Button
                   variant="contained"
                   onClick={applyClassAndRace}
-                  disabled={!classDraft}
+                  disabled={
+                    !classDraft ||
+                    character.classLocked ||
+                    character.raceLocked ||
+                    character.creationChoicesLocked
+                  }
                 >
                   Aplicar classe, ancestralidade e itens iniciais
                 </Button>
@@ -537,12 +695,65 @@ export default function MasterAppPage({
                     onUnlock={() => setLock("raceLocked", false)}
                   />
                   <LockButton
+                    label="Escolhas"
+                    locked={character.creationChoicesLocked}
+                    onLock={() => setLock("creationChoicesLocked", true)}
+                    onUnlock={() => setLock("creationChoicesLocked", false)}
+                  />
+                  <LockButton
                     label="Atributos"
                     locked={character.attributesLocked}
                     onLock={() => setLock("attributesLocked", true)}
                     onUnlock={() => setLock("attributesLocked", false)}
                   />
                 </LockGrid>
+
+                {activeCreationRules.length > 0 && (
+                  <Stack spacing={0.8}>
+                    <Typography sx={{ color: "#d7c59d", fontWeight: 900 }}>
+                      Escolhas atuais na ficha
+                    </Typography>
+                    {activeCreationRules.map((rule) => {
+                      if (
+                        rule.id === "ranger-animal-custom" &&
+                        character.creationChoices["ranger-animal"] !== "Outro"
+                      ) {
+                        return null;
+                      }
+
+                      const value = character.creationChoices[rule.id];
+
+                      return (
+                        <Chip
+                          key={rule.id}
+                          label={`${rule.label}: ${value ? formatCreationChoiceValue(rule, value) : "pendente"}`}
+                          sx={{
+                            justifyContent: "flex-start",
+                            bgcolor: "rgba(255,255,255,.07)",
+                            color: "#f7edd9",
+                            height: "auto",
+                            py: 0.55,
+                            ".MuiChip-label": {
+                              whiteSpace: "normal",
+                              textAlign: "left",
+                            },
+                          }}
+                        />
+                      );
+                    })}
+                    {activeCreationBenefits.map((benefit) => (
+                      <Chip
+                        key={`${benefit.label}-${benefit.value}`}
+                        label={`${benefit.label}: ${benefit.value}`}
+                        sx={{
+                          justifyContent: "flex-start",
+                          bgcolor: "rgba(95,182,196,.16)",
+                          color: "#dff7ff",
+                        }}
+                      />
+                    ))}
+                  </Stack>
+                )}
               </Stack>
             </SectionCard>
 
