@@ -1530,7 +1530,7 @@ function MonsterReferenceCard({
           </Button>
         </Stack>
 
-        <Stack direction="row" useFlexGap flexWrap="wrap" gap={0.8}>
+        <Stack direction="row" useFlexGap gap={0.8} sx={{ flexWrap: "wrap" }}>
           <Chip size="small" label={`PV ${monster.hp}`} />
           <Chip size="small" label={`Armadura ${monster.armor}`} />
           <Chip size="small" label={`Dano: ${monster.damage}`} />
@@ -1538,7 +1538,7 @@ function MonsterReferenceCard({
 
         {expanded && (
           <Stack spacing={1}>
-            <Stack direction="row" useFlexGap flexWrap="wrap" gap={0.7}>
+            <Stack direction="row" useFlexGap gap={0.7} sx={{ flexWrap: "wrap" }}>
               {monster.tags.map((tag) => (
                 <Chip
                   key={tag}

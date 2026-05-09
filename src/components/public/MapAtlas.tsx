@@ -103,7 +103,7 @@ function MapLegend() {
       <Typography sx={{ color: "#c59b4b", fontWeight: 900, mb: 1 }}>
         Legenda
       </Typography>
-      <Stack direction="row" useFlexGap flexWrap="wrap" gap={0.8}>
+      <Stack direction="row" useFlexGap gap={0.8} sx={{ flexWrap: "wrap" }}>
         {Object.entries(pointStyles).map(([type, style]) => (
           <Chip
             key={type}

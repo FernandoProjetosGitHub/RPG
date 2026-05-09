@@ -5,6 +5,7 @@ import {
   Card,
   CardContent,
   Chip,
+  Collapse,
   Divider,
   LinearProgress,
   Paper,
@@ -66,6 +67,8 @@ type AdventurePlotBeat = {
   purpose: string;
   escalation: string;
   question: string;
+  tableDynamics: string[];
+  gmNotes: string[];
 };
 
 type AdventureGuide = {
@@ -230,6 +233,16 @@ const adventures: AdventureGuide[] = [
           "Kalareth usa cada hesitacao como prova contra os gnomos e contra os proprios herois.",
         question:
           "Quem os personagens protegem quando a multidao exige uma resposta simples?",
+        tableDynamics: [
+          "Comece com tres focos claros: o gnomo no chao, Kalareth falando para a multidao e uma saida que esta sendo fechada por guardas.",
+          "Peça para cada jogador declarar onde esta na praca antes da primeira rolagem; isso ajuda novatos a entenderem que posicao importa.",
+          "Se alguem atacar primeiro, mostre medo real nos civis e faca Kalareth usar isso como propaganda contra o grupo.",
+          "Se alguem falar primeiro, deixe a multidao reagir em ondas: curiosidade, duvida, raiva e depois uma pessoa especifica mudando de lado.",
+        ],
+        gmNotes: [
+          "Use falhas para separar pessoas, derrubar a prova, ferir o gnomo ou colocar um guarda entre um personagem e a saida.",
+          "Em 7-9, ofereca escolhas concretas: salvar o gnomo agora ou impedir Kalareth de nomear os herois como cumplices.",
+        ],
       },
       {
         title: "Rumores apontam para a casa",
@@ -239,6 +252,16 @@ const adventures: AdventureGuide[] = [
           "Guardas e moradores passam a reconhecer os personagens; quanto mais perguntam, mais Nekesti se fecha.",
         question:
           "Eles buscam verdade legal, apoio popular ou uma prova que ninguem possa negar?",
+        tableDynamics: [
+          "Divida a investigacao em contatos curtos: uma testemunha na janela, um guarda cansado, um mercador gnomo escondido e um templario desconfortavel.",
+          "Cada pista deve apontar para a residencia, mas por motivos diferentes: culpa, medo, suborno, cheiro de mofo ou uma chave incomum.",
+          "Quando a mesa travar, traga um boato errado com um pedaco verdadeiro para manter a energia sem entregar resposta pronta.",
+          "Deixe os jogadores escolherem o metodo: persuadir, seguir alguem, arrombar arquivo, confrontar Kalareth ou proteger os gnomos.",
+        ],
+        gmNotes: [
+          "Falhas nao devem bloquear a investigacao; elas custam tempo, reputacao, recurso ou colocam alguem inocente em perigo.",
+          "Use nomes de ruas e rostos recorrentes para Nekesti parecer viva, nao apenas uma lista de testes.",
+        ],
       },
       {
         title: "A residencia revela o passado",
@@ -248,6 +271,16 @@ const adventures: AdventureGuide[] = [
           "Espiritos, ratos e armadilhas destroem provas se os jogadores demorarem ou falharem.",
         question:
           "O que vale mais: sair com vida, salvar a prova ou entender o que Kalareth tentou esconder?",
+        tableDynamics: [
+          "Trate cada comodo como pergunta jogavel: quem morreu aqui, o que foi escondido e por que a casa ainda protege o magistrado.",
+          "Misture risco fisico e revelacao: rato, espirito, porta trancada ou piso cedendo sempre deve revelar algo alem de causar dano.",
+          "Se a mesa procurar com calma, deixe encontrar sinais antes da ameaca; se correr, faca a ameaca aparecer antes da prova.",
+          "A casa deve reagir ao barulho e a luz, criando escolhas sobre furtividade, velocidade e protecao do grupo.",
+        ],
+        gmNotes: [
+          "Em mesa com 7, coloque dois problemas simultaneos na casa para envolver todos; em mesas menores, foque em uma sala por vez.",
+          "Toda prova precisa ter consequencia social: quem acredita nela, quem tenta compra-la e quem morre se ela sumir.",
+        ],
       },
       {
         title: "A verdade precisa de publico",
@@ -257,6 +290,16 @@ const adventures: AdventureGuide[] = [
           "Kalareth tenta fugir, convocar dentes ou virar a cidade pela ultima vez.",
         question:
           "A justica de Nekesti sera reparacao, vinganca ou outro acordo imperfeito?",
+        tableDynamics: [
+          "Volte para um espaco publico: praca, templo, tribunal improvisado ou porta da residencia em chamas.",
+          "De a Kalareth uma ultima ferramenta que nao seja espada: refem, mentira convincente, documento falso ou apoio templario.",
+          "Convide cada jogador a dizer que prova, promessa ou ameaca ele coloca diante da cidade.",
+          "Feche com consequencias visiveis: gnomos escoltados, templarios divididos, multidao silenciosa ou um culpado tentando fugir.",
+        ],
+        gmNotes: [
+          "Nao transforme o final em absolvição facil; Dungeon World gosta de vitorias com marcas e novas perguntas.",
+          "Se houver combate, faca a luta acontecer em volta de testemunhas e escolhas morais, nao em uma arena limpa.",
+        ],
       },
     ],
     objectives: [
@@ -555,6 +598,16 @@ const adventures: AdventureGuide[] = [
           "Vh'orr aproxima, o cavalo pesa como refem e os gnomos tentam ajudar do jeito mais barulhento possivel.",
         question:
           "Os personagens salvam recursos, aliados ou silencio?",
+        tableDynamics: [
+          "Abra com contagem curta: passos de Vh'orr, cavalo respirando mal, luz azul abaixo e ossos se mexendo sob os pes.",
+          "Peça a cada jogador uma acao imediata; quem hesitar percebe uma nova rota, mas tambem chama atencao.",
+          "Use o cavalo como peso dramatico: salvar a criatura, usa-la como distração ou abandona-la muda o tom da fuga.",
+          "Mostre que a saida existe, mas nunca esta limpa: cordas, trilhos, buracos e passagens baixas exigem escolhas de carga.",
+        ],
+        gmNotes: [
+          "Vh'orr deve parecer inevitavel, nao invencivel; ele perde tempo, quebra parede e volta por outro caminho.",
+          "Em 7-9, cobre um custo de mochila, luz, posicao ou ruido antes de cobrar PV.",
+        ],
       },
       {
         title: "A guerra tem dois lados vivos",
@@ -564,6 +617,16 @@ const adventures: AdventureGuide[] = [
           "Cada ajuda dada a um lado vira suspeita no outro e altera rotas seguras.",
         question:
           "Que promessa eles fazem antes de conhecer toda a historia?",
+        tableDynamics: [
+          "Apresente gnomos e kobolds com necessidades praticas: luz, comida, territorio, mortos, honra e medo de traicao.",
+          "Cada lado oferece ajuda parcial e pede algo que prejudica a outra faccao, criando decisoes em vez de quest linear.",
+          "Use Ozzy, Felix e Sassi para empurrar solucoes engenhosas que podem explodir a diplomacia.",
+          "Deixe Ipmeek reconhecer bravura mesmo quando ameaca; isso abre negociacao para jogadores que nao querem apenas lutar.",
+        ],
+        gmNotes: [
+          "Evite vilao simples. Mesmo uma emboscada kobold deve ter razao: trofeu, vinganca, luz ou protecao de rota.",
+          "Quando os jogadores escolherem lado, anote quem fica em divida e quem passa a caçar o grupo.",
+        ],
       },
       {
         title: "Chaeron ainda cobra resposta",
@@ -573,6 +636,16 @@ const adventures: AdventureGuide[] = [
           "Sussurros e criaturas tocadas pela escuridao tornam a saida menos importante que a verdade.",
         question:
           "Que mentira sobre Chaeron seria mais conveniente levar para a superficie?",
+        tableDynamics: [
+          "Solte lembrancas de Chaeron como eco: um nome em pedra, uma ferramenta abandonada, um corpo que nao deveria estar ali.",
+          "Faca os sussurros oferecerem explicacao facil e moralmente confortavel, depois mostre uma prova que complica essa versao.",
+          "Associe magia negra a escolhas de atalho: abrir porta sem chave, calar criatura, salvar alguem com custo suspeito.",
+          "Permita que personagens religiosos, arcanos ou curiosos leiam pistas diferentes do mesmo vestigio.",
+        ],
+        gmNotes: [
+          "O segredo de Chaeron deve servir a mesa atual; escolha a verdade que mais pressiona os vinculos dos personagens.",
+          "Falhas aqui podem criar uma promessa fantasma, uma visao falsa ou um aliado acreditando na pior interpretacao.",
+        ],
       },
       {
         title: "Subir nao encerra a guerra",
@@ -582,6 +655,16 @@ const adventures: AdventureGuide[] = [
           "Vh'orr pode voltar, os kobolds exigem luz, os gnomos exigem futuro.",
         question:
           "O grupo foge, arbitra a disputa ou deixa uma frente pronta para explodir depois?",
+        tableDynamics: [
+          "No final, coloque tres relogios ficcionais na mesa: Vh'orr chegando, uma faccao exigindo resposta e a saida ficando instavel.",
+          "Se tentarem paz, faca cada lado pedir uma garantia concreta que alguem do grupo precise bancar.",
+          "Se escolherem fugir, mostre quem fica para tras e qual promessa ainda ecoa no desfiladeiro.",
+          "Se escolherem guerra, deixe a vitoria abrir uma consequencia politica para a proxima sessao.",
+        ],
+        gmNotes: [
+          "Nao encerre todas as frentes se isso matar o interesse; Dungeon World funciona bem com uma pendencia viva.",
+          "Em mesa pequena, reduza inimigos e aumente pressao de escolha; em mesa cheia, use o caos de faccoes ao mesmo tempo.",
+        ],
       },
     ],
     objectives: [
@@ -860,6 +943,16 @@ const adventures: AdventureGuide[] = [
           "Quanto mais o grupo prepara a subida, mais sinais mostram que Uryl pode ser a proxima.",
         question:
           "Eles prometem salvar todos ou assumem que alguem ficara para tras?",
+        tableDynamics: [
+          "Antes da subida, mostre Uryl por pessoas concretas: uma vigia sem dormir, um pastor sem rebanho, uma crianca repetindo o mugido da montanha.",
+          "Deixe preparacao importar: corda, luz, comida, abrigo e boatos mudam como a primeira cena no gelo comeca.",
+          "Cada pergunta feita pelos jogadores revela uma perda nova, deixando claro que esperar tambem e escolha.",
+          "Se prometerem salvar todos, anote a promessa em voz alta e use-a quando o forte exigir sacrificio.",
+        ],
+        gmNotes: [
+          "A aventura ganha mais peso quando Uryl nao e so contratante; ela e aquilo que o grupo pode falhar em proteger.",
+          "Use falhas de preparacao para gastar recursos, congelar equipamento ou fazer alguem desaparecer antes do portao.",
+        ],
       },
       {
         title: "O forte esta morto, mas organizado",
@@ -869,6 +962,16 @@ const adventures: AdventureGuide[] = [
           "Lacaios, gelo e saloes limpos demais revelam que Deanera ja reorganiza a fortaleza.",
         question:
           "Os personagens tratam lacaios como vitimas, inimigos ou pistas?",
+        tableDynamics: [
+          "Dentro do forte, contraste gelo bruto com ordem impossivel: mesa posta, corredor limpo, ossos alinhados e sangue ainda quente.",
+          "Lacaios devem ter sinais de vontade quebrada; a mesa precisa decidir se os derruba, liberta ou interroga sob risco.",
+          "Use portas, saloes e galerias para dar rotas alternativas, mas cada rota deve ter custo: frio, tempo, barulho ou encontro.",
+          "Deanera deve ser sentida antes de aparecer: perfume, tecido fino, voz distante e servos organizando o horror.",
+        ],
+        gmNotes: [
+          "Em 7 jogadores, divida o forte em problemas paralelos; dois personagens seguram porta, dois investigam, outros negociam ou protegem luz.",
+          "Se a mesa tratar tudo como combate, responda com informacao perdida, refens assustados ou uma vantagem de Deanera.",
+        ],
       },
       {
         title: "A espada de Gorric pede escolha",
@@ -878,6 +981,16 @@ const adventures: AdventureGuide[] = [
           "Retirar a lamina chama mortos, quebra gelo ou mostra memoria que muda a leitura dos templarios.",
         question:
           "O grupo aceita uma arma util se ela tambem deseja massacre?",
+        tableDynamics: [
+          "A espada deve ter cena propria: frio cessando, memoria templaria, sangue antigo e uma sensacao de estar sendo julgado.",
+          "Deixe personagens marciais sentirem poder, personagens sagrados sentirem corrupcao e personagens curiosos perceberem historia incompleta.",
+          "Retirar a lamina deve mudar o mapa: gelo racha, morto desperta, Deanera percebe ou Molekh faz uma oferta.",
+          "Se ninguem quiser a espada, recompense a prudencia com outra pista e cobre o risco de deixar a reliquia ali.",
+        ],
+        gmNotes: [
+          "A espada nao precisa controlar personagem; basta tornar toda solucao violenta mais tentadora.",
+          "Em falha, nao negue a reliquia. Entregue-a com marca, custo, ruido ou uma nova divida espiritual.",
+        ],
       },
       {
         title: "Molekh negocia como conquistador",
@@ -887,6 +1000,16 @@ const adventures: AdventureGuide[] = [
           "Deanera, altar e minotauros oferecem acordos inaceitaveis quando a violencia nao basta.",
         question:
           "Que preco os personagens recusam mesmo que isso torne a vitoria mais dificil?",
+        tableDynamics: [
+          "Molekh deve falar como senhor de terra, nao como fera: ele oferece tributo, posto, fuga segura ou inimigo em comum.",
+          "Coloque Deanera e Molekh em tensao; se os herois perceberem, podem explorar a rachadura entre luxo e conquista.",
+          "Durante a luta, use investidas, pilares, gelo e refens para a cena mudar a cada rolagem.",
+          "No epilogo, mostre Uryl reagindo ao que foi salvo, perdido ou escondido sobre a espada.",
+        ],
+        gmNotes: [
+          "Para mesa cheia, mantenha Molekh, Deanera e ambiente ativos. Para mesa menor, escolha apenas dois focos por rodada ficcional.",
+          "A vitoria mais interessante deixa uma pergunta: quem herdara Altai, o que fazer com a espada e quem ouviu o chamado do Ceifador.",
+        ],
       },
     ],
     objectives: [
@@ -1174,6 +1297,16 @@ const adventures: AdventureGuide[] = [
           "Operarias chegam do corredor sul enquanto os elfos cobram que a rainha seja destruida.",
         question:
           "A prioridade e escapar, entender a infeccao ou cumprir o pedido dos guias?",
+        tableDynamics: [
+          "Comece sem explicacao longa: descreva fungo, calor, minerio, operarias vindo do sul e pergunte quem segura a frente.",
+          "Nostarion e Eleniel devem discordar logo cedo para mostrar que os aliados nao sao manual de instrucao.",
+          "Use cheiro, poeira e lajes para tornar movimento fisico importante mesmo antes do primeiro ataque.",
+          "Quando um jogador perguntar o que sabe, responda com risco e opcao: da para descobrir, mas ficando perto demais.",
+        ],
+        gmNotes: [
+          "Para novatos, traduza cada movimento em ficcao: primeiro diga o perigo, depois peça a rolagem quando a acao disparar.",
+          "Em 7 jogadores, espalhe ameaças em tres entradas; em mesa menor, mantenha todos vendo a mesma ameaca.",
+        ],
       },
       {
         title: "A colonia foi vitima e carcereira",
@@ -1183,6 +1316,16 @@ const adventures: AdventureGuide[] = [
           "Cada pista util tambem aumenta risco de esporos, corrosao ou conflito entre aliados.",
         question:
           "Os personagens ainda chamam isso de missao simples depois de saber como a cura funcionava?",
+        tableDynamics: [
+          "As pistas devem mostrar engenharia biologica: jardins de fungo, trolls marcados, formigas hesitando e ferramentas de cultivo.",
+          "Deixe alguem perceber que exterminar tudo pode resolver hoje e criar outro problema politico amanha.",
+          "A infeccao deve alterar comportamento, nao apenas aparencia: tremor, obediencia quebrada, fome e cuidado com filhotes.",
+          "Se os jogadores tentarem curar, permita progresso parcial com custos de tempo, magisita, agua limpa ou exposicao.",
+        ],
+        gmNotes: [
+          "Nao puna curiosidade automaticamente; de sinais antes de dano para que jogadores aprendam a ler ambiente.",
+          "Falhas boas aqui espalham esporos, isolam um aliado ou revelam que uma cura salva alguem e condena outro.",
+        ],
       },
       {
         title: "Aliados querem coisas diferentes",
@@ -1192,6 +1335,16 @@ const adventures: AdventureGuide[] = [
           "Magisita, idioma da aranha e medo de infeccao podem quebrar a cooperacao no pior momento.",
         question:
           "Quem o grupo protege quando todos os aliados escondem uma necessidade real?",
+        tableDynamics: [
+          "Nostarion quer magisita, Eleniel quer controle e Pii'treb quer sair vivo; coloque esses desejos em conflito na mesma sala.",
+          "Permita conversa com Pii'treb por gesto, desenho, magia, comida ou interprete improvisado para valorizar criatividade.",
+          "Quando aliados mentirem, nao revele como traicao simples; revele como medo, dever ou sobrevivencia.",
+          "Use o mapa para separar temporariamente interesses: um corredor leva a magisita, outro a saida, outro a rainha.",
+        ],
+        gmNotes: [
+          "Jogadores novatos entendem melhor dilemas quando cada PNJ pede algo curto, concreto e urgente.",
+          "Em 7 jogadores, de a cada subgrupo um aliado para tensionar. Em mesa pequena, deixe os PNJs discutirem diante do grupo.",
+        ],
       },
       {
         title: "A rainha e o broto final",
@@ -1201,6 +1354,16 @@ const adventures: AdventureGuide[] = [
           "Mesmo vencendo a rainha, o epilogo pode carregar um broto para fora.",
         question:
           "O que eles aceitam destruir para impedir que a praga aprenda novos hospedeiros?",
+        tableDynamics: [
+          "A rainha deve ser tragica e perigosa: mae, vetor, vitima e ameaca ao mesmo tempo.",
+          "Use brotos, ovos, guardas e teto organico para que o combate tenha objetivos alem de zerar PV.",
+          "Ofereca saidas diferentes: queimar tudo, selar a camara, levar amostra, negociar com aranhas ou confiar nos elfos.",
+          "No fim, mostre uma consequencia sensorial pequena: espora no cabelo, formiga curvada, aranha agradecida ou magisita pulsando.",
+        ],
+        gmNotes: [
+          "Se os jogadores vencerem com plano inteligente, nao force luta final completa; cobre o preco adequado e deixe a decisao pesar.",
+          "O broto final funciona melhor como pergunta para proxima sessao, nao como castigo inevitavel.",
+        ],
       },
     ],
     objectives: [
@@ -1566,7 +1729,7 @@ function HeroSection() {
       }}
     >
       <Stack spacing={1.2}>
-        <Stack direction="row" useFlexGap flexWrap="wrap" gap={0.8}>
+        <Stack direction="row" useFlexGap gap={0.8} sx={{ flexWrap: "wrap" }}>
           <Chip label="Aventuras separadas por PDF" />
           <Chip label="Base: 7 jogadores" />
           <Chip label="Escala 7 > 6 > 5 > 4 > 3 > 2 > 1" />
@@ -1629,20 +1792,36 @@ function AdventurePicker({
         Escolha a aventura
       </Typography>
       <Stack spacing={0.8}>
-        {adventures.map((adventure) => (
-          <Button
-            key={adventure.id}
-            variant={selectedAdventureId === adventure.id ? "contained" : "outlined"}
-            onClick={() => onSelect(adventure.id)}
-            sx={{
-              justifyContent: "flex-start",
-              textAlign: "left",
-              borderColor: `${adventure.accent}66`,
-            }}
-          >
-            {adventure.title}
-          </Button>
-        ))}
+        {adventures.map((adventure) => {
+          const selected = selectedAdventureId === adventure.id;
+
+          return (
+            <Button
+              key={adventure.id}
+              variant={selected ? "contained" : "outlined"}
+              onClick={() => onSelect(adventure.id)}
+              sx={{
+                justifyContent: "flex-start",
+                textAlign: "left",
+                borderColor: `${adventure.accent}66`,
+                bgcolor: selected ? adventure.accent : "transparent",
+                color: selected ? "#100b08" : "#f7edd9",
+                fontWeight: selected ? 900 : 700,
+                "&:hover": {
+                  bgcolor: selected ? adventure.accent : `${adventure.accent}18`,
+                  color: selected ? "#100b08" : "#fff3dc",
+                },
+                "&.Mui-focusVisible": {
+                  outline: "2px solid rgba(255,243,220,.72)",
+                  outlineOffset: 2,
+                  color: selected ? "#100b08" : "#fff3dc",
+                },
+              }}
+            >
+              {adventure.title}
+            </Button>
+          );
+        })}
       </Stack>
     </Paper>
   );
@@ -1675,7 +1854,7 @@ function ScaleSelector({
       <Typography sx={{ color: "#5fb6c4", fontWeight: 900, mb: 1 }}>
         Escala da mesa
       </Typography>
-      <Stack direction="row" useFlexGap flexWrap="wrap" gap={0.7}>
+      <Stack direction="row" useFlexGap gap={0.7} sx={{ flexWrap: "wrap" }}>
         {playerCounts.map((players) => {
           const active = selectedPlayers === players;
 
@@ -1685,7 +1864,21 @@ function ScaleSelector({
               size="small"
               variant={active ? "contained" : "outlined"}
               onClick={() => onSelect(players)}
-              sx={{ minWidth: 42 }}
+              sx={{
+                minWidth: 42,
+                bgcolor: active ? "#f2c76c" : "transparent",
+                color: active ? "#100b08" : "#f2c76c",
+                borderColor: active ? "#f7edd9" : "rgba(242,199,108,.45)",
+                fontWeight: 900,
+                "&:hover": {
+                  bgcolor: active ? "#d8a94b" : "rgba(242,199,108,.12)",
+                  color: active ? "#100b08" : "#fff3dc",
+                },
+                "&.Mui-focusVisible": {
+                  outline: "2px solid rgba(255,243,220,.72)",
+                  outlineOffset: 2,
+                },
+              }}
             >
               {players}
             </Button>
@@ -1756,7 +1949,7 @@ function AdventureDetail({
       >
         <CardContent>
           <Stack spacing={1.4}>
-            <Stack direction="row" useFlexGap flexWrap="wrap" gap={0.8}>
+            <Stack direction="row" useFlexGap gap={0.8} sx={{ flexWrap: "wrap" }}>
               <Chip label={adventure.source} />
               <Chip label={adventure.tone} sx={{ bgcolor: `${adventure.accent}22` }} />
               <Chip label={`Perigo ${selectedBudget}/${adventure.baseDangerBudget}`} />
@@ -1849,7 +2042,7 @@ function AdventureSectionNav({
         p: 1,
       }}
     >
-      <Stack direction="row" useFlexGap flexWrap="wrap" gap={0.8}>
+      <Stack direction="row" useFlexGap gap={0.8} sx={{ flexWrap: "wrap" }}>
         {adventureSections.map((section) => {
           const selected = active === section.value;
 
@@ -1862,6 +2055,28 @@ function AdventureSectionNav({
                 flex: { xs: "1 1 42%", sm: "1 1 0" },
                 minWidth: { xs: 132, sm: 0 },
                 py: 0.8,
+                borderColor: selected
+                  ? "rgba(242,199,108,.78)"
+                  : "rgba(217,200,159,.28)",
+                bgcolor: selected ? "#f2c76c" : "rgba(0,0,0,.12)",
+                color: selected ? "#1a120c" : "#f2c76c",
+                boxShadow: selected
+                  ? "0 0 0 1px rgba(26,18,12,.25) inset"
+                  : "none",
+                "&:hover": {
+                  bgcolor: selected ? "#d8a94b" : "rgba(242,199,108,.12)",
+                  borderColor: selected ? "#f7edd9" : "#f2c76c",
+                  color: selected ? "#100b08" : "#fff3dc",
+                },
+                "&.Mui-focusVisible": {
+                  bgcolor: selected ? "#c59b4b" : "rgba(242,199,108,.2)",
+                  color: selected ? "#100b08" : "#fff3dc",
+                  outline: "2px solid rgba(255,243,220,.72)",
+                  outlineOffset: 2,
+                },
+                ".MuiTypography-root": {
+                  color: "inherit",
+                },
               }}
             >
               <Stack spacing={0.1} sx={{ alignItems: "center" }}>
@@ -1944,36 +2159,130 @@ function StoryFlow({ adventure }: { adventure: AdventureGuide }) {
         }}
       >
         {adventure.plot.map((beat, index) => (
-          <Paper
+          <StoryBeatCard
             key={beat.title}
-            variant="outlined"
-            sx={{
-              borderColor: "rgba(217,200,159,.13)",
-              bgcolor: "rgba(0,0,0,.16)",
-              p: 1,
-            }}
-          >
-            <Stack spacing={0.7}>
-              <Stack direction="row" spacing={0.7} sx={{ alignItems: "center" }}>
-                <Chip size="small" label={`${index + 1}`} />
-                <Typography sx={{ color: "#f7edd9", fontWeight: 900 }}>
-                  {beat.title}
-                </Typography>
-              </Stack>
-              <Typography sx={{ color: "#d7c59d", fontSize: ".88rem", lineHeight: 1.45 }}>
-                {beat.purpose}
-              </Typography>
-              <Typography sx={{ color: "#b9a98b", fontSize: ".82rem", lineHeight: 1.45 }}>
-                <strong>Escalada:</strong> {beat.escalation}
-              </Typography>
-              <Typography sx={{ color: "#f2c76c", fontSize: ".82rem", lineHeight: 1.45 }}>
-                {beat.question}
-              </Typography>
-            </Stack>
-          </Paper>
+            beat={beat}
+            index={index}
+            accent={adventure.accent}
+          />
         ))}
       </Box>
     </Paper>
+  );
+}
+
+function StoryBeatCard({
+  beat,
+  index,
+  accent,
+}: {
+  beat: AdventurePlotBeat;
+  index: number;
+  accent: string;
+}) {
+  const [isOpen, setIsOpen] = useState(index === 0);
+
+  // Cada virada narrativa fica expansivel para manter a tela compacta no
+  // celular, mas sem perder as instrucoes detalhadas que ajudam o mestre a
+  // conduzir cena, consequencia e escolha aberta.
+  return (
+    <Paper
+      component="article"
+      role="button"
+      tabIndex={0}
+      aria-expanded={isOpen}
+      variant="outlined"
+      onClick={() => setIsOpen((current) => !current)}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          setIsOpen((current) => !current);
+        }
+      }}
+      sx={{
+        borderColor: isOpen ? `${accent}88` : "rgba(217,200,159,.13)",
+        bgcolor: isOpen ? "rgba(242,199,108,.075)" : "rgba(0,0,0,.16)",
+        color: "#f7edd9",
+        cursor: "pointer",
+        p: 1,
+        transition: "border-color .18s ease, background .18s ease",
+        "&:focus-visible": {
+          outline: "2px solid rgba(255,243,220,.72)",
+          outlineOffset: 2,
+          borderColor: "#f2c76c",
+        },
+      }}
+    >
+      <Stack spacing={0.8}>
+        <Stack direction="row" spacing={0.7} sx={{ alignItems: "center" }}>
+          <Chip
+            size="small"
+            label={`${index + 1}`}
+            sx={{
+              bgcolor: isOpen ? "#f2c76c" : "rgba(255,255,255,.08)",
+              color: isOpen ? "#17100b" : "#f7edd9",
+              fontWeight: 900,
+            }}
+          />
+          <Box sx={{ minWidth: 0, flex: 1 }}>
+            <Typography sx={{ color: "#f7edd9", fontWeight: 900 }}>
+              {beat.title}
+            </Typography>
+            <Typography sx={{ color: "#b9a98b", fontSize: ".74rem" }}>
+              {isOpen ? "Clique para recolher" : "Clique para ver dinamica"}
+            </Typography>
+          </Box>
+        </Stack>
+
+        <Typography sx={{ color: "#d7c59d", fontSize: ".88rem", lineHeight: 1.45 }}>
+          {beat.purpose}
+        </Typography>
+
+        <Collapse in={isOpen} timeout="auto" unmountOnExit>
+          <Stack spacing={1} sx={{ pt: 0.4 }}>
+            <Typography sx={{ color: "#b9a98b", fontSize: ".82rem", lineHeight: 1.45 }}>
+              <strong>Escalada:</strong> {beat.escalation}
+            </Typography>
+
+            <Typography sx={{ color: "#f2c76c", fontSize: ".82rem", lineHeight: 1.45 }}>
+              <strong>Pergunta da virada:</strong> {beat.question}
+            </Typography>
+
+            <BulletList title="Dinamica em mesa" items={beat.tableDynamics} />
+            <BulletList title="Notas para o MJ" items={beat.gmNotes} tone="#5fb6c4" />
+          </Stack>
+        </Collapse>
+      </Stack>
+    </Paper>
+  );
+}
+
+function BulletList({
+  title,
+  items,
+  tone = "#f2c76c",
+}: {
+  title: string;
+  items: string[];
+  tone?: string;
+}) {
+  return (
+    <Box>
+      <Typography sx={{ color: tone, fontSize: ".78rem", fontWeight: 900, mb: 0.4 }}>
+        {title}
+      </Typography>
+      <Stack component="ul" spacing={0.45} sx={{ pl: 2.2, m: 0 }}>
+        {items.map((item) => (
+          <Typography
+            key={item}
+            component="li"
+            sx={{ color: "#d7c59d", fontSize: ".8rem", lineHeight: 1.45 }}
+          >
+            {item}
+          </Typography>
+        ))}
+      </Stack>
+    </Box>
   );
 }
 
@@ -2073,7 +2382,7 @@ function NpcCard({ npc }: { npc: AdventureNpc }) {
   return (
     <Paper variant="outlined" sx={cardSx("#5f7f4f")}>
       <Stack spacing={0.8}>
-        <Stack direction="row" useFlexGap flexWrap="wrap" gap={0.7}>
+        <Stack direction="row" useFlexGap gap={0.7} sx={{ flexWrap: "wrap" }}>
           <Chip size="small" label="PNJ" sx={{ bgcolor: "rgba(95,127,79,.24)" }} />
           <Chip size="small" label={npc.role} />
         </Stack>
@@ -2110,7 +2419,7 @@ function ThreatCard({ threat }: { threat: AdventureThreat }) {
         <Typography sx={{ color: "#ffb2b8", fontWeight: 900 }}>
           {threat.name}
         </Typography>
-        <Stack direction="row" useFlexGap flexWrap="wrap" gap={0.6}>
+        <Stack direction="row" useFlexGap gap={0.6} sx={{ flexWrap: "wrap" }}>
           <Chip size="small" label={threat.role} />
           <Chip size="small" label={threat.stats} />
         </Stack>
@@ -2263,7 +2572,7 @@ function ScaleSummary({
       }}
     >
       <Stack spacing={1}>
-        <Stack direction="row" useFlexGap flexWrap="wrap" gap={0.8}>
+        <Stack direction="row" useFlexGap gap={0.8} sx={{ flexWrap: "wrap" }}>
           <Chip label={`Selecionado: ${selectedPlayers} jogador${selectedPlayers > 1 ? "es" : ""}`} />
           <Chip label={simultaneous} />
           <Chip
@@ -2424,7 +2733,7 @@ function EncounterMap({ adventure }: { adventure: AdventureGuide }) {
         </svg>
       </Box>
 
-      <Stack direction="row" useFlexGap flexWrap="wrap" gap={0.7}>
+      <Stack direction="row" useFlexGap gap={0.7} sx={{ flexWrap: "wrap" }}>
         {Object.entries(encounterStyles).map(([kind, style]) => (
           <Chip
             key={kind}
@@ -2518,7 +2827,7 @@ function SceneCard({
       }}
     >
       <Stack spacing={1.1}>
-        <Stack direction="row" useFlexGap flexWrap="wrap" gap={0.7}>
+        <Stack direction="row" useFlexGap gap={0.7} sx={{ flexWrap: "wrap" }}>
           <Chip label={`Cena ${index + 1}`} sx={{ bgcolor: `${accent}22` }} />
           <Chip label={scene.location} />
           <Chip label={`pressao ${scaledPressure}/${scene.pressure}`} />
@@ -2562,7 +2871,7 @@ function SceneCard({
           <strong>Mestre:</strong> {scene.gmGuidance}
         </Typography>
 
-        <Stack direction="row" useFlexGap flexWrap="wrap" gap={0.7}>
+        <Stack direction="row" useFlexGap gap={0.7} sx={{ flexWrap: "wrap" }}>
           {scene.decisions.map((decision) => (
             <Chip
               key={decision}

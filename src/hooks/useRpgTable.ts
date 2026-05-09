@@ -1,4 +1,4 @@
-import { useState, type Dispatch, type SetStateAction } from "react";
+import { useCallback, useMemo, useState, type Dispatch, type SetStateAction } from "react";
 import { dwClasses, unselectedClass } from "../data/dwClasses";
 import { consumableItems, items } from "../data/items";
 import {
@@ -59,21 +59,31 @@ export function useRpgTable() {
   const [selectedPlayerIndex, setSelectedPlayerIndex] = useState(0);
 
   const character = characters[selectedPlayerIndex] ?? characters[0];
-  const playerProfiles = buildPlayerProfiles(characters);
+  const playerProfiles = useMemo(
+    () => buildPlayerProfiles(characters),
+    [characters],
+  );
 
-  const setCharacter: Dispatch<SetStateAction<Character>> = (update) => {
+  const setCharacter: Dispatch<SetStateAction<Character>> = useCallback((update) => {
     // Este setter replica o comportamento do setState do React, mas limitado
     // ao jogador ativo. Assim as telas de ficha nao precisam conhecer o array
-    // inteiro da mesa.
-    setCharacters((currentCharacters) =>
-      currentCharacters.map((currentCharacter, index) => {
+    // inteiro da mesa. Se a atualizacao devolver a mesma ficha, mantemos o
+    // mesmo array para evitar renders em loop nas paginas de jogador/mestre.
+    setCharacters((currentCharacters) => {
+      let changed = false;
+      const nextCharacters = currentCharacters.map((currentCharacter, index) => {
         if (index !== selectedPlayerIndex) return currentCharacter;
-        return typeof update === "function" ? update(currentCharacter) : update;
-      }),
-    );
-  };
+        const nextCharacter =
+          typeof update === "function" ? update(currentCharacter) : update;
+        if (nextCharacter !== currentCharacter) changed = true;
+        return nextCharacter;
+      });
 
-  function applyConsumableToPlayer(consumableId: string, targetIndex: number) {
+      return changed ? nextCharacters : currentCharacters;
+    });
+  }, [selectedPlayerIndex]);
+
+  const applyConsumableToPlayer = useCallback((consumableId: string, targetIndex: number) => {
     const consumable = consumableItems.find((item) => item.id === consumableId);
     if (!consumable) return;
 
@@ -124,7 +134,7 @@ export function useRpgTable() {
         };
       });
     });
-  }
+  }, [selectedPlayerIndex]);
 
   return {
     character,

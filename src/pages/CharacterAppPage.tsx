@@ -6,6 +6,7 @@ import {
   Card,
   CardContent,
   Chip,
+  Collapse,
   FormControl,
   InputLabel,
   LinearProgress,
@@ -90,6 +91,9 @@ type CombatAction = {
   detail: string;
   usesPerRest: number | null;
 };
+
+type SheetConsumable = (typeof consumableItems)[number];
+type SheetItem = (typeof items)[number];
 
 type CombatRoll = {
   actionName: string;
@@ -398,6 +402,18 @@ export default function CharacterAppPage({
           : 0),
       0,
     );
+
+  // A lista visivel mantem o inventario e o combate falando a mesma lingua:
+  // itens comuns aparecem como referencia para novatos, enquanto consumiveis
+  // exclusivos so aparecem para a classe que realmente pode receber/usar.
+  const visibleConsumables = useMemo(
+    () =>
+      consumableItems.filter((item) => {
+        const amount = character.consumables[item.id] ?? 0;
+        return amount > 0 || !item.classIds || item.classIds.includes(selectedClass.id);
+      }),
+    [character.consumables, selectedClass.id],
+  );
 
   const armor = equippedItemsData.reduce(
     (acc, item) => acc + (item.modifiers.armor ?? 0),
@@ -2783,6 +2799,49 @@ export default function CharacterAppPage({
                       </Button>
                     </Stack>
                   </InfoPanel>
+
+                  <InfoPanel title="Consumiveis e descanso">
+                    <Stack spacing={1.1}>
+                      <Typography sx={{ color: "#b9a98b", fontSize: ".9rem", lineHeight: 1.55 }}>
+                        Acoes de uso ficam aqui para a ficha separar consulta de
+                        inventario e decisao de mesa. Clique em um card para ver
+                        regra, fonte, efeito e escolher o alvo quando o item puder
+                        ser compartilhado.
+                      </Typography>
+
+                      {visibleConsumables.map((item) => {
+                        const currentUses = character.consumables[item.id] ?? 0;
+                        const targetIndex =
+                          consumableTargets[item.id] ?? selectedPlayerIndex;
+
+                        return (
+                          <ConsumableCard
+                            key={item.id}
+                            item={item}
+                            currentUses={currentUses}
+                            mode="use"
+                            targetIndex={targetIndex}
+                            playerProfiles={playerProfiles}
+                            selectedPlayerIndex={selectedPlayerIndex}
+                            onTargetChange={(nextTarget) =>
+                              setConsumableTargets((current) => ({
+                                ...current,
+                                [item.id]: nextTarget,
+                              }))
+                            }
+                            onUse={() =>
+                              useConsumable(
+                                item.id,
+                                item.canTargetAlly
+                                  ? targetIndex
+                                  : selectedPlayerIndex,
+                              )
+                            }
+                          />
+                        );
+                      })}
+                    </Stack>
+                  </InfoPanel>
                 </Stack>
               )}
 
@@ -2859,139 +2918,24 @@ export default function CharacterAppPage({
 
                   <InfoPanel title="Consumiveis">
                     <Stack spacing={1.2}>
-                      <Typography sx={{ color: "#b9a98b", fontSize: ".9rem" }}>
-                        Recursos com usos limitados. Ao usar, o app consome uma
-                        unidade e aplica cura quando houver efeito mecanico.
-                        Efeitos ficcionais entram como apoio para a conversa
-                        com o mestre.
+                      <Typography sx={{ color: "#b9a98b", fontSize: ".9rem", lineHeight: 1.55 }}>
+                        Aqui fica somente a consulta do que esta na mochila:
+                        usos, peso, fonte e descricao. Para gastar uma unidade,
+                        va para a aba de combate e abra o card do consumivel.
                       </Typography>
 
-                      {consumableItems
-                        .filter((item) => {
-                          const amount = character.consumables[item.id] ?? 0;
-                          return (
-                            amount > 0 ||
-                            !item.classIds ||
-                            item.classIds.includes(selectedClass.id)
-                          );
-                        })
-                        .map((item) => {
+                      {visibleConsumables.map((item) => {
                           const currentUses = character.consumables[item.id] ?? 0;
-                          const hasUses = currentUses > 0;
-                          const targetIndex =
-                            consumableTargets[item.id] ?? selectedPlayerIndex;
 
                           return (
-                            <Paper
+                            <ConsumableCard
                               key={item.id}
-                              variant="outlined"
-                              sx={{
-                                borderColor: hasUses
-                                  ? "rgba(95,182,196,.32)"
-                                  : "rgba(217,200,159,.12)",
-                                bgcolor: hasUses
-                                  ? "rgba(95,182,196,.09)"
-                                  : "rgba(255,255,255,.035)",
-                                color: "#f7edd9",
-                                p: 1.35,
-                              }}
-                            >
-                              <Stack spacing={1}>
-                                <Stack
-                                  direction="row"
-                                  spacing={1}
-                                  sx={{ flexWrap: "wrap" }}
-                                >
-                                  <Chip
-                                    label={`${currentUses}/${item.maxUses}`}
-                                    sx={{
-                                      bgcolor: hasUses
-                                        ? "rgba(95,182,196,.18)"
-                                        : "rgba(170,38,61,.16)",
-                                      color: "#f7edd9",
-                                    }}
-                                  />
-                                  <Chip label={`peso ${item.weight}`} />
-                                  {item.tags.map((tag) => (
-                                    <Chip key={tag} label={tag} />
-                                  ))}
-                                </Stack>
-
-                                <Typography
-                                  sx={{ color: "#5fb6c4", fontWeight: 900 }}
-                                >
-                                  {item.name}
-                                </Typography>
-                                <Typography
-                                  sx={{
-                                    color: "#d7c59d",
-                                    fontSize: ".9rem",
-                                    lineHeight: 1.6,
-                                  }}
-                                >
-                                  {item.description}
-                                </Typography>
-                                <Typography
-                                  sx={{ color: "#b9a98b", fontSize: ".85rem" }}
-                                >
-                                  {item.useText}
-                                </Typography>
-                                {item.restText && (
-                                  <Typography
-                                    sx={{ color: "#ffcf8a", fontSize: ".82rem" }}
-                                  >
-                                    {item.restText}
-                                  </Typography>
-                                )}
-                                {item.canTargetAlly && (
-                                  <FormControl fullWidth size="small">
-                                    <InputLabel>Usar em</InputLabel>
-                                    <Select
-                                      label="Usar em"
-                                      value={targetIndex}
-                                      onChange={(event) =>
-                                        setConsumableTargets((current) => ({
-                                          ...current,
-                                          [item.id]: Number(event.target.value),
-                                        }))
-                                      }
-                                    >
-                                      {playerProfiles.map((profile) => (
-                                        <MenuItem
-                                          key={profile.index}
-                                          value={profile.index}
-                                        >
-                                          {profile.label} -{" "}
-                                          {profile.name || "Sem nome"} -{" "}
-                                          {profile.className}
-                                        </MenuItem>
-                                      ))}
-                                    </Select>
-                                  </FormControl>
-                                )}
-                                <Button
-                                  variant="contained"
-                                  disabled={!hasUses}
-                                  onClick={() =>
-                                    useConsumable(
-                                      item.id,
-                                      item.canTargetAlly
-                                        ? targetIndex
-                                        : selectedPlayerIndex,
-                                    )
-                                  }
-                                >
-                                  Usar
-                                  {item.canTargetAlly
-                                    ? ` em ${
-                                        playerProfiles[targetIndex]?.label ??
-                                        "jogador"
-                                      }`
-                                    : ""}
-                                  : {item.effect.label}
-                                </Button>
-                              </Stack>
-                            </Paper>
+                              item={item}
+                              currentUses={currentUses}
+                              mode="view"
+                              playerProfiles={playerProfiles}
+                              selectedPlayerIndex={selectedPlayerIndex}
+                            />
                           );
                         })}
                     </Stack>
@@ -3016,63 +2960,16 @@ export default function CharacterAppPage({
                           ).includes(item.id);
 
                           return (
-                            <Paper
+                            <InventoryItemCard
                               key={item.id}
-                              variant="outlined"
-                              sx={{
-                                borderColor: isEquipped
-                                  ? "rgba(197,155,75,.65)"
-                                  : "rgba(217,200,159,.14)",
-                                bgcolor: isEquipped
-                                  ? "rgba(197,155,75,.12)"
-                                  : "rgba(255,255,255,.04)",
-                                color: "#f7edd9",
-                                p: 1.5,
-                              }}
-                            >
-                              <Stack spacing={1}>
-                                <Stack
-                                  direction="row"
-                                  spacing={1}
-                                  sx={{ flexWrap: "wrap" }}
-                                >
-                                  <Chip label={item.type} />
-                                  <Chip label={`peso ${item.weight}`} />
-                                  {item.tags.map((tag) => (
-                                    <Chip key={tag} label={tag} />
-                                  ))}
-                                </Stack>
-
-                                <Typography
-                                  sx={{ color: "#c59b4b", fontWeight: 900 }}
-                                >
-                                  {item.name}
-                                </Typography>
-
-                                <Typography
-                                  sx={{
-                                    color: "#d7c59d",
-                                    fontSize: ".9rem",
-                                    lineHeight: 1.6,
-                                  }}
-                                >
-                                  {item.description}
-                                </Typography>
-
-                                <Button
-                                  variant={
-                                    isEquipped ? "contained" : "outlined"
-                                  }
-                                  onClick={() =>
-                                    isEquipped
-                                      ? unequipItem(item.id)
-                                      : equipItem(item.id)
-                                  }
-                                >
-                                  {isEquipped ? "Desequipar" : "Equipar"}
-                                </Button>
-                              </Stack>
-                            </Paper>
+                              item={item}
+                              isEquipped={isEquipped}
+                              onToggle={() =>
+                                isEquipped
+                                  ? unequipItem(item.id)
+                                  : equipItem(item.id)
+                              }
+                            />
                           );
                         })}
                       </Stack>
@@ -3639,6 +3536,271 @@ function CombatStat({ label, value }: { label: string; value: string }) {
         {value}
       </Typography>
     </Paper>
+  );
+}
+
+function ExpandableSheetCard({
+  title,
+  subtitle,
+  chips,
+  accent = "#c59b4b",
+  selected = false,
+  children,
+}: {
+  title: string;
+  subtitle?: string;
+  chips: ReactNode[];
+  accent?: string;
+  selected?: boolean;
+  children: ReactNode;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  // Este card e o padrao de leitura da ficha: resumo fechado para economizar
+  // espaco no celular, detalhes abertos por clique para consulta em mesa.
+  // O conteudo interno bloqueia o clique para botoes e selects nao fecharem o card.
+  return (
+    <Paper
+      component="article"
+      role="button"
+      tabIndex={0}
+      aria-expanded={isOpen}
+      variant="outlined"
+      onClick={() => setIsOpen((current) => !current)}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          setIsOpen((current) => !current);
+        }
+      }}
+      sx={{
+        borderColor: selected ? `${accent}99` : "rgba(217,200,159,.14)",
+        bgcolor: selected ? `${accent}18` : "rgba(255,255,255,.04)",
+        color: "#f7edd9",
+        cursor: "pointer",
+        p: 1.35,
+        transition: "border-color .18s ease, background .18s ease",
+        "&:focus-visible": {
+          outline: "2px solid rgba(255,243,220,.72)",
+          outlineOffset: 2,
+          borderColor: "#f2c76c",
+        },
+      }}
+    >
+      <Stack spacing={1}>
+        <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
+          {chips.map((chip, index) => (
+            <Box key={index}>{chip}</Box>
+          ))}
+        </Stack>
+
+        <Box>
+          <Typography sx={{ color: selected ? "#fff3dc" : accent, fontWeight: 900 }}>
+            {title}
+          </Typography>
+          {subtitle && (
+            <Typography sx={{ color: "#b9a98b", fontSize: ".78rem", lineHeight: 1.45 }}>
+              {subtitle}
+            </Typography>
+          )}
+          <Typography sx={{ color: "#8f8268", fontSize: ".72rem", mt: 0.35 }}>
+            {isOpen ? "Clique no topo para recolher" : "Clique no card para expandir"}
+          </Typography>
+        </Box>
+
+        <Collapse in={isOpen} timeout="auto" unmountOnExit>
+          <Box onClick={(event) => event.stopPropagation()} sx={{ pt: 0.2 }}>
+            {children}
+          </Box>
+        </Collapse>
+      </Stack>
+    </Paper>
+  );
+}
+
+function ConsumableCard({
+  item,
+  currentUses,
+  mode,
+  playerProfiles,
+  selectedPlayerIndex,
+  targetIndex = selectedPlayerIndex,
+  onTargetChange,
+  onUse,
+}: {
+  item: SheetConsumable;
+  currentUses: number;
+  mode: "view" | "use";
+  playerProfiles: PlayerProfileSummary[];
+  selectedPlayerIndex: number;
+  targetIndex?: number;
+  onTargetChange?: (targetIndex: number) => void;
+  onUse?: () => void;
+}) {
+  const hasUses = currentUses > 0;
+  const targetProfile =
+    playerProfiles.find((profile) => profile.index === targetIndex) ??
+    playerProfiles.find((profile) => profile.index === selectedPlayerIndex);
+
+  return (
+    <ExpandableSheetCard
+      title={item.name}
+      subtitle={item.source}
+      accent="#5fb6c4"
+      selected={hasUses}
+      chips={[
+        <Chip
+          key="uses"
+          label={`${currentUses}/${item.maxUses}`}
+          sx={{
+            bgcolor: hasUses ? "rgba(95,182,196,.24)" : "rgba(170,38,61,.2)",
+            color: hasUses ? "#e9fbff" : "#ffd7dc",
+            fontWeight: 900,
+          }}
+        />,
+        <Chip key="weight" label={`peso ${item.weight}`} />,
+        ...item.tags.map((tag) => <Chip key={tag} label={tag} />),
+      ]}
+    >
+      <Stack spacing={1}>
+        <Typography sx={{ color: "#d7c59d", fontSize: ".9rem", lineHeight: 1.6 }}>
+          {item.description}
+        </Typography>
+
+        <Typography sx={{ color: "#b9a98b", fontSize: ".85rem", lineHeight: 1.55 }}>
+          {item.useText}
+        </Typography>
+
+        {item.restText && (
+          <Typography sx={{ color: "#ffcf8a", fontSize: ".82rem", lineHeight: 1.5 }}>
+            {item.restText}
+          </Typography>
+        )}
+
+        <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
+          <Chip label={`Efeito: ${item.effect.label}`} />
+          <Chip label={item.canTargetAlly ? "pode ajudar aliado" : "uso situacional"} />
+        </Stack>
+
+        {mode === "view" && (
+          <Typography sx={{ color: "#8f8268", fontSize: ".8rem", lineHeight: 1.45 }}>
+            Visualizacao do inventario. O gasto de uso fica na aba Combate para
+            evitar consumo acidental durante organizacao da mochila.
+          </Typography>
+        )}
+
+        {mode === "use" && (
+          <Stack spacing={1}>
+            {item.canTargetAlly && playerProfiles.length > 0 && (
+              <FormControl fullWidth size="small" disabled={!hasUses}>
+                <InputLabel sx={{ color: "#b9a98b" }}>Usar em</InputLabel>
+                <Select
+                  label="Usar em"
+                  value={targetIndex}
+                  onChange={(event) => onTargetChange?.(Number(event.target.value))}
+                  sx={{
+                    color: "#f7edd9",
+                    ".MuiOutlinedInput-notchedOutline": {
+                      borderColor: "rgba(217,200,159,.22)",
+                    },
+                    ".MuiSvgIcon-root": { color: "#f7edd9" },
+                  }}
+                >
+                  {playerProfiles.map((profile) => (
+                    <MenuItem key={profile.index} value={profile.index}>
+                      {profile.label} - {profile.name || "Sem nome"} - {profile.className}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            )}
+
+            <Button
+              variant="contained"
+              disabled={!hasUses}
+              onClick={onUse}
+              sx={{
+                bgcolor: "#f2c76c",
+                color: "#100b08",
+                fontWeight: 900,
+                "&:hover": { bgcolor: "#d8a94b", color: "#100b08" },
+                "&.Mui-disabled": {
+                  bgcolor: "rgba(255,255,255,.08)",
+                  color: "rgba(247,237,217,.38)",
+                },
+              }}
+            >
+              Usar
+              {item.canTargetAlly && targetProfile ? ` em ${targetProfile.label}` : ""}
+              : {item.effect.label}
+            </Button>
+          </Stack>
+        )}
+      </Stack>
+    </ExpandableSheetCard>
+  );
+}
+
+function InventoryItemCard({
+  item,
+  isEquipped,
+  onToggle,
+}: {
+  item: SheetItem;
+  isEquipped: boolean;
+  onToggle: () => void;
+}) {
+  const modifierSummary = [
+    item.modifiers.armor ? `Armadura +${item.modifiers.armor}` : null,
+    item.modifiers.hp ? `PV +${item.modifiers.hp}` : null,
+    ...Object.entries(item.modifiers.attributes ?? {}).map(
+      ([attribute, value]) => `${attributeLabels[attribute as AttributeKey]} ${value >= 0 ? "+" : ""}${value}`,
+    ),
+  ].filter((entry): entry is string => Boolean(entry));
+
+  return (
+    <ExpandableSheetCard
+      title={item.name}
+      subtitle={isEquipped ? "Equipado agora" : "Guardado na mochila"}
+      accent="#c59b4b"
+      selected={isEquipped}
+      chips={[
+        <Chip key="type" label={item.type} />,
+        <Chip key="weight" label={`peso ${item.weight}`} />,
+        ...item.tags.map((tag) => <Chip key={tag} label={tag} />),
+      ]}
+    >
+      <Stack spacing={1}>
+        <Typography sx={{ color: "#d7c59d", fontSize: ".9rem", lineHeight: 1.6 }}>
+          {item.description}
+        </Typography>
+
+        {modifierSummary.length > 0 && (
+          <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
+            {modifierSummary.map((modifier) => (
+              <Chip key={modifier} label={modifier} />
+            ))}
+          </Stack>
+        )}
+
+        <Button
+          variant={isEquipped ? "contained" : "outlined"}
+          onClick={onToggle}
+          sx={{
+            bgcolor: isEquipped ? "#f2c76c" : "transparent",
+            color: isEquipped ? "#100b08" : "#f2c76c",
+            borderColor: "rgba(242,199,108,.55)",
+            fontWeight: 900,
+            "&:hover": {
+              bgcolor: isEquipped ? "#d8a94b" : "rgba(242,199,108,.12)",
+              color: isEquipped ? "#100b08" : "#fff3dc",
+            },
+          }}
+        >
+          {isEquipped ? "Desequipar" : "Equipar"}
+        </Button>
+      </Stack>
+    </ExpandableSheetCard>
   );
 }
 
