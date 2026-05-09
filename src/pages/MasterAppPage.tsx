@@ -4,6 +4,7 @@ import {
   Card,
   CardContent,
   Chip,
+  Collapse,
   FormControl,
   InputLabel,
   LinearProgress,
@@ -894,6 +895,8 @@ export default function MasterAppPage({
 }
 
 function SectionCard({ title, children }: { title: string; children: ReactNode }) {
+  const [expanded, setExpanded] = useState(true);
+
   return (
     <Card
       sx={{
@@ -905,10 +908,30 @@ function SectionCard({ title, children }: { title: string; children: ReactNode }
     >
       <CardContent>
         <Stack spacing={1.4}>
-          <Typography sx={{ color: "#c59b4b", fontWeight: 900 }}>
-            {title}
-          </Typography>
-          {children}
+          <Stack
+            direction="row"
+            spacing={1}
+            sx={{
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 1,
+            }}
+          >
+            <Typography sx={{ color: "#c59b4b", fontWeight: 900 }}>
+              {title}
+            </Typography>
+            <Button
+              size="small"
+              variant="outlined"
+              onClick={() => setExpanded((current) => !current)}
+              sx={{ flex: "0 0 auto" }}
+            >
+              {expanded ? "Recolher" : "Expandir"}
+            </Button>
+          </Stack>
+          <Collapse in={expanded} timeout="auto" unmountOnExit>
+            <Box sx={{ pt: 0.2 }}>{children}</Box>
+          </Collapse>
         </Stack>
       </CardContent>
     </Card>
