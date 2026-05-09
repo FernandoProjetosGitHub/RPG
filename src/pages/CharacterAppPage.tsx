@@ -315,6 +315,8 @@ export default function CharacterAppPage({
     .map((itemId) => items.find((item) => item.id === itemId))
     .filter((item): item is (typeof items)[number] => Boolean(item));
 
+  // Atributos finais = atributos escolhidos pelo jogador + bonus de itens
+  // equipados. A ficha sempre usa estes valores finais para rolagem, PV e carga.
   const finalAttributes = {
     forca:
       character.attributes.forca +
@@ -433,6 +435,8 @@ export default function CharacterAppPage({
     ...selectedClass.advancedSkillsLevel6To10,
   ].filter((skill) => character.selectedSkillIds.includes(skill.id));
 
+  // A cena de combate oferece ataques, movimentos e magias que fazem sentido
+  // para a classe atual. A lista abaixo unifica tudo para o mesmo seletor.
   const usableCombatActions: CombatAction[] = [
     {
       id: "common-attack",
@@ -761,6 +765,8 @@ export default function CharacterAppPage({
     const currentUses = character.consumables[consumableId] ?? 0;
     if (!consumable || currentUses <= 0) return;
 
+    // Quando a pagina recebe o controlador da mesa, o efeito pode atingir outro
+    // jogador. Sem controlador, usamos a propria ficha como fallback seguro.
     if (onApplyConsumableToPlayer) {
       onApplyConsumableToPlayer(consumableId, targetIndex);
       return;

@@ -35,6 +35,8 @@ export default function PublicPageShell({
       <Box
         component="header"
         sx={{
+          // O cabecalho fica fixo para manter acesso rapido entre as paginas
+          // publicas sem interferir nas telas de app, que tem navegacao propria.
           position: "sticky",
           top: 0,
           zIndex: 10,
@@ -67,6 +69,7 @@ export default function PublicPageShell({
               spacing={0.8}
               sx={{ overflowX: "auto", pb: { xs: 0.2, sm: 0 } }}
             >
+              {/* Em telas estreitas, a navegacao vira uma faixa rolavel simples. */}
               {navItems.map((item) => (
                 <Button
                   key={item.value}

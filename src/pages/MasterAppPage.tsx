@@ -287,6 +287,8 @@ export default function MasterAppPage({
   }
 
   function restoreAllConsumables() {
+    // Restaurar tudo nao cria todos os itens do jogo para todos: ele enche os
+    // consumiveis que o jogador ja possui ou que pertencem a classe atual.
     setCharacter((current) => ({
       ...current,
       consumables: consumableItems.reduce(
