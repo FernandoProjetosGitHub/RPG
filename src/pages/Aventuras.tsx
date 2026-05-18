@@ -207,6 +207,14 @@ const playerScale: Record<
   },
 };
 
+const smoothOverflowSx = {
+  overscrollBehavior: "contain",
+  scrollBehavior: "smooth",
+  scrollbarWidth: "thin",
+  scrollbarGutter: "stable",
+  WebkitOverflowScrolling: "touch",
+};
+
 // Dados jogaveis das aventuras. Cada bloco fica isolado por PDF para evitar
 // misturar monstros, PNJs ou locais de materiais diferentes.
 const adventures: AdventureGuide[] = [
@@ -1729,7 +1737,7 @@ function HeroSection() {
       }}
     >
       <Stack spacing={1.2}>
-        <Stack direction="row" useFlexGap gap={0.8} sx={{ flexWrap: "wrap" }}>
+        <Stack direction="row" useFlexGap gap={0.8} sx={{ flexWrap: "wrap", alignItems: "stretch" }}>
           <Chip label="Aventuras separadas por PDF" />
           <Chip label="Base: 7 jogadores" />
           <Chip label="Escala 7 > 6 > 5 > 4 > 3 > 2 > 1" />
@@ -1854,7 +1862,7 @@ function ScaleSelector({
       <Typography sx={{ color: "#5fb6c4", fontWeight: 900, mb: 1 }}>
         Escala da mesa
       </Typography>
-      <Stack direction="row" useFlexGap gap={0.7} sx={{ flexWrap: "wrap" }}>
+      <Stack direction="row" useFlexGap gap={0.7} sx={{ flexWrap: "wrap", alignItems: "stretch" }}>
         {playerCounts.map((players) => {
           const active = selectedPlayers === players;
 
@@ -1949,7 +1957,7 @@ function AdventureDetail({
       >
         <CardContent>
           <Stack spacing={1.4}>
-            <Stack direction="row" useFlexGap gap={0.8} sx={{ flexWrap: "wrap" }}>
+            <Stack direction="row" useFlexGap gap={0.8} sx={{ flexWrap: "wrap", alignItems: "stretch" }}>
               <Chip label={adventure.source} />
               <Chip label={adventure.tone} sx={{ bgcolor: `${adventure.accent}22` }} />
               <Chip label={`Perigo ${selectedBudget}/${adventure.baseDangerBudget}`} />
@@ -2042,7 +2050,7 @@ function AdventureSectionNav({
         p: 1,
       }}
     >
-      <Stack direction="row" useFlexGap gap={0.8} sx={{ flexWrap: "wrap" }}>
+      <Stack direction="row" useFlexGap gap={0.8} sx={{ flexWrap: "wrap", alignItems: "stretch" }}>
         {adventureSections.map((section) => {
           const selected = active === section.value;
 
@@ -2238,7 +2246,7 @@ function StoryBeatCard({
           {beat.purpose}
         </Typography>
 
-        <Collapse in={isOpen} timeout="auto" unmountOnExit>
+        <Collapse in={isOpen} timeout={180} unmountOnExit>
           <Stack spacing={1} sx={{ pt: 0.4 }}>
             <Typography sx={{ color: "#b9a98b", fontSize: ".82rem", lineHeight: 1.45 }}>
               <strong>Escalada:</strong> {beat.escalation}
@@ -2309,7 +2317,7 @@ function MapsSection({
       <MapCard title="Mapa do atlas">
         {map ? (
           <Stack spacing={1}>
-            <Box sx={{ overflowX: "auto" }}>
+            <Box sx={{ overflowX: "auto", ...smoothOverflowSx }}>
               <MapSvg mapId={map.id} revealSecrets />
             </Box>
             <Typography sx={{ color: "#b9a98b", fontSize: ".86rem", lineHeight: 1.45 }}>
@@ -2382,7 +2390,7 @@ function NpcCard({ npc }: { npc: AdventureNpc }) {
   return (
     <Paper variant="outlined" sx={cardSx("#5f7f4f")}>
       <Stack spacing={0.8}>
-        <Stack direction="row" useFlexGap gap={0.7} sx={{ flexWrap: "wrap" }}>
+        <Stack direction="row" useFlexGap gap={0.7} sx={{ flexWrap: "wrap", alignItems: "stretch" }}>
           <Chip size="small" label="PNJ" sx={{ bgcolor: "rgba(95,127,79,.24)" }} />
           <Chip size="small" label={npc.role} />
         </Stack>
@@ -2419,7 +2427,7 @@ function ThreatCard({ threat }: { threat: AdventureThreat }) {
         <Typography sx={{ color: "#ffb2b8", fontWeight: 900 }}>
           {threat.name}
         </Typography>
-        <Stack direction="row" useFlexGap gap={0.6} sx={{ flexWrap: "wrap" }}>
+        <Stack direction="row" useFlexGap gap={0.6} sx={{ flexWrap: "wrap", alignItems: "stretch" }}>
           <Chip size="small" label={threat.role} />
           <Chip size="small" label={threat.stats} />
         </Stack>
@@ -2572,7 +2580,7 @@ function ScaleSummary({
       }}
     >
       <Stack spacing={1}>
-        <Stack direction="row" useFlexGap gap={0.8} sx={{ flexWrap: "wrap" }}>
+        <Stack direction="row" useFlexGap gap={0.8} sx={{ flexWrap: "wrap", alignItems: "stretch" }}>
           <Chip label={`Selecionado: ${selectedPlayers} jogador${selectedPlayers > 1 ? "es" : ""}`} />
           <Chip label={simultaneous} />
           <Chip
@@ -2640,7 +2648,7 @@ function EncounterMap({ adventure }: { adventure: AdventureGuide }) {
   // inimigos e misterios. Para alterar, mexa nos nodes/links da aventura.
   return (
     <Stack spacing={1}>
-      <Box sx={{ width: "100%", overflowX: "auto" }}>
+      <Box sx={{ width: "100%", overflowX: "auto", ...smoothOverflowSx }}>
         <svg
           viewBox="0 0 100 60"
           role="img"
@@ -2733,7 +2741,7 @@ function EncounterMap({ adventure }: { adventure: AdventureGuide }) {
         </svg>
       </Box>
 
-      <Stack direction="row" useFlexGap gap={0.7} sx={{ flexWrap: "wrap" }}>
+      <Stack direction="row" useFlexGap gap={0.7} sx={{ flexWrap: "wrap", alignItems: "stretch" }}>
         {Object.entries(encounterStyles).map(([kind, style]) => (
           <Chip
             key={kind}
@@ -2827,7 +2835,7 @@ function SceneCard({
       }}
     >
       <Stack spacing={1.1}>
-        <Stack direction="row" useFlexGap gap={0.7} sx={{ flexWrap: "wrap" }}>
+        <Stack direction="row" useFlexGap gap={0.7} sx={{ flexWrap: "wrap", alignItems: "stretch" }}>
           <Chip label={`Cena ${index + 1}`} sx={{ bgcolor: `${accent}22` }} />
           <Chip label={scene.location} />
           <Chip label={`pressao ${scaledPressure}/${scene.pressure}`} />
@@ -2871,7 +2879,7 @@ function SceneCard({
           <strong>Mestre:</strong> {scene.gmGuidance}
         </Typography>
 
-        <Stack direction="row" useFlexGap gap={0.7} sx={{ flexWrap: "wrap" }}>
+        <Stack direction="row" useFlexGap gap={0.7} sx={{ flexWrap: "wrap", alignItems: "stretch" }}>
           {scene.decisions.map((decision) => (
             <Chip
               key={decision}

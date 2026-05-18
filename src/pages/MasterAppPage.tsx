@@ -19,6 +19,7 @@ import {
 } from "@mui/material";
 import { useEffect, useMemo, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
 import AdventureMapsDialog from "../components/AdventureMapsDialog";
+import ClassMark from "../components/public/ClassMark";
 import {
   getCreationBenefits,
   getCreationRulesFor,
@@ -515,13 +516,18 @@ export default function MasterAppPage({
                   p: 1.2,
                 }}
               >
-                <Typography sx={{ color: "#c59b4b", fontWeight: 900 }}>
-                  {playerProfiles[selectedPlayerIndex]?.label ?? "Jogador"}
-                </Typography>
-                <Typography sx={{ color: "#d7c59d", fontSize: ".9rem" }}>
-                  {character.name || "Sem nome"} - {selectedClass.name}
-                  {selectedRace ? ` - ${selectedRace.name}` : ""}
-                </Typography>
+                <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+                  <ClassMark classId={selectedClass.id} size={42} />
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography sx={{ color: "#c59b4b", fontWeight: 900 }}>
+                      {playerProfiles[selectedPlayerIndex]?.label ?? "Jogador"}
+                    </Typography>
+                    <Typography sx={{ color: "#d7c59d", fontSize: ".9rem" }}>
+                      {character.name || "Sem nome"} - {selectedClass.name}
+                      {selectedRace ? ` - ${selectedRace.name}` : ""}
+                    </Typography>
+                  </Box>
+                </Stack>
               </Paper>
               <Box
                 sx={{
@@ -647,7 +653,10 @@ export default function MasterAppPage({
                     <MenuItem value="">Classe nao selecionada</MenuItem>
                     {dwClasses.map((dwClass) => (
                       <MenuItem key={dwClass.id} value={dwClass.id}>
-                        {dwClass.name}
+                        <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+                          <ClassMark classId={dwClass.id} size={32} />
+                          <Typography>{dwClass.name}</Typography>
+                        </Stack>
                       </MenuItem>
                     ))}
                   </Select>

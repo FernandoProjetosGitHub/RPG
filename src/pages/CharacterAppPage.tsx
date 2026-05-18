@@ -14,7 +14,6 @@ import {
   Paper,
   Select,
   Stack,
-  SvgIcon,
   Typography,
   Dialog,
   DialogActions,
@@ -25,6 +24,13 @@ import {
 } from "@mui/material";
 import type { ReactNode } from "react";
 import { useMemo, useRef, useState, useEffect } from "react";
+import {
+  GiBackpack,
+  GiCharacter,
+  GiCrossedSwords,
+  GiMagicSwirl,
+  GiScrollUnfurled,
+} from "react-icons/gi";
 import { beginnerSheetConcepts, getClassGuide } from "../data/classGuides";
 import { classSelectSounds } from "../data/classSounds";
 import {
@@ -56,6 +62,7 @@ import AdventureMapsDialog from "../components/AdventureMapsDialog";
 import CombatDiceRoller from "../components/CombatDiceRoller";
 import MoveOutcomeGuide from "../components/dw/MoveOutcomeGuide";
 import AttributeDistributionDrawer from "../components/AttributeDistributionDrawer";
+import ClassMark from "../components/public/ClassMark";
 import {
   attributeKeys,
   attributeLabels,
@@ -143,11 +150,11 @@ const tabOrder: AppTab[] = [
 ];
 
 const tabIcons: Record<AppTab, ReactNode> = {
-  personagem: <PersonIcon />,
-  descricao: <ScrollIcon />,
-  skills: <SparkIcon />,
-  inventario: <BackpackIcon />,
-  combate: <SwordsIcon />,
+  personagem: <GiCharacter />,
+  descricao: <GiScrollUnfurled />,
+  skills: <GiMagicSwirl />,
+  inventario: <GiBackpack />,
+  combate: <GiCrossedSwords />,
 };
 
 function buildDefaultCreationChoices(
@@ -1136,24 +1143,25 @@ export default function CharacterAppPage({
                     <Fade in timeout={500}>
                       <Box
                         sx={{
-                          width: 72,
-                          height: 72,
-                          borderRadius: "50%",
+                          width: 78,
+                          height: 78,
+                          borderRadius: 3,
                           display: "grid",
                           flex: "0 0 auto",
                           placeItems: "center",
-                          border: "1px solid rgba(217,200,159,.28)",
-                          bgcolor: "rgba(197,155,75,.08)",
+                          border: "1px solid rgba(217,200,159,.24)",
+                          bgcolor: "rgba(7,7,6,.58)",
                           boxShadow: classSelectPulse
                             ? "0 0 28px rgba(197,155,75,.75)"
                             : "0 0 12px rgba(0,0,0,.45)",
+                          p: 0.45,
                           transition: "all .45s ease",
                           transform: classSelectPulse
                             ? "scale(1.08)"
                             : "scale(1)",
-                        }}
-                      >
-                        <ClassSigil classId={selectedClass.id} />
+                          }}
+                        >
+                        <ClassMark classId={selectedClass.id} size={68} />
                       </Box>
                     </Fade>
 
@@ -1247,6 +1255,23 @@ export default function CharacterAppPage({
                       <Stack
                         direction="row"
                         spacing={1}
+                        sx={{ alignItems: "center", mt: 1, minWidth: 0 }}
+                      >
+                        <ClassMark classId={selectedClass.id} size={40} />
+                        <Box sx={{ minWidth: 0 }}>
+                          <Typography sx={{ color: "#f7edd9", fontWeight: 900 }}>
+                            {selectedClass.name}
+                          </Typography>
+                          {displayRace && (
+                            <Typography sx={{ color: "#b9a98b", fontSize: ".84rem" }}>
+                              {displayRace.name}
+                            </Typography>
+                          )}
+                        </Box>
+                      </Stack>
+                      <Stack
+                        direction="row"
+                        spacing={1}
                         sx={{ flexWrap: "wrap", mt: 1 }}
                       >
                         <Chip label={selectedClass.name} />
@@ -1293,7 +1318,10 @@ export default function CharacterAppPage({
                         <MenuItem value="">Classe nao selecionada</MenuItem>
                         {dwClasses.map((dwClass) => (
                           <MenuItem value={dwClass.id} key={dwClass.id}>
-                            {dwClass.name}
+                            <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+                              <ClassMark classId={dwClass.id} size={32} />
+                              <Typography>{dwClass.name}</Typography>
+                            </Stack>
                           </MenuItem>
                         ))}
                       </Select>
@@ -2683,11 +2711,12 @@ export default function CharacterAppPage({
                           sx={{
                             width: 92,
                             height: 92,
-                            borderRadius: "50%",
+                            borderRadius: 3,
                             display: "grid",
                             placeItems: "center",
                             border: "1px solid rgba(217,200,159,.26)",
                             bgcolor: "rgba(7,7,6,.72)",
+                            p: 0.5,
                             boxShadow: isBloodied
                               ? "0 0 34px rgba(170,38,61,.65)"
                               : "0 0 28px rgba(197,155,75,.28)",
@@ -2696,7 +2725,7 @@ export default function CharacterAppPage({
                           {combatRoll ? (
                             <CombatSceneResult roll={combatRoll} />
                           ) : (
-                            <ClassSigil classId={selectedClass.id} />
+                            <ClassMark classId={selectedClass.id} size={78} />
                           )}
                         </Box>
                       </Box>
@@ -3010,7 +3039,7 @@ export default function CharacterAppPage({
               color: "#b9a98b",
               px: { xs: 0.5, sm: 1 },
             },
-            ".MuiBottomNavigationAction-root .MuiSvgIcon-root": {
+            ".MuiBottomNavigationAction-root svg": {
               fontSize: { xs: 24, sm: 27 },
             },
             ".MuiBottomNavigationAction-label": {
@@ -3321,95 +3350,6 @@ function parseDice(dice: string) {
     diceCount: match ? Number(match[1]) : 1,
     dieSize: match ? Number(match[2]) : Number(dice.replace("d", "")),
   };
-}
-
-function PersonIcon() {
-  return (
-    <SvgIcon viewBox="0 0 24 24">
-      <path
-        d="M12 12.2a4.1 4.1 0 1 0 0-8.2 4.1 4.1 0 0 0 0 8.2Zm-7 8.3c.8-4 3.3-6.1 7-6.1s6.2 2.1 7 6.1"
-        fill="none"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.9"
-      />
-    </SvgIcon>
-  );
-}
-
-function ScrollIcon() {
-  return (
-    <SvgIcon viewBox="0 0 24 24">
-      <path
-        d="M7 5.5C7 3.6 8.2 3 9.5 3H18v14.5c0 1.9-1.2 3.5-3.2 3.5H7.5C5.6 21 4 19.7 4 17.7c0-1.8 1.3-3.2 3-3.2V5.5Z"
-        fill="none"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.8"
-      />
-      <path
-        d="M7 14.5h8m-5-7h5m-5 4h5"
-        fill="none"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeWidth="1.8"
-      />
-    </SvgIcon>
-  );
-}
-
-function SparkIcon() {
-  return (
-    <SvgIcon viewBox="0 0 24 24">
-      <path
-        d="m12 3 1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3Zm6 10 .8 2.2L21 16l-2.2.8L18 19l-.8-2.2L15 16l2.2-.8L18 13ZM6 15l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7.7-2Z"
-        fill="none"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.7"
-      />
-    </SvgIcon>
-  );
-}
-
-function BackpackIcon() {
-  return (
-    <SvgIcon viewBox="0 0 24 24">
-      <path
-        d="M8 8V6.8C8 4.7 9.6 3 12 3s4 1.7 4 3.8V8m-9.5 3H9m6 0h2.5M7 8h10c1.7 0 3 1.3 3 3v8.5c0 .8-.7 1.5-1.5 1.5h-13c-.8 0-1.5-.7-1.5-1.5V11c0-1.7 1.3-3 3-3Z"
-        fill="none"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.8"
-      />
-      <path
-        d="M8 16h8v5H8v-5Z"
-        fill="none"
-        stroke="currentColor"
-        strokeLinejoin="round"
-        strokeWidth="1.8"
-      />
-    </SvgIcon>
-  );
-}
-
-function SwordsIcon() {
-  return (
-    <SvgIcon viewBox="0 0 24 24">
-      <path
-        d="m4 20 5.8-5.8m.8-3.6L18 3h3v3l-7.6 7.4m-4-4L4 4m0 0v4m0-4h4m7.2 10.2L20 19m0 0v-4m0 4h-4"
-        fill="none"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.8"
-      />
-    </SvgIcon>
-  );
 }
 
 function InfoPanel({
@@ -4244,36 +4184,5 @@ function CombatSceneResult({ roll }: { roll: CombatRoll }) {
         </Typography>
       </Stack>
     </Box>
-  );
-}
-
-function ClassSigil({ classId }: { classId: string }) {
-  const sigils: Record<string, { symbol: string; color: string }> = {
-    barbaro: { symbol: "☠", color: "#aa263d" },
-    bardo: { symbol: "♪", color: "#c59b4b" },
-    clerigo: { symbol: "✚", color: "#d8c88f" },
-    druida: { symbol: "♣", color: "#5f8f5f" },
-    guerreiro: { symbol: "⚔", color: "#c0b08a" },
-    ladrao: { symbol: "♦", color: "#7f6fd9" },
-    mago: { symbol: "✦", color: "#5fb6c4" },
-    "engenheiro-arcano": { symbol: "⚙", color: "#64c7a8" },
-    paladino: { symbol: "♜", color: "#e0c26d" },
-    ranger: { symbol: "➶", color: "#7fa46b" },
-  };
-
-  const sigil = sigils[classId] ?? { symbol: "◆", color: "#c59b4b" };
-
-  return (
-    <Typography
-      sx={{
-        color: sigil.color,
-        fontSize: 44,
-        fontWeight: 900,
-        lineHeight: 1,
-        textShadow: `0 0 14px ${sigil.color}`,
-      }}
-    >
-      {sigil.symbol}
-    </Typography>
   );
 }

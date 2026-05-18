@@ -120,6 +120,36 @@ components: {
       },
     },
   },
+
+  MuiChip: {
+    styleOverrides: {
+      root: {
+        maxWidth: "100%",
+        borderRadius: 6,
+        backgroundColor: "rgba(255,255,255,.08)",
+        color: "#f7edd9",
+        "@media (max-width:620px)": {
+          width: "100%",
+          height: "auto",
+          minHeight: 30,
+          justifyContent: "flex-start",
+        },
+      },
+      label: {
+        minWidth: 0,
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        "@media (max-width:620px)": {
+          whiteSpace: "normal",
+          overflowWrap: "anywhere",
+          textAlign: "left",
+          lineHeight: 1.25,
+          paddingTop: 5,
+          paddingBottom: 5,
+        },
+      },
+    },
+  },
 }
 });
 
