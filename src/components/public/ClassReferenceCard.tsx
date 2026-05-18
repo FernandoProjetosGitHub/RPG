@@ -1,5 +1,14 @@
 import { Box, Chip, Paper, Stack, Typography } from "@mui/material";
+import type { SxProps, Theme } from "@mui/material/styles";
 import type { ReactNode } from "react";
+import type { IconType } from "react-icons";
+import {
+  GiBackpack,
+  GiBroadsword,
+  GiHeartPlus,
+  GiMagicSwirl,
+  GiSkills,
+} from "react-icons/gi";
 import { getClassTheme } from "../../data/classThemes";
 import {
   getCreationRulesFor,
@@ -71,12 +80,17 @@ export default function ClassReferenceCard({ dwClass }: { dwClass: DwClass }) {
         </Stack>
 
         <Stack direction="row" spacing={0.8} sx={{ flexWrap: "wrap" }}>
-          <Chip label={`PV ${dwClass.baseHp}+CON`} />
-          <Chip label={`Dano ${dwClass.damageDice}`} />
-          <Chip label={`Carga ${dwClass.loadBase}+FOR`} />
-          <Chip label={theme.role} sx={{ bgcolor: `${theme.color}22` }} />
+          <IconChip Icon={GiHeartPlus} label={`PV ${dwClass.baseHp}+CON`} />
+          <IconChip Icon={GiBroadsword} label={`Dano ${dwClass.damageDice}`} />
+          <IconChip Icon={GiBackpack} label={`Carga ${dwClass.loadBase}+FOR`} />
+          <IconChip
+            Icon={GiSkills}
+            label={theme.role}
+            sx={{ bgcolor: `${theme.color}22` }}
+          />
           {dwClass.usesSpells && (
-            <Chip
+            <IconChip
+              Icon={GiMagicSwirl}
               label={dwClass.spellcastingLabel ?? "Conjura magias"}
               sx={{ bgcolor: "rgba(95,182,196,.16)", color: "#dff7ff" }}
             />
@@ -212,6 +226,18 @@ function collectCreationRules(dwClass: DwClass) {
     seen.add(rule.id);
     return true;
   });
+}
+
+function IconChip({
+  Icon,
+  label,
+  sx,
+}: {
+  Icon: IconType;
+  label: string;
+  sx?: SxProps<Theme>;
+}) {
+  return <Chip icon={<Icon size={16} />} label={label} sx={sx} />;
 }
 
 function ReferenceSection({

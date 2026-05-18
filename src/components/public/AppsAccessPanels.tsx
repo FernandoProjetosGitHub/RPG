@@ -1,5 +1,7 @@
 import { Box, Button, Paper, Stack, Typography } from "@mui/material";
+import { GiSpellBook, GiTabletopPlayers } from "react-icons/gi";
 import type { PlayerProfileSummary } from "../../types/character";
+import ClassMark from "./ClassMark";
 
 type AppsAccessPanelsProps = {
   playerProfiles: PlayerProfileSummary[];
@@ -43,9 +45,12 @@ function MasterAccessCard({ onOpenMaster }: { onOpenMaster: () => void }) {
       }}
     >
       <Stack spacing={1.3}>
-        <Typography sx={{ color: "#c59b4b", fontWeight: 900 }}>
-          Mestre
-        </Typography>
+        <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+          <GiSpellBook size={28} color="#c59b4b" />
+          <Typography sx={{ color: "#c59b4b", fontWeight: 900 }}>
+            Mestre
+          </Typography>
+        </Stack>
         <Typography sx={{ color: "#d7c59d", lineHeight: 1.6 }}>
           Abra o painel para escolher o jogador ativo, aplicar dano, cura, XP,
           restaurar consumiveis, consultar monstros e acessar mapas com notas
@@ -78,9 +83,12 @@ function PlayerAccessCard({
       }}
     >
       <Stack spacing={1.2}>
-        <Typography sx={{ color: "#5fb6c4", fontWeight: 900 }}>
-          Jogadores
-        </Typography>
+        <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+          <GiTabletopPlayers size={28} color="#5fb6c4" />
+          <Typography sx={{ color: "#5fb6c4", fontWeight: 900 }}>
+            Jogadores
+          </Typography>
+        </Stack>
         <Typography sx={{ color: "#d7c59d", lineHeight: 1.6 }}>
           Selecione um dos sete perfis da mesa. Cada perfil guarda classe,
           raca, atributos, magias, vinculos, itens e recursos proprios.
@@ -105,8 +113,20 @@ function PlayerAccessCard({
                 gap: 1,
               }}
             >
-              <span>{profile.label}</span>
-              <span>{profile.name || profile.className}</span>
+              <Stack direction="row" spacing={1} sx={{ alignItems: "center", minWidth: 0 }}>
+                <ClassMark classId={profile.classId} size={34} />
+                <Box component="span" sx={{ minWidth: 0 }}>
+                  <Typography component="span" sx={{ display: "block", fontWeight: 900 }}>
+                    {profile.label}
+                  </Typography>
+                  <Typography component="span" sx={{ display: "block", fontSize: ".76rem", opacity: 0.82 }}>
+                    {profile.className}
+                  </Typography>
+                </Box>
+              </Stack>
+              <Typography component="span" sx={{ fontSize: ".82rem" }}>
+                {profile.name || "Sem nome"}
+              </Typography>
             </Button>
           ))}
         </Stack>

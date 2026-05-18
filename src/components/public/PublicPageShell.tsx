@@ -1,5 +1,13 @@
 import { Box, Button, Container, Stack, Typography } from "@mui/material";
 import type { ReactNode } from "react";
+import type { IconType } from "react-icons";
+import {
+  GiOpenBook,
+  GiScrollQuill,
+  GiSpellBook,
+  GiTabletopPlayers,
+  GiTreasureMap,
+} from "react-icons/gi";
 
 export type PublicView = "landing" | "classes" | "maps" | "aventuras" | "apps";
 
@@ -9,13 +17,12 @@ type PublicPageShellProps = {
   onNavigate: (view: PublicView) => void;
 };
 
-const navItems: Array<{ value: PublicView; label: string }> = [
-  { value: "landing", label: "Inicio" },
-  { value: "classes", label: "Classes" },
-  { value: "maps", label: "Mapas" },
-  { value: "aventuras", label: "Aventuras" },
-  { value: "apps", label: "Aplicativos" },
-
+const navItems: Array<{ value: PublicView; label: string; Icon: IconType }> = [
+  { value: "landing", label: "Inicio", Icon: GiOpenBook },
+  { value: "classes", label: "Classes", Icon: GiSpellBook },
+  { value: "maps", label: "Mapas", Icon: GiTreasureMap },
+  { value: "aventuras", label: "Aventuras", Icon: GiScrollQuill },
+  { value: "apps", label: "Aplicativos", Icon: GiTabletopPlayers },
 ];
 
 export default function PublicPageShell({
@@ -77,6 +84,7 @@ export default function PublicPageShell({
                   key={item.value}
                   size="small"
                   variant={active === item.value ? "contained" : "outlined"}
+                  startIcon={<item.Icon size={16} />}
                   onClick={() => onNavigate(item.value)}
                   sx={{ flex: "0 0 auto" }}
                 >

@@ -71,6 +71,7 @@ export type PlayerProfileSummary = {
   index: number;
   label: string;
   name: string;
+  classId: string;
   className: string;
 };
 

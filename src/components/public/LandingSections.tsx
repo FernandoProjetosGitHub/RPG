@@ -6,27 +6,44 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
+import type { IconType } from "react-icons";
+import {
+  GiBackpack,
+  GiBroadsword,
+  GiCampfire,
+  GiDiceTwentyFacesTwenty,
+  GiHeartPlus,
+  GiOpenBook,
+  GiScrollQuill,
+  GiSpellBook,
+  GiTabletopPlayers,
+  GiTreasureMap,
+} from "react-icons/gi";
 import { adventureMaps } from "../../data/adventureMaps";
 import { dwClasses } from "../../data/dwClasses";
 import { getClassTheme } from "../../data/classThemes";
-import ClassMark from "./ClassMark";
+import { getClassIcon } from "../rpg/classIcons";
 import type { PublicView } from "./PublicPageShell";
 import zineHero from "../../assets/zine-hero.png";
 
 const systemHighlights = [
   {
+    Icon: GiScrollQuill,
     title: "Conversa primeiro",
     body: "A mesa descreve a ficcao, o movimento dispara quando a situacao pede, e a rolagem responde ao que esta acontecendo.",
   },
   {
+    Icon: GiDiceTwentyFacesTwenty,
     title: "Resultados 10+, 7-9 e 6-",
     body: "Sucesso total, sucesso com custo e falha que avanca a historia. O mestre usa movimentos para manter pressao e consequencias.",
   },
   {
+    Icon: GiSpellBook,
     title: "Fichas guiadas",
     body: "Classe, raca, escolhas obrigatorias, vinculos, magias, recursos e consumiveis entram em fluxo pensado para jogadores novatos.",
   },
   {
+    Icon: GiTabletopPlayers,
     title: "Mesa com 7 jogadores",
     body: "O mestre alterna perfis, aplica dano, cura, XP, itens, consumiveis e consulta regras sem expor informacoes secretas aos jogadores.",
   },
@@ -65,8 +82,8 @@ export function LandingAdBanner({
       >
         <Stack spacing={0.7}>
           <Stack direction="row" spacing={0.8} sx={{ flexWrap: "wrap" }}>
-            <Chip label="Espaco de propaganda" />
-            <Chip label="Mesa, zine ou apoiador" />
+            <IconChip Icon={GiCampfire} label="Espaco de propaganda" />
+            <IconChip Icon={GiOpenBook} label="Mesa, zine ou apoiador" />
           </Stack>
 
           <Box>
@@ -126,10 +143,10 @@ export function LandingHero({
     >
       <Stack spacing={2.2} sx={{ maxWidth: 820, position: "relative" }}>
         <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
-          <Chip label="Dungeon World" />
-          <Chip label="PWA / GitHub Pages" />
-          <Chip label={`${dwClasses.length} classes`} />
-          <Chip label={`${adventureMaps.length} mapas`} />
+          <IconChip Icon={GiOpenBook} label="Dungeon World" />
+          <IconChip Icon={GiTabletopPlayers} label="PWA / GitHub Pages" />
+          <IconChip Icon={GiSpellBook} label={`${dwClasses.length} classes`} />
+          <IconChip Icon={GiTreasureMap} label={`${adventureMaps.length} mapas`} />
         </Stack>
 
         <Typography
@@ -207,6 +224,7 @@ export function LandingClassGrid() {
     >
       {dwClasses.map((dwClass) => {
         const theme = getClassTheme(dwClass.id);
+        const Icon = getClassIcon(dwClass.id);
 
         // Cada card reaproveita os dados reais da classe. Assim, quando uma
         // classe mudar na ficha, a landing tambem acompanha o mesmo conteudo.
@@ -216,16 +234,65 @@ export function LandingClassGrid() {
             variant="outlined"
             sx={{
               borderColor: `${theme.color}55`,
-              bgcolor: "rgba(255,255,255,.04)",
-              p: 1.2,
+              bgcolor:
+                `linear-gradient(145deg, ${theme.color}1f, rgba(255,255,255,.035) 54%), rgba(7,7,6,.86)`,
+              minHeight: 245,
+              p: 1.25,
             }}
           >
-            <Stack spacing={0.8}>
-              <ClassMark classId={dwClass.id} size={42} />
-              <Typography sx={{ fontWeight: 900 }}>{dwClass.name}</Typography>
-              <Typography sx={{ color: "#b9a98b", fontSize: ".84rem" }}>
-                PV {dwClass.baseHp}+CON · dano {dwClass.damageDice}
-              </Typography>
+            <Stack spacing={1.1} sx={{ height: "100%" }}>
+              <Box
+                sx={{
+                  minHeight: 88,
+                  borderRadius: 2,
+                  display: "grid",
+                  placeItems: "center",
+                  color: theme.accent,
+                  background:
+                    `radial-gradient(circle at 50% 32%, ${theme.accent}66, transparent 34%), ` +
+                    `linear-gradient(145deg, ${theme.color}38, rgba(0,0,0,.46) 72%)`,
+                  border: `1px solid ${theme.color}66`,
+                  boxShadow:
+                    `inset 0 0 0 1px rgba(255,255,255,.05), 0 12px 28px ${theme.color}22`,
+                }}
+              >
+                <Icon size={58} />
+              </Box>
+
+              <Stack spacing={0.25}>
+                <Stack direction="row" spacing={0.75} sx={{ alignItems: "center" }}>
+                  <Box
+                    sx={{
+                      width: 9,
+                      height: 9,
+                      borderRadius: "50%",
+                      bgcolor: theme.accent,
+                      boxShadow: `0 0 14px ${theme.accent}`,
+                      flex: "0 0 auto",
+                    }}
+                  />
+                  <Typography sx={{ fontWeight: 900 }}>{dwClass.name}</Typography>
+                </Stack>
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography sx={{ color: theme.accent, fontSize: ".74rem", fontWeight: 900 }}>
+                    {dwClass.usesSpells
+                      ? (dwClass.spellcastingLabel ?? "Conjura magias")
+                      : "Aventureiro marcante"}
+                  </Typography>
+                </Box>
+              </Stack>
+
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+                  gap: 0.6,
+                }}
+              >
+                <ClassMetric Icon={GiHeartPlus} label="PV" value={`${dwClass.baseHp}+CON`} />
+                <ClassMetric Icon={GiBroadsword} label="Dano" value={dwClass.damageDice} />
+                <ClassMetric Icon={GiBackpack} label="Carga" value={`${dwClass.loadBase}+FOR`} />
+              </Box>
               <Typography sx={{ color: "#d7c59d", fontSize: ".82rem" }}>
                 {theme.role}
               </Typography>
@@ -246,7 +313,7 @@ export function LandingFeatureGrid() {
         gap: 1.2,
       }}
     >
-      {systemHighlights.map((highlight) => (
+      {systemHighlights.map(({ Icon, ...highlight }) => (
         <Paper
           key={highlight.title}
           variant="outlined"
@@ -256,14 +323,52 @@ export function LandingFeatureGrid() {
             p: 1.5,
           }}
         >
-          <Typography sx={{ color: "#c59b4b", fontWeight: 900 }}>
-            {highlight.title}
-          </Typography>
+          <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+            <Icon size={24} color="#c59b4b" />
+            <Typography sx={{ color: "#c59b4b", fontWeight: 900 }}>
+              {highlight.title}
+            </Typography>
+          </Stack>
           <Typography sx={{ color: "#d7c59d", mt: 0.7, lineHeight: 1.6 }}>
             {highlight.body}
           </Typography>
         </Paper>
       ))}
+    </Box>
+  );
+}
+
+function IconChip({ Icon, label }: { Icon: IconType; label: string }) {
+  return <Chip icon={<Icon size={16} />} label={label} />;
+}
+
+function ClassMetric({
+  Icon,
+  label,
+  value,
+}: {
+  Icon: IconType;
+  label: string;
+  value: string;
+}) {
+  return (
+    <Box
+      sx={{
+        border: "1px solid rgba(217,200,159,.12)",
+        bgcolor: "rgba(0,0,0,.24)",
+        minWidth: 0,
+        p: 0.65,
+      }}
+    >
+      <Stack spacing={0.35} sx={{ alignItems: "flex-start" }}>
+        <Icon size={17} />
+        <Typography sx={{ color: "#b9a98b", fontSize: ".65rem", fontWeight: 900 }}>
+          {label}
+        </Typography>
+        <Typography sx={{ color: "#f7edd9", fontSize: ".78rem", fontWeight: 900 }}>
+          {value}
+        </Typography>
+      </Stack>
     </Box>
   );
 }

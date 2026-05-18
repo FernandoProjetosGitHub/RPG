@@ -23,13 +23,19 @@ import {
   TextField,
 } from "@mui/material";
 import type { ReactNode } from "react";
+import type { IconType } from "react-icons";
 import { useMemo, useRef, useState, useEffect } from "react";
 import {
   GiBackpack,
   GiCharacter,
   GiCrossedSwords,
+  GiHeartPlus,
   GiMagicSwirl,
   GiScrollUnfurled,
+  GiShield,
+  GiSkills,
+  GiSpellBook,
+  GiWeight,
 } from "react-icons/gi";
 import { beginnerSheetConcepts, getClassGuide } from "../data/classGuides";
 import { classSelectSounds } from "../data/classSounds";
@@ -1055,20 +1061,26 @@ export default function CharacterAppPage({
               >
                 Perfil ativo
               </Typography>
-              <Typography
-                sx={{
-                  color: "#d7c59d",
-                  fontSize: ".88rem",
-                  minWidth: 0,
-                  maxWidth: "100%",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {playerProfiles[selectedPlayerIndex]?.label ?? "Jogador"} -{" "}
-                {character.name || "Sem nome"} - {selectedClass.name}
-              </Typography>
+              <Stack direction="row" spacing={0.8} sx={{ alignItems: "center", minWidth: 0 }}>
+                <ClassMark
+                  classId={playerProfiles[selectedPlayerIndex]?.classId ?? selectedClass.id}
+                  size={30}
+                />
+                <Typography
+                  sx={{
+                    color: "#d7c59d",
+                    fontSize: ".88rem",
+                    minWidth: 0,
+                    maxWidth: "100%",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {playerProfiles[selectedPlayerIndex]?.label ?? "Jogador"} -{" "}
+                  {character.name || "Sem nome"} - {selectedClass.name}
+                </Typography>
+              </Stack>
             </Stack>
           </Paper>
         )}
@@ -1332,6 +1344,41 @@ export default function CharacterAppPage({
 
               {activeTab === "personagem" && (
                 <Stack spacing={2}>
+                  <SheetStatusGrid
+                    items={[
+                      {
+                        Icon: GiHeartPlus,
+                        label: "PV",
+                        value: `${character.hp.current}/${maxHp}`,
+                        tone: isBloodied ? "#aa263d" : "#d8efbd",
+                      },
+                      {
+                        Icon: GiSkills,
+                        label: "Nivel",
+                        value: String(character.level),
+                        tone: canLevelUp ? "#f2c76c" : "#f7edd9",
+                      },
+                      {
+                        Icon: GiShield,
+                        label: "Armadura",
+                        value: String(armor),
+                      },
+                      {
+                        Icon: GiWeight,
+                        label: "Carga",
+                        value: `${currentLoad}/${maxLoad}`,
+                        tone: currentLoad > maxLoad ? "#aa263d" : "#f7edd9",
+                      },
+                      {
+                        Icon: selectedClass.usesSpells ? GiSpellBook : GiMagicSwirl,
+                        label: selectedClass.usesSpells ? "Magias" : "Movimentos",
+                        value: selectedClass.usesSpells
+                          ? `${preparedSpellCost}/${spellPreparationLimit}`
+                          : `${spentSkillPoints}/${character.skillPoints}`,
+                      },
+                    ]}
+                  />
+
                   <ResourceBar
                     label="HP"
                     current={character.hp.current}
@@ -3343,6 +3390,52 @@ function ResourceBar({
   );
 }
 
+function SheetStatusGrid({
+  items,
+}: {
+  items: Array<{
+    Icon: IconType;
+    label: string;
+    value: string;
+    tone?: string;
+  }>;
+}) {
+  return (
+    <Box
+      sx={{
+        display: "grid",
+        gridTemplateColumns: {
+          xs: "repeat(2, minmax(0, 1fr))",
+          sm: "repeat(5, minmax(0, 1fr))",
+        },
+        gap: 0.8,
+      }}
+    >
+      {items.map(({ Icon, label, value, tone = "#f7edd9" }) => (
+        <Paper
+          key={label}
+          variant="outlined"
+          sx={{
+            borderColor: "rgba(217,200,159,.14)",
+            bgcolor: "rgba(255,255,255,.035)",
+            p: 0.9,
+          }}
+        >
+          <Stack spacing={0.45}>
+            <Icon size={20} color={tone} />
+            <Typography sx={{ color: "#b9a98b", fontSize: ".7rem", fontWeight: 900 }}>
+              {label}
+            </Typography>
+            <Typography sx={{ color: tone, fontWeight: 900, lineHeight: 1 }}>
+              {value}
+            </Typography>
+          </Stack>
+        </Paper>
+      ))}
+    </Box>
+  );
+}
+
 function parseDice(dice: string) {
   const match = dice.match(/^(\d+)d(\d+)$/);
 
@@ -3648,7 +3741,17 @@ function ConsumableCard({
                 >
                   {playerProfiles.map((profile) => (
                     <MenuItem key={profile.index} value={profile.index}>
-                      {profile.label} - {profile.name || "Sem nome"} - {profile.className}
+                      <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+                        <ClassMark classId={profile.classId} size={30} />
+                        <Box>
+                          <Typography sx={{ fontWeight: 900 }}>
+                            {profile.label} - {profile.name || "Sem nome"}
+                          </Typography>
+                          <Typography sx={{ color: "#b9a98b", fontSize: ".78rem" }}>
+                            {profile.className}
+                          </Typography>
+                        </Box>
+                      </Stack>
                     </MenuItem>
                   ))}
                 </Select>

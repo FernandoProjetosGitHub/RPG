@@ -503,7 +503,17 @@ export default function MasterAppPage({
                 >
                   {playerProfiles.map((profile) => (
                     <MenuItem key={profile.index} value={profile.index}>
-                      {profile.label} - {profile.name || "Sem nome"} - {profile.className}
+                      <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+                        <ClassMark classId={profile.classId} size={30} />
+                        <Box>
+                          <Typography sx={{ fontWeight: 900 }}>
+                            {profile.label} - {profile.name || "Sem nome"}
+                          </Typography>
+                          <Typography sx={{ color: "#b9a98b", fontSize: ".78rem" }}>
+                            {profile.className}
+                          </Typography>
+                        </Box>
+                      </Stack>
                     </MenuItem>
                   ))}
                 </Select>
@@ -556,14 +566,22 @@ export default function MasterAppPage({
                       gap: 1,
                     }}
                   >
-                    <Box component="span">
+                    <Stack
+                      component="span"
+                      direction="row"
+                      spacing={1}
+                      sx={{ alignItems: "center", minWidth: 0 }}
+                    >
+                      <ClassMark classId={profile.classId} size={34} />
+                      <Box component="span">
                       <Typography component="span" sx={{ display: "block", fontWeight: 900 }}>
                         {profile.label}
                       </Typography>
                       <Typography component="span" sx={{ display: "block", fontSize: ".76rem", opacity: 0.82 }}>
-                        {profile.name || "Sem nome"} · {profile.className}
+                        {profile.name || "Sem nome"} - {profile.className}
                       </Typography>
-                    </Box>
+                      </Box>
+                    </Stack>
                   </Button>
                 ))}
               </Box>

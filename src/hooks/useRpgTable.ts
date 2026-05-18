@@ -49,6 +49,7 @@ function buildPlayerProfiles(characters: Character[]): PlayerProfileSummary[] {
       index,
       label: `Jogador ${index + 1}`,
       name: currentCharacter.name,
+      classId: currentClass.id,
       className: currentClass.name,
     };
   });
