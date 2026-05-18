@@ -10,7 +10,6 @@ import type { IconType } from "react-icons";
 import {
   GiBackpack,
   GiBroadsword,
-  GiCampfire,
   GiDiceTwentyFacesTwenty,
   GiHeartPlus,
   GiOpenBook,
@@ -48,73 +47,6 @@ const systemHighlights = [
     body: "O mestre alterna perfis, aplica dano, cura, XP, itens, consumiveis e consulta regras sem expor informacoes secretas aos jogadores.",
   },
 ];
-
-export function LandingAdBanner({
-  onNavigate,
-}: {
-  onNavigate: (view: PublicView) => void;
-}) {
-  // Banner promocional da landing. Ele fica fora do hero para poder virar um
-  // espaco real de propaganda depois: basta trocar titulo, texto e chamada sem
-  // alterar a estrutura principal da pagina.
-  return (
-    <Paper
-      variant="outlined"
-      sx={{
-        borderColor: "rgba(242,199,108,.28)",
-        bgcolor:
-          "linear-gradient(135deg, rgba(242,199,108,.18), rgba(95,182,196,.1)), rgba(7,7,6,.88)",
-        color: "#f7edd9",
-        p: { xs: 1.4, sm: 1.8 },
-        overflow: "hidden",
-        position: "relative",
-      }}
-    >
-      <Stack
-        direction={{ xs: "column", md: "row" }}
-        spacing={1.4}
-        sx={{
-          alignItems: { xs: "flex-start", md: "center" },
-          justifyContent: "space-between",
-          position: "relative",
-          zIndex: 1,
-        }}
-      >
-        <Stack spacing={0.7}>
-          <Stack direction="row" spacing={0.8} sx={{ flexWrap: "wrap" }}>
-            <IconChip Icon={GiCampfire} label="Espaco de propaganda" />
-            <IconChip Icon={GiOpenBook} label="Mesa, zine ou apoiador" />
-          </Stack>
-
-          <Box>
-            <Typography sx={{ color: "#f2c76c", fontWeight: 900 }}>
-              Destaque sua campanha, suplemento ou comunidade aqui
-            </Typography>
-            <Typography sx={{ color: "#d7c59d", lineHeight: 1.55, maxWidth: 760 }}>
-              Banner reservado para divulgar material da mesa sem competir com
-              o conteudo principal. Ideal para chamada de sessao, aviso do mestre,
-              apoiador do projeto ou novidade de aventura.
-            </Typography>
-          </Box>
-        </Stack>
-
-        <Button
-          variant="contained"
-          onClick={() => onNavigate("apps")}
-          sx={{
-            flex: "0 0 auto",
-            bgcolor: "#f2c76c",
-            color: "#100b08",
-            fontWeight: 900,
-            "&:hover": { bgcolor: "#d8a94b", color: "#100b08" },
-          }}
-        >
-          Abrir app da mesa
-        </Button>
-      </Stack>
-    </Paper>
-  );
-}
 
 export function LandingHero({
   onNavigate,
@@ -177,7 +109,7 @@ export function LandingHero({
         <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
           <Button
             size="large"
-            variant="contained"
+            variant="outlined"
             onClick={() => onNavigate("apps")}
           >
             Abrir aplicativos

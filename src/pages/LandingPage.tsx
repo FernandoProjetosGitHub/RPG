@@ -1,6 +1,5 @@
 import { Stack } from "@mui/material";
 import {
-  LandingAdBanner,
   LandingClassGrid,
   LandingFeatureGrid,
   LandingHero,
@@ -17,7 +16,6 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
   return (
     <PublicPageShell active="landing" onNavigate={onNavigate}>
       <Stack spacing={3}>
-        <LandingAdBanner onNavigate={onNavigate} />
         <LandingHero onNavigate={onNavigate} />
         <LandingClassGrid />
         <LandingFeatureGrid />
