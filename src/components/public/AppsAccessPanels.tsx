@@ -1,5 +1,12 @@
-import { Box, Button, Paper, Stack, Typography } from "@mui/material";
-import { GiSpellBook, GiTabletopPlayers } from "react-icons/gi";
+import { Box, Button, Chip, Paper, Stack, Typography } from "@mui/material";
+import {
+  GiCrossedSwords,
+  GiHeartPlus,
+  GiSpellBook,
+  GiTabletopPlayers,
+  GiTreasureMap,
+} from "react-icons/gi";
+import { getClassTheme } from "../../data/classThemes";
 import type { PlayerProfileSummary } from "../../types/character";
 import ClassMark from "./ClassMark";
 
@@ -56,6 +63,11 @@ function MasterAccessCard({ onOpenMaster }: { onOpenMaster: () => void }) {
           restaurar consumiveis, consultar monstros e acessar mapas com notas
           de conducao.
         </Typography>
+        <Stack direction="row" useFlexGap gap={0.7} sx={{ flexWrap: "wrap" }}>
+          <Chip size="small" icon={<GiHeartPlus size={15} />} label="PV e XP" />
+          <Chip size="small" icon={<GiCrossedSwords size={15} />} label="Combate" />
+          <Chip size="small" icon={<GiTreasureMap size={15} />} label="Mapas secretos" />
+        </Stack>
         <Button size="large" variant="contained" onClick={onOpenMaster}>
           Abrir painel do mestre
         </Button>
@@ -94,42 +106,52 @@ function PlayerAccessCard({
           raca, atributos, magias, vinculos, itens e recursos proprios.
         </Typography>
 
-        <Stack spacing={0.8}>
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: { xs: "1fr", sm: "repeat(2, minmax(0, 1fr))" },
+            gap: 0.8,
+          }}
+        >
           {/* Os botoes usam os perfis resumidos para nao carregar a ficha inteira
               na pagina publica. A ficha completa so abre depois da escolha. */}
-          {playerProfiles.map((profile) => (
-            <Button
-              key={profile.index}
-              fullWidth
-              variant={
-                selectedPlayerIndex === profile.index
-                  ? "contained"
-                  : "outlined"
-              }
-              onClick={() => onOpenPlayer(profile.index)}
-              sx={{
-                justifyContent: "space-between",
-                textAlign: "left",
-                gap: 1,
-              }}
-            >
-              <Stack direction="row" spacing={1} sx={{ alignItems: "center", minWidth: 0 }}>
-                <ClassMark classId={profile.classId} size={34} />
+          {playerProfiles.map((profile) => {
+            const selected = selectedPlayerIndex === profile.index;
+            const theme = getClassTheme(profile.classId);
+
+            return (
+              <Button
+                key={profile.index}
+                fullWidth
+                variant={selected ? "contained" : "outlined"}
+                onClick={() => onOpenPlayer(profile.index)}
+                sx={{
+                  justifyContent: "flex-start",
+                  textAlign: "left",
+                  gap: 1,
+                  minHeight: 78,
+                  borderColor: `${theme.color}66`,
+                  bgcolor: selected ? theme.accent : `${theme.color}10`,
+                  color: selected ? "#100b08" : "#f7edd9",
+                  "&:hover": {
+                    bgcolor: selected ? theme.accent : `${theme.color}22`,
+                    color: selected ? "#100b08" : "#f7edd9",
+                  },
+                }}
+              >
+                <ClassMark classId={profile.classId} size={38} />
                 <Box component="span" sx={{ minWidth: 0 }}>
                   <Typography component="span" sx={{ display: "block", fontWeight: 900 }}>
-                    {profile.label}
+                    {profile.label} / {profile.name || "Sem nome"}
                   </Typography>
                   <Typography component="span" sx={{ display: "block", fontSize: ".76rem", opacity: 0.82 }}>
                     {profile.className}
                   </Typography>
                 </Box>
-              </Stack>
-              <Typography component="span" sx={{ fontSize: ".82rem" }}>
-                {profile.name || "Sem nome"}
-              </Typography>
-            </Button>
-          ))}
-        </Stack>
+              </Button>
+            );
+          })}
+        </Box>
       </Stack>
     </Paper>
   );

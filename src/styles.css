@@ -1,7 +1,7 @@
 :root {
   color: #f2eadb;
   background: #090907;
-  font-family: "Cinzel", "Trajan Pro", Georgia, "Times New Roman", serif;
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   --ash: #090907;
@@ -23,6 +23,7 @@
 html {
   scroll-behavior: smooth;
   scrollbar-gutter: stable;
+  scroll-padding-top: 92px;
 }
 
 body {
@@ -37,6 +38,10 @@ body {
     linear-gradient(180deg, #11110f 0%, #090907 44%, #050504 100%);
   background-size: 36px 36px, 36px 36px, auto, auto, auto;
   overscroll-behavior-y: none;
+}
+
+#root {
+  min-height: 100vh;
 }
 
 body::before {
@@ -165,6 +170,7 @@ h1,
 h2 {
   margin: 0;
   color: #fff8e9;
+  font-family: "Cinzel", "Trajan Pro", Georgia, "Times New Roman", serif;
   letter-spacing: 0;
   text-wrap: balance;
 }

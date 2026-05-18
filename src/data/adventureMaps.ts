@@ -214,9 +214,23 @@ export const adventureMaps: AdventureMap[] = [
       },
     ],
     routes: [
-      { id: "main-axis", d: "M435 526 L435 441 L435 344 L435 248 L435 149" },
-      { id: "banquet-crypt", d: "M435 344 C320 333 254 290 254 211", danger: true },
-      { id: "guest-altar", d: "M435 344 C555 347 649 389 650 489", danger: true },
+      {
+        id: "main-axis",
+        label: "Eixo congelado",
+        d: "M435 526 L435 441 L435 344 L435 248 L435 149",
+      },
+      {
+        id: "banquet-crypt",
+        label: "Saloes e criptas",
+        d: "M435 344 C320 333 254 290 254 211",
+        danger: true,
+      },
+      {
+        id: "guest-altar",
+        label: "Ala dos convidados",
+        d: "M435 344 C555 347 649 389 650 489",
+        danger: true,
+      },
     ],
     points: [
       {
@@ -329,10 +343,10 @@ export const adventureMaps: AdventureMap[] = [
       },
     ],
     routes: [
-      { id: "south-hall", d: "M446 336 L446 475", danger: true },
-      { id: "mine-track", d: "M446 336 C360 365 295 402 225 438" },
-      { id: "spider-route", d: "M446 336 C536 370 610 407 694 452" },
-      { id: "elf-route", d: "M446 184 C371 138 289 125 203 142" },
+      { id: "south-hall", label: "Corredor sul", d: "M446 336 L446 475", danger: true },
+      { id: "mine-track", label: "Trilho da magisita", d: "M446 336 C360 365 295 402 225 438" },
+      { id: "spider-route", label: "Rota aranha", d: "M446 336 C536 370 610 407 694 452" },
+      { id: "elf-route", label: "Rota elfica", d: "M446 184 C371 138 289 125 203 142" },
     ],
     points: [
       {
@@ -436,9 +450,9 @@ export const adventureMaps: AdventureMap[] = [
       },
     ],
     routes: [
-      { id: "main-street", d: "M146 285 H754" },
-      { id: "templar-road", d: "M455 285 C481 214 530 169 610 157" },
-      { id: "secret", d: "M635 257 C571 342 472 388 336 406", danger: true },
+      { id: "main-street", label: "Rua principal", d: "M146 285 H754" },
+      { id: "templar-road", label: "Subida templaria", d: "M455 285 C481 214 530 169 610 157" },
+      { id: "secret", label: "Passagem secreta", d: "M635 257 C571 342 472 388 336 406", danger: true },
     ],
     points: [
       {

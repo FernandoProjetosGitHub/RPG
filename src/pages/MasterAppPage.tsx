@@ -18,6 +18,15 @@ import {
   Typography,
 } from "@mui/material";
 import { useEffect, useMemo, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
+import type { IconType } from "react-icons";
+import {
+  GiBackpack,
+  GiCharacter,
+  GiCrossedSwords,
+  GiOpenBook,
+  GiSkills,
+  GiSkullCrossedBones,
+} from "react-icons/gi";
 import AdventureMapsDialog from "../components/AdventureMapsDialog";
 import ClassMark from "../components/public/ClassMark";
 import {
@@ -62,13 +71,13 @@ type MasterTab =
   | "monstros"
   | "itens";
 
-const masterTabs: Array<{ value: MasterTab; label: string }> = [
+const masterTabs: Array<{ value: MasterTab; label: string; Icon?: IconType }> = [
   { value: "criacao", label: "Criação" },
-  { value: "habilidades", label: "Habilidades" },
-  { value: "combate", label: "Combate" },
-  { value: "guia", label: "Guia MJ" },
-  { value: "monstros", label: "Monstros" },
-  { value: "itens", label: "Itens" },
+  { value: "habilidades", label: "Habilidades", Icon: GiSkills },
+  { value: "combate", label: "Combate", Icon: GiCrossedSwords },
+  { value: "guia", label: "Guia MJ", Icon: GiOpenBook },
+  { value: "monstros", label: "Monstros", Icon: GiSkullCrossedBones },
+  { value: "itens", label: "Itens", Icon: GiBackpack },
 ];
 
 function buildDefaultCreationChoices(
@@ -443,6 +452,8 @@ export default function MasterAppPage({
         height: "100dvh",
         overflow: "hidden",
         bgcolor: "#070706",
+        background:
+          "radial-gradient(circle at 10% 0%, rgba(170,38,61,.2), transparent 22rem), radial-gradient(circle at 92% 14%, rgba(95,182,196,.16), transparent 20rem), linear-gradient(180deg, #12100d 0%, #070706 100%)",
         color: "#f7edd9",
         px: { xs: 1.25, sm: 2 },
         py: { xs: 1.25, sm: 2 },
@@ -456,6 +467,10 @@ export default function MasterAppPage({
           height: "100%",
           mx: "auto",
           overflowY: "auto",
+          overscrollBehavior: "contain",
+          scrollBehavior: "smooth",
+          scrollbarGutter: "stable",
+          WebkitOverflowScrolling: "touch",
           pr: { xs: 0, sm: 0.5 },
           scrollbarWidth: "thin",
         }}
@@ -614,11 +629,18 @@ export default function MasterAppPage({
               value={activeTab}
               onChange={(event) => setActiveTab(event.target.value as MasterTab)}
             >
-              {masterTabs.map((tab) => (
-                <MenuItem key={tab.value} value={tab.value}>
-                  {tab.label}
-                </MenuItem>
-              ))}
+              {masterTabs.map((tab) => {
+                const Icon = tab.Icon ?? GiCharacter;
+
+                return (
+                  <MenuItem key={tab.value} value={tab.value}>
+                    <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+                      <Icon size={18} />
+                      <Typography>{tab.label}</Typography>
+                    </Stack>
+                  </MenuItem>
+                );
+              })}
             </Select>
           </FormControl>
           <Tabs
@@ -634,9 +656,19 @@ export default function MasterAppPage({
               ".MuiTabs-indicator": { bgcolor: "#c59b4b" },
             }}
           >
-            {masterTabs.map((tab) => (
-              <Tab key={tab.value} value={tab.value} label={tab.label} />
-            ))}
+            {masterTabs.map((tab) => {
+              const Icon = tab.Icon ?? GiCharacter;
+
+              return (
+                <Tab
+                  key={tab.value}
+                  value={tab.value}
+                  label={tab.label}
+                  icon={<Icon size={18} />}
+                  iconPosition="start"
+                />
+              );
+            })}
           </Tabs>
         </Paper>
 

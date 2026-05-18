@@ -14,6 +14,16 @@ import {
 } from "@mui/material";
 import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
+import type { IconType } from "react-icons";
+import {
+  GiCampfire,
+  GiCrossedSwords,
+  GiOpenBook,
+  GiScrollQuill,
+  GiSkullCrossedBones,
+  GiTabletopPlayers,
+  GiTreasureMap,
+} from "react-icons/gi";
 import { MapSvg } from "../components/AdventureMapsDialog";
 import PublicPageShell from "../components/public/PublicPageShell";
 import type { PublicView } from "../components/public/PublicPageShell";
@@ -103,31 +113,37 @@ const adventureSections: Array<{
   value: AdventureSection;
   label: string;
   helper: string;
+  Icon: IconType;
 }> = [
   {
     value: "resumo",
     label: "Resumo",
     helper: "enredo, objetivos e frentes",
+    Icon: GiOpenBook,
   },
   {
     value: "mapas",
     label: "Mapas",
     helper: "fluxo e atlas",
+    Icon: GiTreasureMap,
   },
   {
     value: "cenas",
     label: "Cenas",
     helper: "sessao guiada",
+    Icon: GiCampfire,
   },
   {
     value: "elenco",
     label: "Elenco",
     helper: "PNJs e ameacas",
+    Icon: GiTabletopPlayers,
   },
   {
     value: "regras",
     label: "Regras",
     helper: "movimentos e escala",
+    Icon: GiScrollQuill,
   },
 ];
 
@@ -212,6 +228,7 @@ const smoothOverflowSx = {
   scrollBehavior: "smooth",
   scrollbarWidth: "thin",
   scrollbarGutter: "stable",
+  scrollbarColor: "#6f5a36 #0b0a08",
   WebkitOverflowScrolling: "touch",
 };
 
@@ -1703,7 +1720,10 @@ export default function Aventuras({
           >
             <AdventurePicker
               selectedAdventureId={selectedAdventure.id}
-              onSelect={setSelectedAdventureId}
+              onSelect={(adventureId) => {
+                setSelectedAdventureId(adventureId);
+                setActiveSection("resumo");
+              }}
             />
             <ScaleSelector
               selectedPlayers={selectedPlayers}
@@ -1738,10 +1758,10 @@ function HeroSection() {
     >
       <Stack spacing={1.2}>
         <Stack direction="row" useFlexGap gap={0.8} sx={{ flexWrap: "wrap", alignItems: "stretch" }}>
-          <Chip label="Aventuras separadas por PDF" />
-          <Chip label="Base: 7 jogadores" />
-          <Chip label="Escala 7 > 6 > 5 > 4 > 3 > 2 > 1" />
-          <Chip label="Mapas de encontro" />
+          <Chip icon={<GiOpenBook size={16} />} label="Aventuras separadas por PDF" />
+          <Chip icon={<GiTabletopPlayers size={16} />} label="Base: 7 jogadores" />
+          <Chip icon={<GiCrossedSwords size={16} />} label="Escala 7 > 1" />
+          <Chip icon={<GiSkullCrossedBones size={16} />} label="Segredos do mestre" />
         </Stack>
 
         <Typography
@@ -2053,6 +2073,7 @@ function AdventureSectionNav({
       <Stack direction="row" useFlexGap gap={0.8} sx={{ flexWrap: "wrap", alignItems: "stretch" }}>
         {adventureSections.map((section) => {
           const selected = active === section.value;
+          const Icon = section.Icon;
 
           return (
             <Button
@@ -2062,7 +2083,7 @@ function AdventureSectionNav({
               sx={{
                 flex: { xs: "1 1 42%", sm: "1 1 0" },
                 minWidth: { xs: 132, sm: 0 },
-                py: 0.8,
+                py: 0.95,
                 borderColor: selected
                   ? "rgba(242,199,108,.78)"
                   : "rgba(217,200,159,.28)",
@@ -2087,7 +2108,8 @@ function AdventureSectionNav({
                 },
               }}
             >
-              <Stack spacing={0.1} sx={{ alignItems: "center" }}>
+              <Stack spacing={0.25} sx={{ alignItems: "center" }}>
+                <Icon size={20} />
                 <Typography sx={{ fontWeight: 900, fontSize: ".82rem" }}>
                   {section.label}
                 </Typography>

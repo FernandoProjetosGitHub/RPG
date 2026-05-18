@@ -289,36 +289,129 @@ export default function AdventureMapsDialog({
   );
 }
 
+function getViewBoxSize(viewBox: string) {
+  const values = viewBox.split(/\s+/).map(Number);
+  return {
+    width: values[2] || 900,
+    height: values[3] || 620,
+  };
+}
+
+function getPathCenter(d: string) {
+  const values = d.match(/-?\d+(?:\.\d+)?/g)?.map(Number) ?? [];
+  const points: Array<{ x: number; y: number }> = [];
+
+  for (let index = 0; index < values.length - 1; index += 2) {
+    points.push({ x: values[index], y: values[index + 1] });
+  }
+
+  if (points.length === 0) return { x: 0, y: 0 };
+
+  return {
+    x: points.reduce((acc, point) => acc + point.x, 0) / points.length,
+    y: points.reduce((acc, point) => acc + point.y, 0) / points.length,
+  };
+}
+
+function truncateMapLabel(label: string, maxLength = 24) {
+  return label.length > maxLength ? `${label.slice(0, maxLength - 1)}.` : label;
+}
+
 export function MapSvg({
   mapId,
   revealSecrets,
+  showPointLabels = revealSecrets,
+  compact = false,
 }: {
   mapId: string;
   revealSecrets: boolean;
+  showPointLabels?: boolean;
+  compact?: boolean;
 }) {
   const map = adventureMaps.find((currentMap) => currentMap.id === mapId) ?? adventureMaps[0];
+  const { width, height } = getViewBoxSize(map.viewBox);
+  const frameInset = Math.max(18, Math.round(Math.min(width, height) * 0.035));
+  const compassX = width - frameInset - 54;
+  const compassY = frameInset + 54;
+  const minWidth = compact ? 560 : showPointLabels ? 720 : 620;
 
   return (
     <svg
       viewBox={map.viewBox}
       role="img"
       aria-label={map.title}
+      preserveAspectRatio="xMidYMid meet"
       style={{
         width: "100%",
-        minWidth: 680,
+        minWidth,
         display: "block",
       }}
     >
       <defs>
+        <linearGradient id={`map-bg-${map.id}`} x1="0" x2="1" y1="0" y2="1">
+          <stop offset="0%" stopColor="#18130d" />
+          <stop offset="42%" stopColor="#100f0c" />
+          <stop offset="100%" stopColor="#070706" />
+        </linearGradient>
+        <radialGradient id={`map-glow-${map.id}`} cx="48%" cy="34%" r="68%">
+          <stop offset="0%" stopColor="#c59b4b" stopOpacity="0.18" />
+          <stop offset="54%" stopColor="#5fb6c4" stopOpacity="0.06" />
+          <stop offset="100%" stopColor="#050504" stopOpacity="0.68" />
+        </radialGradient>
         <filter id={`map-shadow-${map.id}`} x="-20%" y="-20%" width="140%" height="140%">
-          <feDropShadow dx="0" dy="8" stdDeviation="8" floodColor="#000" floodOpacity="0.45" />
+          <feDropShadow dx="0" dy="10" stdDeviation="9" floodColor="#000" floodOpacity="0.54" />
+        </filter>
+        <filter id={`map-ink-${map.id}`} x="-30%" y="-30%" width="160%" height="160%">
+          <feDropShadow dx="0" dy="1.5" stdDeviation="1.6" floodColor="#000" floodOpacity="0.7" />
         </filter>
         <pattern id={`grid-${map.id}`} width="36" height="36" patternUnits="userSpaceOnUse">
-          <path d="M 36 0 L 0 0 0 36" fill="none" stroke="rgba(217,200,159,.08)" strokeWidth="1" />
+          <path d="M 36 0 L 0 0 0 36" fill="none" stroke="rgba(217,200,159,.075)" strokeWidth="1" />
+          <path d="M 18 0 L 18 36 M 0 18 L 36 18" fill="none" stroke="rgba(217,200,159,.035)" strokeWidth="1" />
+        </pattern>
+        <pattern id={`paper-${map.id}`} width="96" height="96" patternUnits="userSpaceOnUse">
+          <path d="M12 18 C28 10 42 18 58 12 S84 12 92 22" fill="none" stroke="rgba(247,237,217,.035)" strokeWidth="2" />
+          <path d="M6 70 C24 58 40 75 58 64 S80 60 94 70" fill="none" stroke="rgba(197,155,75,.035)" strokeWidth="2" />
         </pattern>
       </defs>
 
-      <rect x="0" y="0" width="100%" height="100%" fill={`url(#grid-${map.id})`} />
+      <rect x="0" y="0" width={width} height={height} fill={`url(#map-bg-${map.id})`} />
+      <rect x="0" y="0" width={width} height={height} fill={`url(#map-glow-${map.id})`} />
+      <rect x="0" y="0" width={width} height={height} fill={`url(#grid-${map.id})`} />
+      <rect x="0" y="0" width={width} height={height} fill={`url(#paper-${map.id})`} opacity="0.88" />
+
+      <rect
+        x={frameInset}
+        y={frameInset}
+        width={width - frameInset * 2}
+        height={height - frameInset * 2}
+        rx="18"
+        fill="none"
+        stroke="rgba(217,200,159,.24)"
+        strokeWidth="2"
+      />
+      <rect
+        x={frameInset + 8}
+        y={frameInset + 8}
+        width={width - (frameInset + 8) * 2}
+        height={height - (frameInset + 8) * 2}
+        rx="12"
+        fill="none"
+        stroke="rgba(197,155,75,.12)"
+        strokeWidth="1.5"
+      />
+
+      {map.regions.map((region) => (
+        <path
+          key={`${region.id}-wash`}
+          d={region.d}
+          fill="none"
+          stroke={region.stroke ?? "#5b5141"}
+          strokeWidth="14"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          opacity="0.1"
+        />
+      ))}
 
       {map.regions.map((region) => (
         <path
@@ -326,54 +419,149 @@ export function MapSvg({
           d={region.d}
           fill={region.fill}
           stroke={region.stroke ?? "#5b5141"}
-          strokeWidth="3"
+          strokeWidth="3.5"
+          strokeLinejoin="round"
           filter={`url(#map-shadow-${map.id})`}
         />
       ))}
 
-      {map.routes.map((route) => (
-        <path
-          key={route.id}
-          d={route.d}
-          fill="none"
-          stroke={route.danger ? "#aa263d" : "#c59b4b"}
-          strokeWidth={route.danger ? 5 : 4}
-          strokeDasharray={route.danger ? "10 9" : "0"}
-          strokeLinecap="round"
-          opacity="0.86"
-        />
-      ))}
+      {map.regions.map((region) => {
+        if (!region.label || compact) return null;
+        const center = getPathCenter(region.d);
+
+        return (
+          <text
+            key={`${region.id}-label`}
+            x={center.x}
+            y={center.y}
+            fill="rgba(247,237,217,.72)"
+            fontSize="18"
+            fontWeight="900"
+            textAnchor="middle"
+            paintOrder="stroke"
+            stroke="#070706"
+            strokeWidth="5"
+          >
+            {truncateMapLabel(region.label, 28)}
+          </text>
+        );
+      })}
+
+      {map.routes.map((route) => {
+        const routeId = `route-${map.id}-${route.id}`;
+
+        return (
+          <g key={route.id}>
+            <path
+              id={routeId}
+              d={route.d}
+              fill="none"
+              stroke={route.danger ? "#aa263d" : "#c59b4b"}
+              strokeWidth={route.danger ? 5.5 : 4.5}
+              strokeDasharray={route.danger ? "10 9" : "0"}
+              strokeLinecap="round"
+              opacity="0.9"
+              filter={`url(#map-ink-${map.id})`}
+            />
+            {route.label && !compact && (
+              <text
+                fill={route.danger ? "#ffb2b8" : "#f7edd9"}
+                fontSize="15"
+                fontWeight="900"
+                paintOrder="stroke"
+                stroke="#070706"
+                strokeWidth="4"
+              >
+                <textPath href={`#${routeId}`} startOffset="50%" textAnchor="middle">
+                  {route.label}
+                </textPath>
+              </text>
+            )}
+          </g>
+        );
+      })}
 
       {map.points.map((point, index) => {
         const style = pointStyles[point.type];
+        const label = revealSecrets
+          ? `${index + 1}. ${truncateMapLabel(point.label)}`
+          : truncateMapLabel(point.label, 22);
 
         return (
-          <g key={point.id}>
+          <g key={point.id} filter={`url(#map-ink-${map.id})`}>
             <circle
               cx={point.x}
               cy={point.y}
-              r="14"
+              r="23"
+              fill={style.fill}
+              opacity="0.2"
+            />
+            <circle
+              cx={point.x}
+              cy={point.y}
+              r="15"
               fill={style.fill}
               stroke={style.stroke}
               strokeWidth="3"
             />
-            <circle cx={point.x} cy={point.y} r="5" fill="#f7edd9" opacity="0.92" />
-            <text
-              x={point.x}
-              y={point.y + 31}
-              fill="#f7edd9"
-              fontSize="18"
-              fontWeight="900"
-              textAnchor="middle"
-              paintOrder="stroke"
-              stroke="#070706"
-              strokeWidth="4"
-            >
-              {revealSecrets ? index + 1 : ""}
-            </text>
+            <circle cx={point.x} cy={point.y} r="5" fill="#f7edd9" opacity="0.94" />
+            {(revealSecrets || showPointLabels) && (
+              <text
+                x={point.x}
+                y={point.y + 34}
+                fill="#f7edd9"
+                fontSize={showPointLabels ? 16 : 18}
+                fontWeight="900"
+                textAnchor="middle"
+                paintOrder="stroke"
+                stroke="#070706"
+                strokeWidth="4.5"
+              >
+                {label}
+              </text>
+            )}
           </g>
         );
       })}
+
+      {!compact && (
+        <g opacity="0.9">
+          <circle
+            cx={compassX}
+            cy={compassY}
+            r="34"
+            fill="rgba(7,7,6,.55)"
+            stroke="rgba(217,200,159,.28)"
+            strokeWidth="2"
+          />
+          <path
+            d={`M${compassX} ${compassY - 25} L${compassX + 8} ${compassY + 8} L${compassX} ${compassY + 3} L${compassX - 8} ${compassY + 8} Z`}
+            fill="#c59b4b"
+            stroke="#f7edd9"
+            strokeWidth="1.2"
+          />
+          <text
+            x={compassX}
+            y={compassY + 28}
+            fill="#f7edd9"
+            fontSize="14"
+            fontWeight="900"
+            textAnchor="middle"
+          >
+            N
+          </text>
+        </g>
+      )}
+
+      <text
+        x={frameInset + 20}
+        y={height - frameInset - 18}
+        fill="rgba(217,200,159,.66)"
+        fontSize="14"
+        fontWeight="900"
+      >
+        {map.type.toUpperCase()} / {map.source}
+      </text>
     </svg>
   );
 }

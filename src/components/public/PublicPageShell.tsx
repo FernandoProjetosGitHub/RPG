@@ -30,6 +30,9 @@ export default function PublicPageShell({
   children,
   onNavigate,
 }: PublicPageShellProps) {
+  const activeItem = navItems.find((item) => item.value === active) ?? navItems[0];
+  const ActiveIcon = activeItem.Icon;
+
   return (
     <Box
       component="main"
@@ -38,7 +41,8 @@ export default function PublicPageShell({
         bgcolor: "#070706",
         color: "#f7edd9",
         background:
-          "radial-gradient(circle at 12% 0%, rgba(170,38,61,.22), transparent 24rem), radial-gradient(circle at 90% 6%, rgba(95,182,196,.14), transparent 23rem), linear-gradient(180deg, #14110d 0%, #070706 52%)",
+          "linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.012) 1px, transparent 1px), radial-gradient(circle at 12% 0%, rgba(170,38,61,.22), transparent 24rem), radial-gradient(circle at 90% 6%, rgba(95,182,196,.14), transparent 23rem), linear-gradient(180deg, #14110d 0%, #070706 52%)",
+        backgroundSize: "34px 34px, 34px 34px, auto, auto, auto",
       }}
     >
       <Box
@@ -50,43 +54,94 @@ export default function PublicPageShell({
           top: 0,
           zIndex: 10,
           borderBottom: "1px solid rgba(217,200,159,.14)",
-          bgcolor: "rgba(7,7,6,.88)",
-          backdropFilter: "blur(12px)",
+          bgcolor: "rgba(7,7,6,.86)",
+          boxShadow: "0 14px 42px rgba(0,0,0,.34)",
+          backdropFilter: "blur(16px)",
         }}
       >
         <Container maxWidth="lg">
           <Stack
-            direction={{ xs: "column", sm: "row" }}
+            direction={{ xs: "column", md: "row" }}
             spacing={1.2}
             sx={{
-              py: 1.2,
-              alignItems: { xs: "stretch", sm: "center" },
+              py: { xs: 1, md: 1.15 },
+              alignItems: { xs: "stretch", md: "center" },
               justifyContent: "space-between",
             }}
           >
-            <Box>
-              <Typography sx={{ color: "#c59b4b", fontWeight: 900 }}>
-                Dungeon World
-              </Typography>
-              <Typography sx={{ color: "#b9a98b", fontSize: ".82rem" }}>
-                Fichas, mestre, classes e mapas de mesa
-              </Typography>
-            </Box>
+            <Button
+              variant="text"
+              onClick={() => onNavigate("landing")}
+              sx={{
+                justifyContent: "flex-start",
+                color: "#f7edd9",
+                px: 0,
+                "&:hover": { bgcolor: "transparent" },
+              }}
+            >
+              <Stack direction="row" spacing={1} sx={{ alignItems: "center", minWidth: 0 }}>
+                <Box
+                  sx={{
+                    width: 42,
+                    height: 42,
+                    borderRadius: 2,
+                    display: "grid",
+                    placeItems: "center",
+                    color: "#10100d",
+                    bgcolor: "#c59b4b",
+                    boxShadow: "0 0 28px rgba(197,155,75,.26)",
+                    flex: "0 0 auto",
+                  }}
+                >
+                  <ActiveIcon size={23} />
+                </Box>
+                <Box sx={{ minWidth: 0, textAlign: "left" }}>
+                  <Typography sx={{ color: "#f7edd9", fontWeight: 900, lineHeight: 1.1 }}>
+                    Dungeon World
+                  </Typography>
+                  <Typography
+                    sx={{
+                      color: "#b9a98b",
+                      fontSize: ".78rem",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {activeItem.label} da mesa digital
+                  </Typography>
+                </Box>
+              </Stack>
+            </Button>
 
             <Stack
+              component="nav"
+              aria-label="Navegacao publica"
               direction="row"
-              spacing={0.8}
-              sx={{ overflowX: "auto", pb: { xs: 0.2, sm: 0 } }}
+              useFlexGap
+              gap={0.8}
+              sx={{
+                overflowX: "auto",
+                pb: { xs: 0.2, md: 0 },
+                mx: { xs: -0.3, md: 0 },
+                px: { xs: 0.3, md: 0 },
+                scrollSnapType: "x proximity",
+              }}
             >
               {/* Em telas estreitas, a navegacao vira uma faixa rolavel simples. */}
               {navItems.map((item) => (
                 <Button
                   key={item.value}
                   size="small"
+                  aria-current={active === item.value ? "page" : undefined}
                   variant={active === item.value ? "contained" : "outlined"}
                   startIcon={<item.Icon size={16} />}
                   onClick={() => onNavigate(item.value)}
-                  sx={{ flex: "0 0 auto" }}
+                  sx={{
+                    flex: "0 0 auto",
+                    minWidth: { xs: 118, sm: "auto" },
+                    scrollSnapAlign: "start",
+                  }}
                 >
                   {item.label}
                 </Button>
@@ -96,7 +151,7 @@ export default function PublicPageShell({
         </Container>
       </Box>
 
-      <Container maxWidth="lg" sx={{ py: { xs: 2.5, md: 4 } }}>
+      <Container maxWidth="lg" sx={{ py: { xs: 2, md: 4 } }}>
         {children}
       </Container>
     </Box>
