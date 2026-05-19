@@ -85,6 +85,20 @@ type AdventurePlotBeat = {
   gmNotes: string[];
 };
 
+type AdventureActGuide = {
+  title: string;
+  focus: string;
+  tableSteps: string[];
+  reveal: string;
+  noviceTip: string;
+};
+
+type AdventureEnding = {
+  title: string;
+  outcome: string;
+  consequence: string;
+};
+
 type AdventureGuide = {
   id: string;
   title: string;
@@ -96,6 +110,12 @@ type AdventureGuide = {
   baseDangerBudget: number;
   premise: string;
   start: string;
+  secretTruth: string;
+  conductorNotes: string[];
+  actGuides: AdventureActGuide[];
+  escalationClock: string[];
+  sceneSeeds: string[];
+  endings: AdventureEnding[];
   plot: AdventurePlotBeat[];
   objectives: string[];
   fronts: string[];
@@ -253,6 +273,114 @@ const adventures: AdventureGuide[] = [
       "Nekesti coloca os personagens diante de um linchamento publico. O magistrado Kalareth tenta transformar medo popular em poder politico, enquanto templarios, gnomos e uma casa cheia de segredos empurram a mesa para escolhas morais rapidas.",
     start:
       "Abra na praca: um gnomo ferido acabou de ser salvo ou interrompido, a multidao exige sangue e Kalareth tenta virar a cidade contra os herois.",
+    secretTruth:
+      "Kalareth usa a residencia e o observatorio da propria linhagem para amplificar medo coletivo. A casa nao e apenas assombrada: ela tenta restaurar uma ordem aristocratica obediente, usando o magistrado como instrumento.",
+    conductorNotes: [
+      "Mostre Nekesti como cansada e manipulada, nao como uma cidade formada apenas por viloes. Pessoas comuns devem repetir mentiras porque estao com medo.",
+      "Separe boato, pista fisica e confissao. Entregue boatos cedo, provas no meio e admissoes tarde, para o mestre novato nao resolver tudo em uma cena.",
+      "Sempre que o grupo descansar, hesitar ou escolher uma rota segura, avance um pressagio: a cidade tambem se move quando os herois param.",
+    ],
+    actGuides: [
+      {
+        title: "Ato I - Praca da fogueira",
+        focus:
+          "Abrir com linchamento publico e mostrar que salvar Verren Tosk muda a relacao do grupo com a cidade.",
+        tableSteps: [
+          "Coloque Verren amarrado, ferido e acusado enquanto Kalareth fala como administrador sereno, nao como lunatico.",
+          "Reaja ao metodo dos jogadores: violencia gera odio, discurso exige contradicoes e fuga transforma o grupo em criminoso aos olhos da guarda.",
+          "Antes de Verren sair de cena, entregue uma pista curta sobre o observatorio: luz que queima sem fogo, lentes ou sol falso.",
+        ],
+        reveal:
+          "O medo da multidao foi cultivado; ele tem direcao, linguagem repetida e alguem lucrando com a urgencia.",
+        noviceTip:
+          "Se a mesa travar, aponte tres focos visiveis: Verren, Kalareth e uma saida bloqueada por templarios.",
+      },
+      {
+        title: "Ato II - Bairro gnomo",
+        focus:
+          "Transformar a fuga em investigacao social, com oficinas vigiadas, humor nervoso e registros comprometedores.",
+        tableSteps: [
+          "Descreva oficinas fechadas, luzes acesas demais e moradores olhando por frestas antes de qualquer conversa.",
+          "Use engenhocas gnomicas como alivio tenso: uma solucao pode funcionar, explodir ou revelar fiscalizacao criminosa.",
+          "Entregue registros de lentes, espelhos e pagamentos ligados a reforma da residencia Kalareth.",
+        ],
+        reveal:
+          "Os gnomos nao sao a origem da ameaca, mas alguns foram forcados ou pagos para fornecer pecas do mecanismo.",
+        noviceTip:
+          "Quando os jogadores perguntarem com quem falar, ofereca uma testemunha, um artesao e um gnomo apavorado com versoes incompletas.",
+      },
+      {
+        title: "Ato III - Residencia Kalareth",
+        focus:
+          "Fazer a mansao parecer viva, limpa demais e moralmente apodrecida, revelando pecados antigos da familia.",
+        tableSteps: [
+          "Mostre relogios parados em horarios diferentes, retratos atentos e corredores limpos onde deveria haver abandono.",
+          "Use Odrik como porta viva: ele ajuda se prometerem nao queimar a casa, mas sempre teme que as paredes escutem.",
+          "Cada sala deve revelar uma culpa: contratos de fome, casamentos forcados, tuneis, listas de bodes expiatorios ou ordens templarias falhas.",
+        ],
+        reveal:
+          "A casa molda obediencia ha geracoes; Kalareth acredita controlar a linhagem, mas tambem e controlado por ela.",
+        noviceTip:
+          "Trate cada comodo como uma pergunta simples: quem sofreu aqui, quem se beneficiou e que prova ainda pode sumir?",
+      },
+      {
+        title: "Ato IV - Observatorio e mortos",
+        focus:
+          "Levar a aventura para julgamento sobrenatural, escolha publica e barganha com os ancestrais.",
+        tableSteps: [
+          "No observatorio, espelhos projetam luz fria sobre simbolos de julgamento e recriam papeis do passado.",
+          "Kalareth tenta destruir provas e justifica a mentira dizendo que a cidade precisa de um inimigo comum.",
+          "Os ancestrais oferecem prosperidade e ordem em troca de sacrificios periodicos e obediencia silenciosa.",
+        ],
+        reveal:
+          "O climax nao e apenas derrotar Kalareth, mas decidir se Nekesti sera curada, controlada ou abandonada a outro tipo de violencia.",
+        noviceTip:
+          "Se os jogadores descobrirem tudo cedo, transforme o final em julgamento publico, nao em combate extra.",
+      },
+    ],
+    escalationClock: [
+      "Janelas se fecham quando gnomos passam.",
+      "Novas estacas aparecem na praca antes de haver condenados.",
+      "Moradores comecam a repetir as mesmas frases como se ensaiadas.",
+      "Logan autoriza uma purga preventiva contra o bairro gnomo.",
+      "Desastre: o observatorio transforma Nekesti em maquina de execucao.",
+    ],
+    sceneSeeds: [
+      "Uma crianca acusa um gnomo porque ouviu os pais repetirem a mentira, mas chora ao ve-lo apanhar.",
+      "Um templario novato pede que os herois provem que ele nao serviu a um monstro.",
+      "Skumm oferece uma chave enferrujada em troca de uma promessa absurda e solene.",
+      "Um ancestral chama cada personagem pelo nome de alguem que sua familia decepcionou.",
+    ],
+    endings: [
+      {
+        title: "A cidade respira",
+        outcome:
+          "O observatorio e destruido, Kalareth cai e os gnomos sobrevivem.",
+        consequence:
+          "Nekesti nao vira justa de imediato; vizinhos que quase queimaram inocentes precisam encarar reparacao.",
+      },
+      {
+        title: "Justica de cinzas",
+        outcome:
+          "Kalareth morre em publico sem prova suficiente para quebrar a narrativa.",
+        consequence:
+          "A multidao pode transforma-lo em martir e Logan assume a cidade com rigidez maior.",
+      },
+      {
+        title: "O acordo dos mortos",
+        outcome:
+          "Os herois aceitam a ordem espectral para garantir prosperidade.",
+        consequence:
+          "A cidade melhora por fora, mas desaparecimentos periodicos mantem a casa alimentada.",
+      },
+      {
+        title: "Exodo gnomo",
+        outcome:
+          "Os gnomos fogem com tecnologia, ouro e registros.",
+        consequence:
+          "A histeria esfria, mas Nekesti entra em declinio economico e culpa os ausentes.",
+      },
+    ],
     plot: [
       {
         title: "A cidade escolhe um culpado",
@@ -618,6 +746,114 @@ const adventures: AdventureGuide[] = [
       "O grupo esta tres andares abaixo da superficie, no centro de um sambaqui ogro, com os restos de Ludekai Chaeron e um ogro faminto prestes a perceber os intrusos. A guerra entre gnomos Bobinas Lampejantes e kobolds Luz de Velas torna cada rota uma escolha politica.",
     start:
       "Abra com Vh'orr bloqueando a saida, um cavalo inconsciente preso as costas dele, ossos por todos os lados e uma luz azul fraca vindo de buracos no chao.",
+    secretTruth:
+      "Chaeron prometeu vantagens diferentes a gnomos e kobolds, morreu antes de concluir o plano e agora usa medo, fome e guerra como cortina para abrir uma porta sob a montanha.",
+    conductorNotes: [
+      "Conduza Nemfalla como pressao fisica constante: ar ruim, tuneis instaveis, mapas falhos e barulho atraindo Vh'orr.",
+      "Gnomos e kobolds devem ter orgulho, mortos, fe e medo. Evite transformar qualquer lado em certo ou errado automatico.",
+      "A fome de Vh'orr e a voz de Chaeron devem voltar quando a mesa relaxa, cura feridas ou tenta resolver politica em seguranca.",
+    ],
+    actGuides: [
+      {
+        title: "Ato I - Restos no sambaqui",
+        focus:
+          "Comecar no deposito de ossos de Vh'orr, com restos de Chaeron e uma saida bloqueada por perigo imediato.",
+        tableSteps: [
+          "Mostre ossos, documentos mordidos, caixa-segredo danificada e o cavalo usado como lanche futuro.",
+          "Pergunte se salvam o cavalo, escondem-se, fogem ou tentam emboscar Vh'orr; qualquer escolha deve mexer no terreno.",
+          "Entregue uma carta prometendo aos Bobinas Lampejantes o fim da supersticao kobold.",
+        ],
+        reveal:
+          "Chaeron ja manipulava a guerra antes de morrer, e seus acordos ainda podem incendiar as faccoes.",
+        noviceTip:
+          "Mantenha a primeira cena tridimensional: buracos no chao, trilhos acima, paredes que quebram e luz distante.",
+      },
+      {
+        title: "Ato II - Luzes em guerra",
+        focus:
+          "Apresentar kobolds e gnomos como povos vivos, com fe, tecnologia, trofeus e medo real.",
+        tableSteps: [
+          "Kobolds atacam das sombras, mas param se os herois respeitam a luz sagrada.",
+          "Gnomos oferecem explosivos, elixir e carrinhos, minimizando o acordo feito com Chaeron.",
+          "Sassi revela que novos tuneis nao foram feitos por gnomos, kobolds ou Vh'orr.",
+        ],
+        reveal:
+          "A guerra foi alimentada por promessas contraditorias, e a montanha tem uma terceira vontade acordando.",
+        noviceTip:
+          "Dê a cada lado um pedido concreto e um limite sagrado. Isso ajuda mestre novo a conduzir negociacao sem palestra.",
+      },
+      {
+        title: "Ato III - A fome que volta",
+        focus:
+          "Trazer Vh'orr de volta como perseguidor inteligente, enquanto mutacoes indicam corrupcao subterranea.",
+        tableSteps: [
+          "Faça Vh'orr retornar quando o grupo estiver distraido com cura, politica ou investigacao.",
+          "Use canarios deformados e criaturas mutantes para mostrar que a magia de Chaeron afetou o ecossistema.",
+          "Ipmeek oferece cessar-fogo se trofeus sagrados forem devolvidos e a ofensa gnoma for reconhecida.",
+        ],
+        reveal:
+          "A fome do ogro aumenta perto da fenda, como se algo antigo chamasse predadores e desesperados.",
+        noviceTip:
+          "Vh'orr nao precisa lutar ate cair. Sequestrar um PNJ ou destruir rota costuma ser mais interessante.",
+      },
+      {
+        title: "Ato IV - Porta sob a montanha",
+        focus:
+          "Concluir com selamento, diplomacia ou violencia imperfeita diante da fenda fria de Chaeron.",
+        tableSteps: [
+          "Chaeron aparece como fantasma elegante, oferecendo fim da guerra por meio de um poder superior.",
+          "A Chave do Demonio pode prender a entidade, mas exige alguem sustentando o triangulo perfeito sob risco.",
+          "Force escolha entre paz dificil, colapso das minas, selamento com sacrificio ou fuga com a fenda viva.",
+        ],
+        reveal:
+          "A entidade nao precisa de devotos fieis; precisa de medo, morte e passagens abertas.",
+        noviceTip:
+          "Quando faltar decisao, pergunte o que cada faccao perde se a fenda for selada agora.",
+      },
+    ],
+    escalationClock: [
+      "Desmoronamentos isolam rotas conhecidas.",
+      "Vh'orr destrói um enclave secundario.",
+      "Gnomos preparam explosivos para colapsar tuneis kobolds.",
+      "Chaeron convence um lider desesperado a abrir a fenda.",
+      "Desastre: a entidade da rocha desperta e transforma guerra em culto de sobrevivencia.",
+    ],
+    sceneSeeds: [
+      "Um kobold oferece uma vela quebrada como pedido formal de conversa.",
+      "Ozzy apresenta uma engenhoca capaz de salvar todos ou explodir o teto.",
+      "Chaeron imita a voz de alguem amado por um personagem.",
+      "Vh'orr deixa um corredor coberto de marcas de cutelo para conduzir o grupo a uma emboscada.",
+    ],
+    endings: [
+      {
+        title: "Paz das velas e engrenagens",
+        outcome:
+          "Gnomos e kobolds aceitam cessar-fogo ritual com garantias publicas.",
+        consequence:
+          "A montanha segue perigosa, mas a guerra deixa de alimentar Chaeron.",
+      },
+      {
+        title: "Colapso controlado",
+        outcome:
+          "Os herois soterram a fenda e parte das minas.",
+        consequence:
+          "Sobreviventes chamam de vitoria, mas familias perdem lares e memoria.",
+      },
+      {
+        title: "A chave gira",
+        outcome:
+          "A Chave do Demonio prende entidade e Chaeron.",
+        consequence:
+          "Ecos de mortos inocentes tambem ficam presos e passam a cantar nos tuneis.",
+      },
+      {
+        title: "A fome reina",
+        outcome:
+          "Vh'orr devora um lider e vira terror comum das faccoes.",
+        consequence:
+          "A guerra pode cessar por medo, nao por justica.",
+      },
+    ],
     plot: [
       {
         title: "A fuga comeca embaixo do mundo",
@@ -963,6 +1199,114 @@ const adventures: AdventureGuide[] = [
       "O Forte de Altai ficou abandonado desde que os templarios derrotaram os lordes minotauros. Agora pastores somem, vilas desaparecem e ha sinais de que Molekh, o Ceifador, voltou a reunir seus companheiros chifrudos.",
     start:
       "Abra em Uryl ou diante do portao congelado. O povo sabe que a montanha voltou a mugir e precisa de herois para descobrir quem retornou, recuperar a espada do Diacono Gorric e manter Molekh morto.",
+    secretTruth:
+      "Deanera veio reerguer uma corte vampirica, mas encontrou Molekh consciente e ambicioso. A espada de Gorric carrega culpa templaria e pode reacender a mesma violencia que um dia selou Altai.",
+    conductorNotes: [
+      "Conduza Altai como guerra antiga voltando em forma de corte: frio, soberania, tributo e necromancia devem aparecer antes do combate final.",
+      "Molekh nao e fera sem plano. Ele quer dominio, reconhecimento e submissao, e negocia como conquistador.",
+      "Deanera e refinada e insegura. Use etiqueta absurda, servos quebrados e luxo parasita para tornar a fortaleza memoravel.",
+    ],
+    actGuides: [
+      {
+        title: "Ato I - Vilas sob a neve",
+        focus:
+          "Dar rosto humano ao retorno de Altai antes do grupo entrar na masmorra.",
+        tableSteps: [
+          "Comece em Uryl com pastores desaparecidos, ibex mutilados e marcas enormes de casco na neve.",
+          "Faça uma crianca cantar uma cantiga antiga antes de qualquer minotauro aparecer.",
+          "Um sobrevivente sem sangue suficiente para estar vivo avisa que a corte esta preparando a mesa.",
+        ],
+        reveal:
+          "As vilas temem os minotauros e tambem os templarios, porque a ultima salvacao trouxe execucoes e fome.",
+        noviceTip:
+          "Antes do forte, peça nomes de desaparecidos. Nome proprio torna resgate mais facil de narrar.",
+      },
+      {
+        title: "Ato II - Subida ao forte",
+        focus:
+          "Transformar a viagem em parte da ameaca: o gelo ja serve a fortaleza.",
+        tableSteps: [
+          "Vento apaga tochas, pontes congelam, gargulas observam e ecos de mugidos respondem avalanches.",
+          "Mostre organizacao: aldeoes carregam prataria, esqueletos limpam neve e minotauros reabrem saloes.",
+          "Deanera envia convite formal, chamando o grupo de hospedes de reputacao duvidosa.",
+        ],
+        reveal:
+          "Altai nao esta apenas desperta; esta sendo preparada para governar de novo.",
+        noviceTip:
+          "A cada trecho da subida, ofereca uma escolha de custo: tempo, calor, silencio ou carga.",
+      },
+      {
+        title: "Ato III - Corte de sangue",
+        focus:
+          "Fazer o salao de jantar impecavel virar a cena central de horror social.",
+        tableSteps: [
+          "Descreva mesa limpa, frio elegante e aldeoes servindo uma refeicao que ninguem vivo deveria aceitar.",
+          "Deanera oferece recompensas, aldeoes e segredos se o grupo permitir que Molekh marche contra vilas templarias.",
+          "Molekh interrompe a etiqueta exigindo tributo, duelo ou submissao.",
+        ],
+        reveal:
+          "Deanera precisa dos minotauros, mas teme perder controle; Molekh aceita sua ajuda enquanto ela for util.",
+        noviceTip:
+          "Se o grupo so quiser atacar, use um lacaio aldeao pedindo ajuda para lembrar que ha vitimas na sala.",
+      },
+      {
+        title: "Ato IV - Criptas e espada de Gorric",
+        focus:
+          "Encerrar com reliquia contaminada, comando morto-vivo e destino politico da montanha.",
+        tableSteps: [
+          "Nas criptas, os minotauros despertam em cadeia; quebrar comando importa mais que matar todos.",
+          "A espada de Gorric mostra memoria de coragem, medo e fanatismo misturados.",
+          "A conclusao exige decidir destino da espada, de Deanera e de Molekh.",
+        ],
+        reveal:
+          "Matar um antagonista pode fortalecer o outro se o grupo ignorar a relacao entre sangue, tributo e reliquia.",
+        noviceTip:
+          "No final, mantenha dois focos ativos por vez: vilao, refens, espada ou ambiente. Mais que isso pode confundir mesa novata.",
+      },
+    ],
+    escalationClock: [
+      "Pastores desaparecem durante a noite.",
+      "Molekh reune lordes chifrudos nas criptas.",
+      "Uma forca templaria e repelida e reanimada.",
+      "Uryl recebe exigencia de tributo em sangue e ibex.",
+      "Desastre: Altai retoma as montanhas e vilas viram currais humanos.",
+    ],
+    sceneSeeds: [
+      "Um lacaio aldeao derruba vinho e sussurra que sua filha ainda esta na cozinha.",
+      "Molekh oferece a um guerreiro a chance de governar uma vila em seu nome.",
+      "Deanera critica a decoracao enquanto mortos-vivos arrastam corpos pelo corredor.",
+      "A espada de Gorric chora sangue congelado quando um templario mente perto dela.",
+    ],
+    endings: [
+      {
+        title: "Sepultura selada",
+        outcome:
+          "Molekh e destruido e as criptas sao purificadas.",
+        consequence:
+          "Uryl sobrevive, mas a Fe Roubada tenta reivindicar gloria e controle politico.",
+      },
+      {
+        title: "A princesa foge",
+        outcome:
+          "Deanera escapa com uma reliquia ou mapa de poder.",
+        consequence:
+          "Ela se torna antagonista recorrente e procura novo palacio.",
+      },
+      {
+        title: "Tributo sombrio",
+        outcome:
+          "O grupo negocia paz temporaria com Molekh.",
+        consequence:
+          "As vilas vivem pagando tributo; alguns chamam isso de covardia, outros de sobrevivencia.",
+      },
+      {
+        title: "A espada volta para a Fe",
+        outcome:
+          "Gorric vira simbolo santo e a espada contaminada e celebrada.",
+        consequence:
+          "Uma cruzada pode nascer, tao perigosa quanto o retorno de Altai.",
+      },
+    ],
     plot: [
       {
         title: "A montanha volta a reclamar tributo",
@@ -1317,6 +1661,114 @@ const adventures: AdventureGuide[] = [
       "A colonia de formigas cultivava fungos para dominar trolls, mas uma cepa se espalhou para as proprias formigas. A rainha foi infectada, elfos precisam de magisita e uma aranha mercadora esta presa no meio do desastre.",
     start:
       "Comece na sala de distribuicao, cercada por lajes de minerios, vegetais embolorados, fungo imenso e operarias infectadas vindo do corredor sul.",
+    secretTruth:
+      "A colonia usava fungos para domesticar trolls e proteger interesses economicos. Uma cepa trazida por troll de carga infectou a rainha, que agora usa memoria coletiva e rotas comerciais para tentar escapar do zigurate.",
+    conductorNotes: [
+      "Conduza como horror de sobrevivencia com dilema moral: a colonia tinha cultura, comercio e culpa antes de virar vetor.",
+      "Nostarion e Eleniel nao sao apenas guias; eles carregam interesses elficos sobre magisita e podem tensionar a decisao final.",
+      "Dê sinais antes do dano. Esporos, tosse, calor e corrosao ensinam o mestre novato a pedir rolagens quando a ficcao dispara.",
+    ],
+    actGuides: [
+      {
+        title: "Ato I - Entrada amarela",
+        focus:
+          "Comecar ja dentro da ameaca, com sala de distribuicao, lajes e operarias cambaleantes.",
+        tableSteps: [
+          "Descreva minerios, vegetais embolorados, fungo enorme e sombras vindas do corredor sul.",
+          "Use esporos amarelos para criar paranoia: quem tossiu, quem esconde sintomas, quem chegou perto demais.",
+          "Os elfos insistem em ir mais fundo para confirmar o destino da rainha e da magisita.",
+        ],
+        reveal:
+          "A missao nao e simples limpeza; ha recurso, interesse politico e risco de contaminacao.",
+        noviceTip:
+          "Pergunte quem segura a frente, quem observa os elfos e quem protege a rota de fuga. Isso organiza mesa cheia.",
+      },
+      {
+        title: "Ato II - Salas de cura e enviado aranha",
+        focus:
+          "Revelar que o fungo original domesticava trolls e que Pii'treb pode mudar a reputacao do grupo.",
+        tableSteps: [
+          "Nas salas de cura, mostre restos de trolls tratados como ferramenta biologica.",
+          "Pii'treb ataca por medo, depois tenta negociar fuga por gestos, desenhos ou traducao improvisada.",
+          "Nostarion tenta recolher magisita demais e Eleniel o confronta diante dos personagens.",
+        ],
+        reveal:
+          "As formigas tambem tinham pecados, e os elfos podem transformar tragedia em saque.",
+        noviceTip:
+          "Dê a cada aliado um desejo curto: sair vivo, manter honra, levar magisita ou impedir quarentena maior.",
+      },
+      {
+        title: "Ato III - Minas fungicas",
+        focus:
+          "Escalar para corrosao, trolls cobertos de esporos e uma infectada tentando abrir caminho para a superficie.",
+        tableSteps: [
+          "Cadaveres de trolls se movem em ciclos lentos, metal corrói e tochas queimam em cores doentias.",
+          "Uma operaria infectada cava para a superficie; se escapar, a infeccao deixa de ser local.",
+          "A magisita pode queimar, alimentar ou atrair escolhas ruins, dependendo do uso dos jogadores.",
+        ],
+        reveal:
+          "O fungo aprende rotas, funcoes e desejos; ele nao e apenas um mofo parado na masmorra.",
+        noviceTip:
+          "Quando houver falha, avance a infeccao ou separe alguem, em vez de repetir dano seco.",
+      },
+      {
+        title: "Ato IV - Lar da Rainha",
+        focus:
+          "Encerrar com rainha viva, ovos, chave de mandibula e decisao entre queimar, selar, curar ou estudar.",
+        tableSteps: [
+          "A entrada exige mandibula de guarda real, misturando ritual, violencia e urgencia.",
+          "A Rainha Fungica alterna ordens de mae, dor coletiva e fome parasita.",
+          "O final deve perguntar se a mesa aceita destruir um povo para conter a praga.",
+        ],
+        reveal:
+          "A rainha ainda tem lampejos de consciencia; a ameaca e biologica, politica e tragica.",
+        noviceTip:
+          "Se criarem uma solucao inteligente, permita cura parcial ou selamento com custo alto em vez de forcar combate total.",
+      },
+    ],
+    escalationClock: [
+      "Tosse e olhos inchados aparecem em alguem vulneravel.",
+      "Uma operaria infectada alcanca tuneis superiores.",
+      "Nostarion rouba magisita e se perde.",
+      "A Rainha libera ovos fungicos moveis.",
+      "Desastre: a infeccao escapa do zigurate e torna quarentena regional inevitavel.",
+    ],
+    sceneSeeds: [
+      "Uma formiga infectada oferece vegetais embolorados como se ainda recebesse visitantes.",
+      "Eleniel levanta a espada contra Nostarion quando ele tenta esconder magisita.",
+      "Pii'treb desenha uma rota de fuga em teia tremula.",
+      "A Rainha fala em plural, misturando fome, maternidade e arrependimento.",
+    ],
+    endings: [
+      {
+        title: "Queima misericordiosa",
+        outcome:
+          "O zigurate e incendiado ou colapsado para conter a praga.",
+        consequence:
+          "A ameaca imediata acaba, mas qualquer sobrevivente formiga morre junto.",
+      },
+      {
+        title: "Cura improvavel",
+        outcome:
+          "Rainha e fungo sao separados com magisita, Pii'treb e risco alto.",
+        consequence:
+          "A colonia vive, mas nunca volta a confiar plenamente nos elfos.",
+      },
+      {
+        title: "Arma roubada",
+        outcome:
+          "Nostarion ou outra faccao leva amostra do fungo.",
+        consequence:
+          "A vitoria parece limpa, mas vira gancho de guerra biologica.",
+      },
+      {
+        title: "Exilio das formigas",
+        outcome:
+          "Sobreviventes deixam o zigurate rumo a outra colonia.",
+        consequence:
+          "O grupo ganha aliados e culpa politica por expor fraquezas da colonia.",
+      },
+    ],
     plot: [
       {
         title: "O grupo ja esta no fundo do problema",
@@ -2531,6 +2983,7 @@ function SummarySection({
         accent={adventure.accent}
       />
       <QuickStart adventure={adventure} />
+      <DirectorBrief adventure={adventure} />
       <StoryFlow adventure={adventure} />
 
       <Box
@@ -2560,6 +3013,68 @@ function SummarySection({
         accent="#aa263d"
       />
     </Stack>
+  );
+}
+
+function DirectorBrief({ adventure }: { adventure: AdventureGuide }) {
+  return (
+    <Paper
+      variant="outlined"
+      sx={{
+        borderColor: `${adventure.accent}35`,
+        bgcolor:
+          `linear-gradient(145deg, ${adventure.accent}12, rgba(0,0,0,.18)), rgba(255,255,255,.03)`,
+        p: 1.25,
+      }}
+    >
+      <Stack spacing={1.1}>
+        <Stack direction="row" spacing={0.8} sx={{ alignItems: "center" }}>
+          <GiSecretBook size={22} color={adventure.accent} />
+          <Box>
+            <Typography sx={{ color: adventure.accent, fontWeight: 900 }}>
+              Direcao do guia completo
+            </Typography>
+            <Typography sx={{ color: "#8f826c", fontSize: ".76rem" }}>
+              Camada narrativa adicionada do novo PDF
+            </Typography>
+          </Box>
+        </Stack>
+
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: { xs: "1fr", md: ".95fr 1.05fr" },
+            gap: 1,
+          }}
+        >
+          <Paper variant="outlined" sx={cardSx(adventure.accent)}>
+            <Typography sx={{ color: adventure.accent, fontWeight: 900 }}>
+              Verdade secreta
+            </Typography>
+            <Typography sx={{ color: "#d7c59d", mt: 0.6, lineHeight: 1.58 }}>
+              {adventure.secretTruth}
+            </Typography>
+          </Paper>
+
+          <Paper variant="outlined" sx={cardSx("#5fb6c4")}>
+            <Typography sx={{ color: "#5fb6c4", fontWeight: 900 }}>
+              Como mestrar sem se perder
+            </Typography>
+            <Stack component="ul" spacing={0.55} sx={{ m: 0, mt: 0.8, pl: 2.1 }}>
+              {adventure.conductorNotes.map((note) => (
+                <Typography
+                  key={note}
+                  component="li"
+                  sx={{ color: "#d7c59d", fontSize: ".88rem", lineHeight: 1.5 }}
+                >
+                  {note}
+                </Typography>
+              ))}
+            </Stack>
+          </Paper>
+        </Box>
+      </Stack>
+    </Paper>
   );
 }
 
@@ -2785,6 +3300,8 @@ function ScenesSection({
         body="Cada cena separa leitura, pressao para mesa cheia, ressalva para grupos menores e decisoes que movem a aventura."
         accent={adventure.accent}
       />
+      <ActGuideSection adventure={adventure} />
+      <SceneSeedsPanel adventure={adventure} />
       {adventure.scenes.map((scene, index) => (
         <SceneCard
           key={scene.title}
@@ -2867,6 +3384,245 @@ function PanelTitle({
         {title}
       </Typography>
     </Stack>
+  );
+}
+
+function ActGuideSection({ adventure }: { adventure: AdventureGuide }) {
+  return (
+    <Paper
+      variant="outlined"
+      sx={{
+        borderColor: `${adventure.accent}35`,
+        bgcolor: "rgba(255,255,255,.03)",
+        p: 1.2,
+      }}
+    >
+      <Stack direction="row" spacing={0.8} sx={{ alignItems: "center", mb: 1 }}>
+        <GiFootsteps size={22} color={adventure.accent} />
+        <Box>
+          <Typography sx={{ color: adventure.accent, fontWeight: 900 }}>
+            Roteiro de atos do PDF
+          </Typography>
+          <Typography sx={{ color: "#8f826c", fontSize: ".76rem" }}>
+            Use como trilha de tensao, nao como ferrovia
+          </Typography>
+        </Box>
+      </Stack>
+
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", lg: "repeat(2, minmax(0, 1fr))" },
+          gap: 0.9,
+        }}
+      >
+        {adventure.actGuides.map((act, index) => (
+          <ActGuideCard
+            key={act.title}
+            act={act}
+            index={index}
+            accent={adventure.accent}
+          />
+        ))}
+      </Box>
+    </Paper>
+  );
+}
+
+function ActGuideCard({
+  act,
+  index,
+  accent,
+}: {
+  act: AdventureActGuide;
+  index: number;
+  accent: string;
+}) {
+  const [isOpen, setIsOpen] = useState(index === 0);
+
+  return (
+    <Paper
+      variant="outlined"
+      sx={{
+        borderColor: isOpen ? `${accent}77` : "rgba(217,200,159,.13)",
+        bgcolor: isOpen ? `${accent}10` : "rgba(0,0,0,.18)",
+        p: 1,
+      }}
+    >
+      <Stack spacing={0.8}>
+        <Button
+          variant="text"
+          onClick={() => setIsOpen((current) => !current)}
+          sx={{
+            justifyContent: "flex-start",
+            color: "#f7edd9",
+            p: 0,
+            "&:hover": { bgcolor: "transparent", color: "#fff3dc" },
+          }}
+        >
+          <Stack direction="row" spacing={0.8} sx={{ alignItems: "center", minWidth: 0 }}>
+            <Box
+              component="span"
+              sx={{
+                width: 30,
+                height: 30,
+                borderRadius: "50%",
+                display: "grid",
+                placeItems: "center",
+                bgcolor: isOpen ? accent : `${accent}24`,
+                color: isOpen ? "#100b08" : accent,
+                fontWeight: 900,
+                flex: "0 0 auto",
+              }}
+            >
+              {index + 1}
+            </Box>
+            <Box component="span" sx={{ textAlign: "left", minWidth: 0 }}>
+              <Typography component="span" sx={{ display: "block", fontWeight: 900 }}>
+                {act.title}
+              </Typography>
+              <Typography component="span" sx={{ display: "block", color: "#b9a98b", fontSize: ".78rem" }}>
+                {isOpen ? "Recolher condução" : "Abrir condução"}
+              </Typography>
+            </Box>
+          </Stack>
+        </Button>
+
+        <Typography sx={{ color: "#d7c59d", fontSize: ".88rem", lineHeight: 1.5 }}>
+          {act.focus}
+        </Typography>
+
+        <Collapse in={isOpen} timeout={180} unmountOnExit>
+          <Stack spacing={0.9}>
+            <StepList title="Passos na mesa" items={act.tableSteps} accent={accent} />
+            <Paper variant="outlined" sx={cardSx("#5fb6c4")}>
+              <Typography sx={{ color: "#5fb6c4", fontWeight: 900 }}>
+                Revelacao principal
+              </Typography>
+              <Typography sx={{ color: "#d7c59d", mt: 0.45, lineHeight: 1.48 }}>
+                {act.reveal}
+              </Typography>
+            </Paper>
+            <Paper variant="outlined" sx={cardSx("#f2c76c")}>
+              <Typography sx={{ color: "#f2c76c", fontWeight: 900 }}>
+                Dica para mestre iniciante
+              </Typography>
+              <Typography sx={{ color: "#d7c59d", mt: 0.45, lineHeight: 1.48 }}>
+                {act.noviceTip}
+              </Typography>
+            </Paper>
+          </Stack>
+        </Collapse>
+      </Stack>
+    </Paper>
+  );
+}
+
+function SceneSeedsPanel({ adventure }: { adventure: AdventureGuide }) {
+  return (
+    <Paper
+      variant="outlined"
+      sx={{
+        borderColor: "rgba(95,182,196,.22)",
+        bgcolor: "rgba(95,182,196,.055)",
+        p: 1.2,
+      }}
+    >
+      <Stack direction="row" spacing={0.8} sx={{ alignItems: "center", mb: 1 }}>
+        <GiCampfire size={22} color="#5fb6c4" />
+        <Box>
+          <Typography sx={{ color: "#5fb6c4", fontWeight: 900 }}>
+            Cenas prontas para puxar ritmo
+          </Typography>
+          <Typography sx={{ color: "#8f826c", fontSize: ".76rem" }}>
+            Insira quando a mesa hesitar, descansar ou precisar de um rosto novo
+          </Typography>
+        </Box>
+      </Stack>
+
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", md: "repeat(2, minmax(0, 1fr))" },
+          gap: 0.8,
+        }}
+      >
+        {adventure.sceneSeeds.map((seed, index) => (
+          <Box
+            key={seed}
+            sx={{
+              display: "grid",
+              gridTemplateColumns: "30px minmax(0, 1fr)",
+              gap: 0.8,
+              border: "1px solid rgba(95,182,196,.16)",
+              bgcolor: "rgba(0,0,0,.18)",
+              p: 0.85,
+            }}
+          >
+            <Box
+              sx={{
+                width: 30,
+                height: 30,
+                borderRadius: 1.5,
+                display: "grid",
+                placeItems: "center",
+                bgcolor: "rgba(95,182,196,.18)",
+                color: "#5fb6c4",
+                fontWeight: 900,
+              }}
+            >
+              {index + 1}
+            </Box>
+            <Typography sx={{ color: "#d7c59d", lineHeight: 1.5 }}>
+              {seed}
+            </Typography>
+          </Box>
+        ))}
+      </Box>
+    </Paper>
+  );
+}
+
+function StepList({
+  title,
+  items,
+  accent,
+}: {
+  title: string;
+  items: string[];
+  accent: string;
+}) {
+  return (
+    <Box>
+      <Typography sx={{ color: accent, fontSize: ".78rem", fontWeight: 900, mb: 0.45 }}>
+        {title}
+      </Typography>
+      <Stack spacing={0.5}>
+        {items.map((item, index) => (
+          <Stack key={item} direction="row" spacing={0.75} sx={{ alignItems: "flex-start" }}>
+            <Box
+              sx={{
+                width: 22,
+                height: 22,
+                borderRadius: "50%",
+                display: "grid",
+                placeItems: "center",
+                bgcolor: `${accent}22`,
+                color: accent,
+                fontSize: ".7rem",
+                fontWeight: 900,
+                flex: "0 0 auto",
+              }}
+            >
+              {index + 1}
+            </Box>
+            <Typography sx={{ color: "#d7c59d", fontSize: ".84rem", lineHeight: 1.45 }}>
+              {item}
+            </Typography>
+          </Stack>
+        ))}
+      </Stack>
+    </Box>
   );
 }
 
@@ -2998,6 +3754,8 @@ function RulesSection({
         selectedPlayers={selectedPlayers}
       />
 
+      <ClockAndFinales adventure={adventure} />
+
       <InfoGrid
         title="Movimentos personalizados"
         items={adventure.customMoves}
@@ -3090,6 +3848,110 @@ function ScaleTable({
         })}
       </Box>
     </Paper>
+  );
+}
+
+function ClockAndFinales({ adventure }: { adventure: AdventureGuide }) {
+  return (
+    <Box
+      sx={{
+        display: "grid",
+        gridTemplateColumns: { xs: "1fr", lg: ".9fr 1.1fr" },
+        gap: 1.2,
+      }}
+    >
+      <Paper
+        variant="outlined"
+        sx={{
+          borderColor: "rgba(170,38,61,.24)",
+          bgcolor: "rgba(170,38,61,.06)",
+          p: 1.2,
+        }}
+      >
+        <Stack direction="row" spacing={0.8} sx={{ alignItems: "center", mb: 1 }}>
+          <GiSkullCrossedBones size={22} color="#ffb2b8" />
+          <Box>
+            <Typography sx={{ color: "#ffb2b8", fontWeight: 900 }}>
+              Relogio de agravamento
+            </Typography>
+            <Typography sx={{ color: "#8f826c", fontSize: ".76rem" }}>
+              Avance quando a mesa demora, falha ou escolhe seguranca
+            </Typography>
+          </Box>
+        </Stack>
+
+        <Stack spacing={0.75}>
+          {adventure.escalationClock.map((stage, index) => (
+            <Stack key={stage} direction="row" spacing={0.8} sx={{ alignItems: "flex-start" }}>
+              <Box
+                sx={{
+                  width: 30,
+                  height: 30,
+                  borderRadius: "50%",
+                  display: "grid",
+                  placeItems: "center",
+                  bgcolor: index === adventure.escalationClock.length - 1
+                    ? "rgba(170,38,61,.28)"
+                    : "rgba(255,255,255,.06)",
+                  color: index === adventure.escalationClock.length - 1 ? "#ffb2b8" : "#f2c76c",
+                  border: "1px solid rgba(217,200,159,.14)",
+                  fontWeight: 900,
+                  flex: "0 0 auto",
+                }}
+              >
+                {index + 1}
+              </Box>
+              <Typography sx={{ color: "#d7c59d", lineHeight: 1.5 }}>
+                {stage}
+              </Typography>
+            </Stack>
+          ))}
+        </Stack>
+      </Paper>
+
+      <Paper
+        variant="outlined"
+        sx={{
+          borderColor: `${adventure.accent}33`,
+          bgcolor: `${adventure.accent}0d`,
+          p: 1.2,
+        }}
+      >
+        <Stack direction="row" spacing={0.8} sx={{ alignItems: "center", mb: 1 }}>
+          <GiCompass size={22} color={adventure.accent} />
+          <Box>
+            <Typography sx={{ color: adventure.accent, fontWeight: 900 }}>
+              Finais possiveis
+            </Typography>
+            <Typography sx={{ color: "#8f826c", fontSize: ".76rem" }}>
+              Desfechos coerentes com escolhas, falhas e custos
+            </Typography>
+          </Box>
+        </Stack>
+
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: { xs: "1fr", md: "repeat(2, minmax(0, 1fr))" },
+            gap: 0.8,
+          }}
+        >
+          {adventure.endings.map((ending) => (
+            <Paper key={ending.title} variant="outlined" sx={cardSx(adventure.accent)}>
+              <Typography sx={{ color: adventure.accent, fontWeight: 900 }}>
+                {ending.title}
+              </Typography>
+              <Typography sx={{ color: "#f7edd9", fontSize: ".88rem", lineHeight: 1.5, mt: 0.5 }}>
+                {ending.outcome}
+              </Typography>
+              <Typography sx={{ color: "#b9a98b", fontSize: ".82rem", lineHeight: 1.45, mt: 0.55 }}>
+                {ending.consequence}
+              </Typography>
+            </Paper>
+          ))}
+        </Box>
+      </Paper>
+    </Box>
   );
 }
 
