@@ -6,9 +6,9 @@ import {
   GiTabletopPlayers,
   GiTreasureMap,
 } from "react-icons/gi";
-import { getClassTheme } from "../../data/classThemes";
-import type { PlayerProfileSummary } from "../../types/character";
-import ClassMark from "./ClassMark";
+import ClassMark from "../../../components/public/ClassMark";
+import { getClassTheme } from "../../../data/classThemes";
+import type { PlayerProfileSummary } from "../../../types/character";
 
 type AppsAccessPanelsProps = {
   playerProfiles: PlayerProfileSummary[];

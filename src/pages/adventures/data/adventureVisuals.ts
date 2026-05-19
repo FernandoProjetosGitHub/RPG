@@ -1,7 +1,7 @@
-import altaiBackground from "../../assets/adventure-backgrounds/altai.svg";
-import formigueiroBackground from "../../assets/adventure-backgrounds/formigueiro.svg";
-import nekestiBackground from "../../assets/adventure-backgrounds/nekesti.svg";
-import nemfallaBackground from "../../assets/adventure-backgrounds/nemfalla.svg";
+import altaiBackground from "../../../assets/adventure-backgrounds/altai.svg";
+import formigueiroBackground from "../../../assets/adventure-backgrounds/formigueiro.svg";
+import nekestiBackground from "../../../assets/adventure-backgrounds/nekesti.svg";
+import nemfallaBackground from "../../../assets/adventure-backgrounds/nemfalla.svg";
 
 type AdventureVisual = {
   background: string;

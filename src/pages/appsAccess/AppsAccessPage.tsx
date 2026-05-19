@@ -1,10 +1,10 @@
 import { Stack } from "@mui/material";
-import AppsAccessPanels from "../components/public/AppsAccessPanels";
-import PublicIntro from "../components/public/PublicIntro";
+import AppsAccessPanels from "./components/AppsAccessPanels";
+import PublicIntro from "../../components/public/PublicIntro";
 import PublicPageShell, {
   type PublicView,
-} from "../components/public/PublicPageShell";
-import type { PlayerProfileSummary } from "../types/character";
+} from "../../components/public/PublicPageShell";
+import type { PlayerProfileSummary } from "../../types/character";
 
 type AppsAccessPageProps = {
   playerProfiles: PlayerProfileSummary[];

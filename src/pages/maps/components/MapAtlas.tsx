@@ -19,12 +19,12 @@ import {
   GiTreasureMap,
   GiVillage,
 } from "react-icons/gi";
-import { MapSvg, pointStyles } from "../AdventureMapsDialog";
+import { MapSvg, pointStyles } from "../../../components/AdventureMapsDialog";
 import {
   adventureMaps,
   type AdventureMap,
   type AdventureMapPoint,
-} from "../../data/adventureMaps";
+} from "../../../data/adventureMaps";
 
 const mapTypeIcons: Record<AdventureMap["type"], IconType> = {
   mundi: GiCompass,

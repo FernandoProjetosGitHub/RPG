@@ -32,7 +32,7 @@ import { MapSvg } from "../../components/AdventureMapsDialog";
 import PublicPageShell from "../../components/public/PublicPageShell";
 import type { PublicView } from "../../components/public/PublicPageShell";
 import { adventureMaps, type AdventureMap } from "../../data/adventureMaps";
-import { getAdventureVisual } from "./adventureVisuals";
+import { getAdventureVisual } from "./data/adventureVisuals";
 
 import {
   adventureSections,

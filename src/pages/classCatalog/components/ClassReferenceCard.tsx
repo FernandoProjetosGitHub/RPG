@@ -9,22 +9,22 @@ import {
   GiMagicSwirl,
   GiSkills,
 } from "react-icons/gi";
-import { getClassTheme } from "../../data/classThemes";
+import MoveOutcomeGuide from "../../../components/dw/MoveOutcomeGuide";
+import ClassMark from "../../../components/public/ClassMark";
+import { getClassTheme } from "../../../data/classThemes";
 import {
   getCreationRulesFor,
   getOptionsForCreationRule,
-} from "../../data/classCreation";
-import { type DwClass } from "../../data/dwClasses";
+} from "../../../data/classCreation";
+import { type DwClass } from "../../../data/dwClasses";
 import {
   classStartingConsumables,
   classStartingItemIds,
   consumableItems,
   items,
-} from "../../data/items";
-import { spells } from "../../data/spells";
-import type { AttributeKey } from "../../types/character";
-import MoveOutcomeGuide from "../dw/MoveOutcomeGuide";
-import ClassMark from "./ClassMark";
+} from "../../../data/items";
+import { spells } from "../../../data/spells";
+import type { AttributeKey } from "../../../types/character";
 
 export default function ClassReferenceCard({ dwClass }: { dwClass: DwClass }) {
   const theme = getClassTheme(dwClass.id);

@@ -1,11 +1,11 @@
 import { useState } from "react";
-import Aventuras from "./pages/Aventuras";
-import AppsAccessPage from "./pages/AppsAccessPage";
-import ClassCatalogPage from "./pages/ClassCatalogPage";
-import CharacterAppPage from "./pages/CharacterAppPage";
-import LandingPage from "./pages/LandingPage";
-import MapsPage from "./pages/MapsPage";
-import MasterAppPage from "./pages/MasterAppPage";
+import Aventuras from "./pages/adventures/AventurasPage";
+import AppsAccessPage from "./pages/appsAccess/AppsAccessPage";
+import CharacterAppPage from "./pages/character/CharacterAppPage";
+import ClassCatalogPage from "./pages/classCatalog/ClassCatalogPage";
+import LandingPage from "./pages/landingPage/LandingPage";
+import MapsPage from "./pages/maps/MapsPage";
+import MasterAppPage from "./pages/master/MasterAppPage";
 import { useRpgTable } from "./hooks/useRpgTable";
 import type { PublicView } from "./components/public/PublicPageShell";
 

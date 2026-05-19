@@ -18,12 +18,12 @@ import {
   GiTabletopPlayers,
   GiTreasureMap,
 } from "react-icons/gi";
-import { adventureMaps } from "../../data/adventureMaps";
-import { dwClasses } from "../../data/dwClasses";
-import { getClassTheme } from "../../data/classThemes";
-import { getClassIcon } from "../rpg/classIcons";
-import type { PublicView } from "./PublicPageShell";
-import zineHero from "../../assets/zine-hero.png";
+import zineHero from "../../../assets/zine-hero.png";
+import { getClassIcon } from "../../../components/rpg/classIcons";
+import type { PublicView } from "../../../components/public/PublicPageShell";
+import { adventureMaps } from "../../../data/adventureMaps";
+import { getClassTheme } from "../../../data/classThemes";
+import { dwClasses } from "../../../data/dwClasses";
 
 const systemHighlights = [
   {

@@ -1,9 +1,9 @@
 import { Stack } from "@mui/material";
-import MapAtlas from "../components/public/MapAtlas";
-import PublicIntro from "../components/public/PublicIntro";
+import MapAtlas from "./components/MapAtlas";
+import PublicIntro from "../../components/public/PublicIntro";
 import PublicPageShell, {
   type PublicView,
-} from "../components/public/PublicPageShell";
+} from "../../components/public/PublicPageShell";
 
 type MapsPageProps = {
   onNavigate: (view: PublicView) => void;
