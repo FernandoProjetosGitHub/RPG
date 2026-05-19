@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-label="Zigurate infectado por fungos e magisita">
+  <defs>
+    <linearGradient id="waste" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#15120b"/>
+      <stop offset=".52" stop-color="#17140d"/>
+      <stop offset="1" stop-color="#050504"/>
+    </linearGradient>
+    <radialGradient id="spores" cx="54%" cy="55%" r="44%">
+      <stop offset="0" stop-color="#7f6fd9" stop-opacity=".5"/>
+      <stop offset=".36" stop-color="#6f8c54" stop-opacity=".32"/>
+      <stop offset="1" stop-color="#050504" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#waste)"/>
+  <rect width="1600" height="900" fill="url(#spores)"/>
+  <path d="M350 714 L800 124 L1250 714Z" fill="#17120c" stroke="#9d8b55" stroke-width="5"/>
+  <path d="M462 624 H1138 L1046 502 H554Z" fill="#211909" stroke="#9d8b55" stroke-width="4"/>
+  <path d="M558 500 H1042 L964 390 H636Z" fill="#251c0e" stroke="#9d8b55" stroke-width="4"/>
+  <path d="M650 388 H950 L890 300 H710Z" fill="#2a2011" stroke="#9d8b55" stroke-width="4"/>
+  <path d="M730 714 V612 C730 548 870 548 870 612 V714Z" fill="#060605" stroke="#7f6fd9" stroke-width="4"/>
+  <g fill="#6f8c54" opacity=".72">
+    <circle cx="604" cy="626" r="28"/>
+    <circle cx="1006" cy="574" r="34"/>
+    <circle cx="790" cy="452" r="26"/>
+    <circle cx="910" cy="692" r="22"/>
+  </g>
+  <g fill="#7f6fd9" opacity=".62">
+    <circle cx="520" cy="342" r="10"/>
+    <circle cx="1100" cy="302" r="12"/>
+    <circle cx="676" cy="246" r="8"/>
+    <circle cx="1192" cy="654" r="11"/>
+    <circle cx="414" cy="668" r="9"/>
+  </g>
+  <path d="M0 742 C238 678 410 724 654 682 C882 642 1114 706 1600 612 V900 H0Z" fill="#060605" opacity=".86"/>
+  <path d="M198 480 C352 396 446 424 604 356 M1020 204 C1184 196 1304 248 1464 186" stroke="#6f8c54" stroke-width="18" stroke-opacity=".13" fill="none"/>
+</svg>

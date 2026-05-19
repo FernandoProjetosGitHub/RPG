@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-label="Desfiladeiro subterraneo de Nemfalla com trilhos e fenda luminosa">
+  <defs>
+    <linearGradient id="cave" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#081014"/>
+      <stop offset=".55" stop-color="#11100d"/>
+      <stop offset="1" stop-color="#050504"/>
+    </linearGradient>
+    <radialGradient id="blue" cx="50%" cy="50%" r="46%">
+      <stop offset="0" stop-color="#5fb6c4" stop-opacity=".58"/>
+      <stop offset=".38" stop-color="#1b5960" stop-opacity=".34"/>
+      <stop offset="1" stop-color="#050504" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#cave)"/>
+  <rect width="1600" height="900" fill="url(#blue)"/>
+  <path d="M566 0 C456 168 506 334 430 504 C360 660 412 788 324 900 H0 V0Z" fill="#050504" opacity=".92"/>
+  <path d="M1038 0 C1120 176 1064 366 1158 520 C1258 684 1188 780 1278 900 H1600 V0Z" fill="#050504" opacity=".9"/>
+  <path d="M624 0 C580 184 638 282 596 458 C552 644 608 754 560 900" stroke="#2c2520" stroke-width="80" fill="none"/>
+  <path d="M958 0 C1004 172 936 296 1006 476 C1078 662 1018 744 1086 900" stroke="#241d18" stroke-width="78" fill="none"/>
+  <path d="M414 654 C626 578 822 584 1144 640" stroke="#94754a" stroke-width="9" fill="none"/>
+  <path d="M430 688 C650 616 830 628 1136 676" stroke="#3a2b1b" stroke-width="8" fill="none"/>
+  <g stroke="#5fb6c4" stroke-opacity=".45" stroke-width="6">
+    <path d="M792 178 L760 830"/>
+    <path d="M826 190 L798 838"/>
+  </g>
+  <g fill="#5fb6c4" opacity=".8">
+    <circle cx="760" cy="548" r="12"/>
+    <circle cx="846" cy="368" r="8"/>
+    <circle cx="704" cy="690" r="7"/>
+    <circle cx="920" cy="590" r="10"/>
+  </g>
+  <path d="M714 212 C782 282 802 362 780 466 C756 584 798 690 760 798" stroke="#d8faff" stroke-width="4" stroke-opacity=".34" fill="none"/>
+  <path d="M300 320 C520 272 546 176 706 148 M940 160 C1112 196 1184 274 1348 258" stroke="#5fb6c4" stroke-width="18" stroke-opacity=".1" fill="none"/>
+</svg>
