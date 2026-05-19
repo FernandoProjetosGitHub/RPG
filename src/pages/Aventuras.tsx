@@ -2,8 +2,6 @@ import {
   Alert,
   Box,
   Button,
-  Card,
-  CardContent,
   Chip,
   Collapse,
   Divider,
@@ -17,10 +15,16 @@ import type { ReactNode } from "react";
 import type { IconType } from "react-icons";
 import {
   GiCampfire,
+  GiCastle,
+  GiCompass,
   GiCrossedSwords,
+  GiDiceTwentyFacesTwenty,
+  GiFootsteps,
   GiOpenBook,
   GiScrollQuill,
+  GiSecretBook,
   GiSkullCrossedBones,
+  GiSpellBook,
   GiTabletopPlayers,
   GiTreasureMap,
 } from "react-icons/gi";
@@ -1700,13 +1704,18 @@ export default function Aventuras({
 
   return (
     <PublicPageShell active="aventuras" onNavigate={onNavigate}>
-      <Stack spacing={2.4}>
-        <HeroSection />
+      <Stack spacing={2}>
+        <HeroSection
+          adventure={selectedAdventure}
+          selectedPlayers={selectedPlayers}
+          selectedBudget={selectedBudget}
+          onSectionChange={setActiveSection}
+        />
 
         <Box
           sx={{
             display: "grid",
-            gridTemplateColumns: { xs: "1fr", lg: "300px minmax(0, 1fr)" },
+            gridTemplateColumns: { xs: "1fr", lg: "320px minmax(0, 1fr)" },
             gap: 1.6,
             alignItems: "start",
           }}
@@ -1730,6 +1739,11 @@ export default function Aventuras({
               onSelect={setSelectedPlayers}
               baseBudget={selectedAdventure.baseDangerBudget}
             />
+            <SessionPulse
+              adventure={selectedAdventure}
+              selectedPlayers={selectedPlayers}
+              selectedBudget={selectedBudget}
+            />
           </Stack>
 
           <AdventureDetail
@@ -1745,58 +1759,173 @@ export default function Aventuras({
   );
 }
 
-function HeroSection() {
+function HeroSection({
+  adventure,
+  selectedPlayers,
+  selectedBudget,
+  onSectionChange,
+}: {
+  adventure: AdventureGuide;
+  selectedPlayers: PlayerCount;
+  selectedBudget: number;
+  onSectionChange: (section: AdventureSection) => void;
+}) {
   return (
     <Paper
       variant="outlined"
       sx={{
-        borderColor: "rgba(217,200,159,.16)",
+        position: "relative",
+        overflow: "hidden",
+        borderColor: `${adventure.accent}44`,
         bgcolor:
-          "linear-gradient(135deg, rgba(197,155,75,.14), rgba(95,182,196,.08)), rgba(255,255,255,.035)",
-        p: { xs: 1.5, md: 2.2 },
+          `radial-gradient(circle at 82% 12%, ${adventure.accent}30, transparent 20rem), ` +
+          "radial-gradient(circle at 12% 16%, rgba(95,182,196,.16), transparent 18rem), " +
+          "linear-gradient(145deg, rgba(17,17,15,.96), rgba(7,7,6,.92))",
+        p: { xs: 1.4, md: 2 },
       }}
     >
-      <Stack spacing={1.2}>
-        <Stack direction="row" useFlexGap gap={0.8} sx={{ flexWrap: "wrap", alignItems: "stretch" }}>
-          <Chip icon={<GiOpenBook size={16} />} label="Aventuras separadas por PDF" />
-          <Chip icon={<GiTabletopPlayers size={16} />} label="Base: 7 jogadores" />
-          <Chip icon={<GiCrossedSwords size={16} />} label="Escala 7 > 1" />
-          <Chip icon={<GiSkullCrossedBones size={16} />} label="Segredos do mestre" />
+      <Box
+        aria-hidden="true"
+        sx={{
+          position: "absolute",
+          inset: { xs: "auto -32px -46px auto", md: "auto 18px -44px auto" },
+          color: `${adventure.accent}18`,
+          pointerEvents: "none",
+        }}
+      >
+        <GiTreasureMap size={220} />
+      </Box>
+
+      <Box
+        sx={{
+          position: "relative",
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", lg: "minmax(0, 1.15fr) minmax(280px, .85fr)" },
+          gap: { xs: 1.5, md: 2 },
+          alignItems: "end",
+        }}
+      >
+        <Stack spacing={1.25}>
+          <Stack direction="row" useFlexGap gap={0.8} sx={{ flexWrap: "wrap", alignItems: "stretch" }}>
+            <Chip icon={<GiOpenBook size={16} />} label={adventure.source} />
+            <Chip icon={<GiTabletopPlayers size={16} />} label={`${selectedPlayers} jogador${selectedPlayers > 1 ? "es" : ""}`} />
+            <Chip icon={<GiCrossedSwords size={16} />} label={`Pressao ${selectedBudget}/${adventure.baseDangerBudget}`} />
+            <Chip icon={<GiSkullCrossedBones size={16} />} label="Conteudo do mestre" />
+          </Stack>
+
+          <Typography
+            component="h1"
+            sx={{
+              fontSize: { xs: "2.1rem", md: "3.55rem" },
+              lineHeight: 0.98,
+              fontWeight: 900,
+              maxWidth: 980,
+              color: "#fff8e9",
+            }}
+          >
+            {adventure.title}
+          </Typography>
+
+          <Typography sx={{ color: "#d7c59d", lineHeight: 1.72, maxWidth: 900 }}>
+            {adventure.premise}
+          </Typography>
+
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={0.8}>
+            <Button
+              variant="outlined"
+              startIcon={<GiCampfire />}
+              onClick={() => onSectionChange("cenas")}
+            >
+              Conduzir cenas
+            </Button>
+            <Button
+              variant="outlined"
+              startIcon={<GiTreasureMap />}
+              onClick={() => onSectionChange("mapas")}
+            >
+              Abrir mapas
+            </Button>
+            <Button
+              variant="outlined"
+              startIcon={<GiSkullCrossedBones />}
+              onClick={() => onSectionChange("elenco")}
+            >
+              Ver elenco
+            </Button>
+          </Stack>
         </Stack>
 
-        <Typography
-          component="h1"
+        <Paper
+          variant="outlined"
           sx={{
-            fontSize: { xs: "2rem", md: "3.4rem" },
-            lineHeight: 1,
-            fontWeight: 900,
-            maxWidth: 980,
+            borderColor: `${adventure.accent}55`,
+            bgcolor: "rgba(0,0,0,.34)",
+            p: 1.2,
           }}
         >
-          Aventuras guiadas para Dungeon World
-        </Typography>
+          <Stack spacing={1.1}>
+            <Typography sx={{ color: adventure.accent, fontWeight: 900 }}>
+              Mesa pronta para abrir
+            </Typography>
 
-        <Typography sx={{ color: "#d7c59d", lineHeight: 1.7, maxWidth: 930 }}>
-          Cada aventura abaixo fica isolada pelo seu PDF de origem, com objetivos,
-          frentes, PNJs, monstros, cenas e mapas pensados para uma mesa de 7
-          jogadores. A escala mostra como reduzir pressao quando houver menos
-          pessoas sem descaracterizar a ficcao.
-        </Typography>
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+                gap: 0.8,
+              }}
+            >
+              <HeroMetric Icon={GiCampfire} label="Cenas" value={adventure.scenes.length} />
+              <HeroMetric Icon={GiTabletopPlayers} label="PNJs" value={adventure.npcs.length} />
+              <HeroMetric Icon={GiSkullCrossedBones} label="Ameacas" value={adventure.threats.length} />
+              <HeroMetric Icon={GiTreasureMap} label="Mapa" value="atlas" />
+            </Box>
 
-        <Alert
-          severity="warning"
-          sx={{
-            bgcolor: "rgba(197,155,75,.12)",
-            color: "#f7edd9",
-            border: "1px solid rgba(197,155,75,.24)",
-            "& .MuiAlert-icon": { color: "#f2c76c" },
-          }}
-        >
-          Conteudo de mestre: esta pagina contem segredos, monstros, rotas e
-          consequencias das aventuras.
-        </Alert>
-      </Stack>
+            <Alert
+              severity="warning"
+              sx={{
+                bgcolor: "rgba(197,155,75,.1)",
+                color: "#f7edd9",
+                border: "1px solid rgba(197,155,75,.2)",
+                "& .MuiAlert-icon": { color: "#f2c76c" },
+              }}
+            >
+              Segredos, monstros, rotas e consequencias ficam concentrados nesta tela.
+            </Alert>
+          </Stack>
+        </Paper>
+      </Box>
     </Paper>
+  );
+}
+
+function HeroMetric({
+  Icon,
+  label,
+  value,
+}: {
+  Icon: IconType;
+  label: string;
+  value: ReactNode;
+}) {
+  return (
+    <Box
+      sx={{
+        border: "1px solid rgba(217,200,159,.13)",
+        bgcolor: "rgba(255,255,255,.04)",
+        p: 0.9,
+      }}
+    >
+      <Stack spacing={0.35}>
+        <Icon size={19} color="#c59b4b" />
+        <Typography sx={{ color: "#b9a98b", fontSize: ".7rem", fontWeight: 900 }}>
+          {label}
+        </Typography>
+        <Typography sx={{ color: "#f7edd9", fontWeight: 900 }}>
+          {value}
+        </Typography>
+      </Stack>
+    </Box>
   );
 }
 
@@ -1812,41 +1941,84 @@ function AdventurePicker({
       variant="outlined"
       sx={{
         borderColor: "rgba(217,200,159,.16)",
-        bgcolor: "rgba(255,255,255,.04)",
+        bgcolor: "rgba(8,8,7,.72)",
         p: 1.2,
       }}
     >
-      <Typography sx={{ color: "#c59b4b", fontWeight: 900, mb: 1 }}>
-        Escolha a aventura
-      </Typography>
+      <Stack direction="row" spacing={0.8} sx={{ alignItems: "center", mb: 1 }}>
+        <GiScrollQuill size={22} color="#c59b4b" />
+        <Box>
+          <Typography sx={{ color: "#c59b4b", fontWeight: 900 }}>
+            Biblioteca
+          </Typography>
+          <Typography sx={{ color: "#8f826c", fontSize: ".76rem" }}>
+            PDFs jogaveis da mesa
+          </Typography>
+        </Box>
+      </Stack>
       <Stack spacing={0.8}>
-        {adventures.map((adventure) => {
+        {adventures.map((adventure, index) => {
           const selected = selectedAdventureId === adventure.id;
 
           return (
             <Button
               key={adventure.id}
-              variant={selected ? "contained" : "outlined"}
+              variant="outlined"
               onClick={() => onSelect(adventure.id)}
               sx={{
                 justifyContent: "flex-start",
                 textAlign: "left",
-                borderColor: `${adventure.accent}66`,
-                bgcolor: selected ? adventure.accent : "transparent",
-                color: selected ? "#100b08" : "#f7edd9",
-                fontWeight: selected ? 900 : 700,
+                gap: 0.9,
+                minHeight: 70,
+                borderColor: selected ? `${adventure.accent}aa` : `${adventure.accent}3f`,
+                bgcolor: selected ? `${adventure.accent}20` : "rgba(0,0,0,.16)",
+                color: "#f7edd9",
+                boxShadow: selected ? `inset 3px 0 0 ${adventure.accent}` : "none",
                 "&:hover": {
-                  bgcolor: selected ? adventure.accent : `${adventure.accent}18`,
-                  color: selected ? "#100b08" : "#fff3dc",
+                  bgcolor: `${adventure.accent}1f`,
+                  color: "#fff3dc",
                 },
                 "&.Mui-focusVisible": {
                   outline: "2px solid rgba(255,243,220,.72)",
                   outlineOffset: 2,
-                  color: selected ? "#100b08" : "#fff3dc",
+                  color: "#fff3dc",
                 },
               }}
             >
-              {adventure.title}
+              <Box
+                component="span"
+                sx={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: 1.5,
+                  display: "grid",
+                  placeItems: "center",
+                  bgcolor: selected ? adventure.accent : `${adventure.accent}22`,
+                  color: selected ? "#100b08" : adventure.accent,
+                  flex: "0 0 auto",
+                  fontWeight: 900,
+                }}
+              >
+                {index + 1}
+              </Box>
+              <Box component="span" sx={{ minWidth: 0 }}>
+                <Typography component="span" sx={{ display: "block", fontWeight: 900 }}>
+                  {adventure.title}
+                </Typography>
+                <Typography
+                  component="span"
+                  sx={{
+                    display: "block",
+                    color: "#b9a98b",
+                    fontSize: ".72rem",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {adventure.tone}
+                </Typography>
+              </Box>
             </Button>
           );
         })}
@@ -1875,13 +2047,21 @@ function ScaleSelector({
       variant="outlined"
       sx={{
         borderColor: "rgba(95,182,196,.16)",
-        bgcolor: "rgba(255,255,255,.04)",
+        bgcolor: "rgba(95,182,196,.045)",
         p: 1.2,
       }}
     >
-      <Typography sx={{ color: "#5fb6c4", fontWeight: 900, mb: 1 }}>
-        Escala da mesa
-      </Typography>
+      <Stack direction="row" spacing={0.8} sx={{ alignItems: "center", mb: 1 }}>
+        <GiDiceTwentyFacesTwenty size={22} color="#5fb6c4" />
+        <Box>
+          <Typography sx={{ color: "#5fb6c4", fontWeight: 900 }}>
+            Escala da mesa
+          </Typography>
+          <Typography sx={{ color: "#8f826c", fontSize: ".76rem" }}>
+            Reducao de pressao sem cortar escolhas
+          </Typography>
+        </Box>
+      </Stack>
       <Stack direction="row" useFlexGap gap={0.7} sx={{ flexWrap: "wrap", alignItems: "stretch" }}>
         {playerCounts.map((players) => {
           const active = selectedPlayers === players;
@@ -1890,17 +2070,17 @@ function ScaleSelector({
             <Button
               key={players}
               size="small"
-              variant={active ? "contained" : "outlined"}
+              variant="outlined"
               onClick={() => onSelect(players)}
               sx={{
                 minWidth: 42,
-                bgcolor: active ? "#f2c76c" : "transparent",
-                color: active ? "#100b08" : "#f2c76c",
-                borderColor: active ? "#f7edd9" : "rgba(242,199,108,.45)",
+                bgcolor: active ? "rgba(95,182,196,.22)" : "rgba(0,0,0,.12)",
+                color: active ? "#dff7ff" : "#f2c76c",
+                borderColor: active ? "#5fb6c4" : "rgba(242,199,108,.35)",
                 fontWeight: 900,
                 "&:hover": {
-                  bgcolor: active ? "#d8a94b" : "rgba(242,199,108,.12)",
-                  color: active ? "#100b08" : "#fff3dc",
+                  bgcolor: active ? "rgba(95,182,196,.28)" : "rgba(242,199,108,.12)",
+                  color: active ? "#ffffff" : "#fff3dc",
                 },
                 "&.Mui-focusVisible": {
                   outline: "2px solid rgba(255,243,220,.72)",
@@ -1943,6 +2123,80 @@ function ScaleSelector({
   );
 }
 
+function SessionPulse({
+  adventure,
+  selectedPlayers,
+  selectedBudget,
+}: {
+  adventure: AdventureGuide;
+  selectedPlayers: PlayerCount;
+  selectedBudget: number;
+}) {
+  const scale = getScale(selectedPlayers);
+
+  return (
+    <Paper
+      variant="outlined"
+      sx={{
+        borderColor: `${adventure.accent}33`,
+        bgcolor:
+          `linear-gradient(145deg, ${adventure.accent}12, rgba(255,255,255,.028)), rgba(7,7,6,.7)`,
+        p: 1.2,
+      }}
+    >
+      <Stack spacing={1}>
+        <Stack direction="row" spacing={0.8} sx={{ alignItems: "center" }}>
+          <GiCompass size={22} color={adventure.accent} />
+          <Box>
+            <Typography sx={{ color: adventure.accent, fontWeight: 900 }}>
+              Pulso da sessao
+            </Typography>
+            <Typography sx={{ color: "#8f826c", fontSize: ".76rem" }}>
+              {scale.simultaneous}
+            </Typography>
+          </Box>
+        </Stack>
+
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+            gap: 0.75,
+          }}
+        >
+          <SideMetric label="Jogadores" value={selectedPlayers} />
+          <SideMetric label="Pressao" value={`${selectedBudget}/${adventure.baseDangerBudget}`} />
+          <SideMetric label="Cenas" value={adventure.scenes.length} />
+          <SideMetric label="Frentes" value={adventure.fronts.length} />
+        </Box>
+
+        <Typography sx={{ color: "#d7c59d", fontSize: ".84rem", lineHeight: 1.45 }}>
+          {scale.reserve}
+        </Typography>
+      </Stack>
+    </Paper>
+  );
+}
+
+function SideMetric({ label, value }: { label: string; value: ReactNode }) {
+  return (
+    <Box
+      sx={{
+        border: "1px solid rgba(217,200,159,.12)",
+        bgcolor: "rgba(0,0,0,.2)",
+        p: 0.75,
+      }}
+    >
+      <Typography sx={{ color: "#8f826c", fontSize: ".67rem", fontWeight: 900 }}>
+        {label}
+      </Typography>
+      <Typography sx={{ color: "#f7edd9", fontWeight: 900 }}>
+        {value}
+      </Typography>
+    </Box>
+  );
+}
+
 function AdventureDetail({
   adventure,
   selectedPlayers,
@@ -1960,69 +2214,16 @@ function AdventureDetail({
     () => adventureMaps.find((currentMap) => currentMap.id === adventure.mapId),
     [adventure.mapId],
   );
-  const scale = getScale(selectedPlayers);
-
   // Esta composicao e a "ficha da aventura": primeiro orienta escala e mapas,
   // depois entrega blocos expansivos de PNJs, monstros, cenas e recompensas.
   // A ordem favorece uso em sessao, onde o mestre consulta rapido sem ler tudo.
   return (
     <Stack spacing={1.6}>
-      <Card
-        variant="outlined"
-        sx={{
-          borderColor: `${adventure.accent}66`,
-          bgcolor: "rgba(17,17,15,.94)",
-          color: "#f7edd9",
-        }}
-      >
-        <CardContent>
-          <Stack spacing={1.4}>
-            <Stack direction="row" useFlexGap gap={0.8} sx={{ flexWrap: "wrap", alignItems: "stretch" }}>
-              <Chip label={adventure.source} />
-              <Chip label={adventure.tone} sx={{ bgcolor: `${adventure.accent}22` }} />
-              <Chip label={`Perigo ${selectedBudget}/${adventure.baseDangerBudget}`} />
-            </Stack>
-
-            <Typography
-              component="h2"
-              sx={{
-                color: adventure.accent,
-                fontSize: { xs: "1.8rem", md: "2.5rem" },
-                fontWeight: 900,
-                lineHeight: 1,
-              }}
-            >
-              {adventure.title}
-            </Typography>
-
-            <Typography sx={{ color: "#d7c59d", lineHeight: 1.7 }}>
-              {adventure.premise}
-            </Typography>
-
-            <Paper
-              variant="outlined"
-              sx={{
-                borderColor: "rgba(95,182,196,.18)",
-                bgcolor: "rgba(95,182,196,.07)",
-                p: 1.4,
-              }}
-            >
-              <Typography sx={{ color: "#5fb6c4", fontWeight: 900 }}>
-                Formato de conducao
-              </Typography>
-              <Typography sx={{ color: "#d7c59d", mt: 0.6, lineHeight: 1.6 }}>
-                {adventure.format}
-              </Typography>
-            </Paper>
-          </Stack>
-        </CardContent>
-      </Card>
-
-      <ScaleSummary
+      <AdventureOverviewCard
         adventure={adventure}
         selectedPlayers={selectedPlayers}
-        scaleReserve={scale.reserve}
-        simultaneous={scale.simultaneous}
+        selectedBudget={selectedBudget}
+        map={map}
       />
 
       <AdventureSectionNav active={activeSection} onChange={onSectionChange} />
@@ -2065,12 +2266,27 @@ function AdventureSectionNav({
     <Paper
       variant="outlined"
       sx={{
+        position: "sticky",
+        top: { xs: 76, md: 86 },
+        zIndex: 4,
         borderColor: "rgba(217,200,159,.16)",
-        bgcolor: "rgba(255,255,255,.04)",
-        p: 1,
+        bgcolor: "rgba(7,7,6,.82)",
+        boxShadow: "0 16px 34px rgba(0,0,0,.28)",
+        backdropFilter: "blur(14px)",
+        p: 0.75,
       }}
     >
-      <Stack direction="row" useFlexGap gap={0.8} sx={{ flexWrap: "wrap", alignItems: "stretch" }}>
+      <Stack
+        direction="row"
+        useFlexGap
+        gap={0.65}
+        sx={{
+          flexWrap: { xs: "nowrap", sm: "wrap" },
+          alignItems: "stretch",
+          overflowX: { xs: "auto", sm: "visible" },
+          pb: { xs: 0.25, sm: 0 },
+        }}
+      >
         {adventureSections.map((section) => {
           const selected = active === section.value;
           const Icon = section.Icon;
@@ -2078,28 +2294,28 @@ function AdventureSectionNav({
           return (
             <Button
               key={section.value}
-              variant={selected ? "contained" : "outlined"}
+              variant="outlined"
               onClick={() => onChange(section.value)}
               sx={{
-                flex: { xs: "1 1 42%", sm: "1 1 0" },
-                minWidth: { xs: 132, sm: 0 },
+                flex: { xs: "0 0 138px", sm: "1 1 0" },
+                minWidth: { xs: 138, sm: 0 },
                 py: 0.95,
                 borderColor: selected
-                  ? "rgba(242,199,108,.78)"
+                  ? "rgba(242,199,108,.72)"
                   : "rgba(217,200,159,.28)",
-                bgcolor: selected ? "#f2c76c" : "rgba(0,0,0,.12)",
-                color: selected ? "#1a120c" : "#f2c76c",
+                bgcolor: selected ? "rgba(242,199,108,.16)" : "rgba(0,0,0,.14)",
+                color: selected ? "#fff3dc" : "#d7c59d",
                 boxShadow: selected
-                  ? "0 0 0 1px rgba(26,18,12,.25) inset"
+                  ? "inset 0 -3px 0 #f2c76c"
                   : "none",
                 "&:hover": {
-                  bgcolor: selected ? "#d8a94b" : "rgba(242,199,108,.12)",
-                  borderColor: selected ? "#f7edd9" : "#f2c76c",
-                  color: selected ? "#100b08" : "#fff3dc",
+                  bgcolor: "rgba(242,199,108,.12)",
+                  borderColor: "#f2c76c",
+                  color: "#fff3dc",
                 },
                 "&.Mui-focusVisible": {
-                  bgcolor: selected ? "#c59b4b" : "rgba(242,199,108,.2)",
-                  color: selected ? "#100b08" : "#fff3dc",
+                  bgcolor: "rgba(242,199,108,.2)",
+                  color: "#fff3dc",
                   outline: "2px solid rgba(255,243,220,.72)",
                   outlineOffset: 2,
                 },
@@ -2125,6 +2341,179 @@ function AdventureSectionNav({
   );
 }
 
+function AdventureOverviewCard({
+  adventure,
+  selectedPlayers,
+  selectedBudget,
+  map,
+}: {
+  adventure: AdventureGuide;
+  selectedPlayers: PlayerCount;
+  selectedBudget: number;
+  map?: AdventureMap;
+}) {
+  const scale = getScale(selectedPlayers);
+
+  return (
+    <Paper
+      variant="outlined"
+      sx={{
+        borderColor: `${adventure.accent}44`,
+        bgcolor: "rgba(17,17,15,.72)",
+        overflow: "hidden",
+      }}
+    >
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", md: "1.2fr .8fr" },
+          gap: 0,
+        }}
+      >
+        <Box sx={{ p: { xs: 1.2, md: 1.5 } }}>
+          <Stack spacing={1.1}>
+            <Stack direction="row" useFlexGap gap={0.7} sx={{ flexWrap: "wrap", alignItems: "stretch" }}>
+              <Chip icon={<GiSecretBook size={15} />} label={adventure.source} />
+              <Chip icon={<GiFootsteps size={15} />} label={adventure.tone} sx={{ bgcolor: `${adventure.accent}18` }} />
+            </Stack>
+
+            <Box>
+              <Typography sx={{ color: adventure.accent, fontSize: ".82rem", fontWeight: 900 }}>
+                Ficha de conducao
+              </Typography>
+              <Typography sx={{ color: "#f7edd9", fontSize: { xs: "1.2rem", md: "1.35rem" }, fontWeight: 900 }}>
+                {adventure.format}
+              </Typography>
+            </Box>
+
+            <Typography sx={{ color: "#d7c59d", lineHeight: 1.62 }}>
+              {scale.reserve}
+            </Typography>
+          </Stack>
+        </Box>
+
+        <Box
+          sx={{
+            borderTop: { xs: "1px solid rgba(217,200,159,.12)", md: 0 },
+            borderLeft: { xs: 0, md: "1px solid rgba(217,200,159,.12)" },
+            p: { xs: 1.2, md: 1.5 },
+            bgcolor: "rgba(0,0,0,.18)",
+          }}
+        >
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+              gap: 0.75,
+            }}
+          >
+            <OverviewMetric Icon={GiDiceTwentyFacesTwenty} label="Pressao" value={`${selectedBudget}/${adventure.baseDangerBudget}`} accent={adventure.accent} />
+            <OverviewMetric Icon={GiTabletopPlayers} label="Mesa" value={`${selectedPlayers} PJ`} accent="#5fb6c4" />
+            <OverviewMetric Icon={GiCampfire} label="Cenas" value={adventure.scenes.length} accent="#f2c76c" />
+            <OverviewMetric Icon={GiCompass} label="Mapa" value={map ? map.title : "pendente"} accent="#7f6fd9" />
+          </Box>
+        </Box>
+      </Box>
+    </Paper>
+  );
+}
+
+function OverviewMetric({
+  Icon,
+  label,
+  value,
+  accent,
+}: {
+  Icon: IconType;
+  label: string;
+  value: ReactNode;
+  accent: string;
+}) {
+  return (
+    <Box
+      sx={{
+        border: `1px solid ${accent}33`,
+        bgcolor: `${accent}0f`,
+        minWidth: 0,
+        p: 0.85,
+      }}
+    >
+      <Stack spacing={0.35}>
+        <Icon size={18} color={accent} />
+        <Typography sx={{ color: "#8f826c", fontSize: ".66rem", fontWeight: 900 }}>
+          {label}
+        </Typography>
+        <Typography
+          sx={{
+            color: "#f7edd9",
+            fontSize: ".86rem",
+            fontWeight: 900,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {value}
+        </Typography>
+      </Stack>
+    </Box>
+  );
+}
+
+function SectionHeader({
+  Icon,
+  eyebrow,
+  title,
+  body,
+  accent,
+}: {
+  Icon: IconType;
+  eyebrow: string;
+  title: string;
+  body: string;
+  accent: string;
+}) {
+  return (
+    <Paper
+      variant="outlined"
+      sx={{
+        borderColor: `${accent}33`,
+        bgcolor: `${accent}0f`,
+        p: { xs: 1.1, md: 1.3 },
+      }}
+    >
+      <Stack direction="row" spacing={1} sx={{ alignItems: "flex-start" }}>
+        <Box
+          sx={{
+            width: 42,
+            height: 42,
+            borderRadius: 2,
+            display: "grid",
+            placeItems: "center",
+            bgcolor: `${accent}22`,
+            color: accent,
+            border: `1px solid ${accent}44`,
+            flex: "0 0 auto",
+          }}
+        >
+          <Icon size={24} />
+        </Box>
+        <Box sx={{ minWidth: 0 }}>
+          <Typography sx={{ color: accent, fontSize: ".72rem", fontWeight: 900 }}>
+            {eyebrow}
+          </Typography>
+          <Typography sx={{ color: "#f7edd9", fontSize: "1.12rem", fontWeight: 900 }}>
+            {title}
+          </Typography>
+          <Typography sx={{ color: "#b9a98b", lineHeight: 1.55, mt: 0.3 }}>
+            {body}
+          </Typography>
+        </Box>
+      </Stack>
+    </Paper>
+  );
+}
+
 function SummarySection({
   adventure,
   selectedPlayers,
@@ -2134,6 +2523,13 @@ function SummarySection({
 }) {
   return (
     <Stack spacing={1.3}>
+      <SectionHeader
+        Icon={GiOpenBook}
+        eyebrow="Resumo operacional"
+        title="Comece pela cena, depois avance por viradas e frentes"
+        body="Este bloco concentra o que o mestre precisa antes de abrir mapas, cenas detalhadas ou ameacas."
+        accent={adventure.accent}
+      />
       <QuickStart adventure={adventure} />
       <StoryFlow adventure={adventure} />
 
@@ -2173,13 +2569,16 @@ function StoryFlow({ adventure }: { adventure: AdventureGuide }) {
       variant="outlined"
       sx={{
         borderColor: `${adventure.accent}33`,
-        bgcolor: "rgba(255,255,255,.035)",
+        bgcolor: "rgba(255,255,255,.03)",
         p: 1.2,
       }}
     >
-      <Typography sx={{ color: adventure.accent, fontWeight: 900, mb: 1 }}>
-        Enredo em quatro viradas
-      </Typography>
+      <Stack direction="row" spacing={0.8} sx={{ alignItems: "center", mb: 1 }}>
+        <GiFootsteps size={21} color={adventure.accent} />
+        <Typography sx={{ color: adventure.accent, fontWeight: 900 }}>
+          Enredo em quatro viradas
+        </Typography>
+      </Stack>
 
       <Box
         sx={{
@@ -2231,11 +2630,15 @@ function StoryBeatCard({
       }}
       sx={{
         borderColor: isOpen ? `${accent}88` : "rgba(217,200,159,.13)",
-        bgcolor: isOpen ? "rgba(242,199,108,.075)" : "rgba(0,0,0,.16)",
+        background: isOpen
+          ? `linear-gradient(145deg, ${accent}18, rgba(0,0,0,.18))`
+          : "rgba(0,0,0,.18)",
         color: "#f7edd9",
         cursor: "pointer",
-        p: 1,
+        minHeight: 150,
+        p: 1.05,
         transition: "border-color .18s ease, background .18s ease",
+        boxShadow: isOpen ? `inset 3px 0 0 ${accent}` : "none",
         "&:focus-visible": {
           outline: "2px solid rgba(255,243,220,.72)",
           outlineOffset: 2,
@@ -2249,8 +2652,8 @@ function StoryBeatCard({
             size="small"
             label={`${index + 1}`}
             sx={{
-              bgcolor: isOpen ? "#f2c76c" : "rgba(255,255,255,.08)",
-              color: isOpen ? "#17100b" : "#f7edd9",
+              bgcolor: isOpen ? accent : "rgba(255,255,255,.08)",
+              color: isOpen ? "#100b08" : "#f7edd9",
               fontWeight: 900,
             }}
           />
@@ -2324,35 +2727,45 @@ function MapsSection({
   map?: AdventureMap;
 }) {
   return (
-    <Box
-      sx={{
-        display: "grid",
-        gridTemplateColumns: { xs: "1fr", xl: "1fr 1fr" },
-        gap: 1.3,
-        alignItems: "stretch",
-      }}
-    >
-      <MapCard title="Fluxo de encontros">
-        <EncounterMap adventure={adventure} />
-      </MapCard>
+    <Stack spacing={1.2}>
+      <SectionHeader
+        Icon={GiTreasureMap}
+        eyebrow="Mapas e fluxo"
+        title="Veja a rota narrativa ao lado do atlas fiel aos pontos do PDF"
+        body="O fluxo mostra escolhas de mesa; o atlas mostra o espaco, rotas, regioes e pontos sensiveis da aventura."
+        accent="#5fb6c4"
+      />
 
-      <MapCard title="Mapa do atlas">
-        {map ? (
-          <Stack spacing={1}>
-            <Box sx={{ overflowX: "auto", ...smoothOverflowSx }}>
-              <MapSvg mapId={map.id} revealSecrets />
-            </Box>
-            <Typography sx={{ color: "#b9a98b", fontSize: ".86rem", lineHeight: 1.45 }}>
-              {map.summary}
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", xl: "1fr 1fr" },
+          gap: 1.3,
+          alignItems: "stretch",
+        }}
+      >
+        <MapCard title="Fluxo de encontros" Icon={GiFootsteps}>
+          <EncounterMap adventure={adventure} />
+        </MapCard>
+
+        <MapCard title="Mapa do atlas" Icon={GiCompass}>
+          {map ? (
+            <Stack spacing={1}>
+              <Box sx={{ overflowX: "auto", ...smoothOverflowSx }}>
+                <MapSvg mapId={map.id} revealSecrets showPointLabels />
+              </Box>
+              <Typography sx={{ color: "#b9a98b", fontSize: ".86rem", lineHeight: 1.45 }}>
+                {map.summary}
+              </Typography>
+            </Stack>
+          ) : (
+            <Typography sx={{ color: "#b9a98b" }}>
+              Mapa ainda nao cadastrado no atlas.
             </Typography>
-          </Stack>
-        ) : (
-          <Typography sx={{ color: "#b9a98b" }}>
-            Mapa ainda nao cadastrado no atlas.
-          </Typography>
-        )}
-      </MapCard>
-    </Box>
+          )}
+        </MapCard>
+      </Box>
+    </Stack>
   );
 }
 
@@ -2365,6 +2778,13 @@ function ScenesSection({
 }) {
   return (
     <Stack spacing={1.1}>
+      <SectionHeader
+        Icon={GiCampfire}
+        eyebrow="Cenas em ordem de uso"
+        title="Leia, pressione e ajuste a escala sem perder a ficcao"
+        body="Cada cena separa leitura, pressao para mesa cheia, ressalva para grupos menores e decisoes que movem a aventura."
+        accent={adventure.accent}
+      />
       {adventure.scenes.map((scene, index) => (
         <SceneCard
           key={scene.title}
@@ -2381,6 +2801,15 @@ function ScenesSection({
 function CastSection({ adventure }: { adventure: AdventureGuide }) {
   return (
     <Stack spacing={1.3}>
+      <SectionHeader
+        Icon={GiSkullCrossedBones}
+        eyebrow="Elenco e ameacas"
+        title="Rostos, monstros e instintos prontos para consulta"
+        body="PNJs ficam separados de perigos para o mestre alternar conversa, revelacao e confronto sem procurar no texto inteiro."
+        accent="#aa263d"
+      />
+
+      <PanelTitle Icon={GiTabletopPlayers} title="PNJs em cena" accent="#5f7f4f" />
       <Box
         sx={{
           display: "grid",
@@ -2393,6 +2822,7 @@ function CastSection({ adventure }: { adventure: AdventureGuide }) {
         ))}
       </Box>
 
+      <PanelTitle Icon={GiCrossedSwords} title="Ameacas e monstros" accent="#8f2637" />
       <Box
         sx={{
           display: "grid",
@@ -2408,17 +2838,70 @@ function CastSection({ adventure }: { adventure: AdventureGuide }) {
   );
 }
 
+function PanelTitle({
+  Icon,
+  title,
+  accent,
+}: {
+  Icon: IconType;
+  title: string;
+  accent: string;
+}) {
+  return (
+    <Stack direction="row" spacing={0.8} sx={{ alignItems: "center" }}>
+      <Box
+        sx={{
+          width: 30,
+          height: 30,
+          borderRadius: 1.5,
+          display: "grid",
+          placeItems: "center",
+          bgcolor: `${accent}22`,
+          color: accent,
+          border: `1px solid ${accent}44`,
+        }}
+      >
+        <Icon size={18} />
+      </Box>
+      <Typography sx={{ color: accent, fontWeight: 900 }}>
+        {title}
+      </Typography>
+    </Stack>
+  );
+}
+
 function NpcCard({ npc }: { npc: AdventureNpc }) {
   return (
     <Paper variant="outlined" sx={cardSx("#5f7f4f")}>
       <Stack spacing={0.8}>
+        <Stack direction="row" spacing={0.8} sx={{ alignItems: "center" }}>
+          <Box
+            sx={{
+              width: 34,
+              height: 34,
+              borderRadius: 1.5,
+              display: "grid",
+              placeItems: "center",
+              bgcolor: "rgba(95,127,79,.2)",
+              color: "#d8efbd",
+              flex: "0 0 auto",
+            }}
+          >
+            <GiTabletopPlayers size={19} />
+          </Box>
+          <Box sx={{ minWidth: 0 }}>
+            <Typography sx={{ color: "#d8efbd", fontWeight: 900 }}>
+              {npc.name}
+            </Typography>
+            <Typography sx={{ color: "#b9a98b", fontSize: ".78rem" }}>
+              {npc.role}
+            </Typography>
+          </Box>
+        </Stack>
         <Stack direction="row" useFlexGap gap={0.7} sx={{ flexWrap: "wrap", alignItems: "stretch" }}>
           <Chip size="small" label="PNJ" sx={{ bgcolor: "rgba(95,127,79,.24)" }} />
           <Chip size="small" label={npc.role} />
         </Stack>
-        <Typography sx={{ color: "#d8efbd", fontWeight: 900 }}>
-          {npc.name}
-        </Typography>
         {npc.motivation && (
           <Typography sx={{ color: "#f7edd9", fontSize: ".9rem", lineHeight: 1.45 }}>
             <strong>Quer:</strong> {npc.motivation}
@@ -2446,9 +2929,30 @@ function ThreatCard({ threat }: { threat: AdventureThreat }) {
   return (
     <Paper variant="outlined" sx={cardSx("#8f2637")}>
       <Stack spacing={0.8}>
-        <Typography sx={{ color: "#ffb2b8", fontWeight: 900 }}>
-          {threat.name}
-        </Typography>
+        <Stack direction="row" spacing={0.8} sx={{ alignItems: "center" }}>
+          <Box
+            sx={{
+              width: 34,
+              height: 34,
+              borderRadius: 1.5,
+              display: "grid",
+              placeItems: "center",
+              bgcolor: "rgba(143,38,55,.22)",
+              color: "#ffb2b8",
+              flex: "0 0 auto",
+            }}
+          >
+            <GiSkullCrossedBones size={19} />
+          </Box>
+          <Box sx={{ minWidth: 0 }}>
+            <Typography sx={{ color: "#ffb2b8", fontWeight: 900 }}>
+              {threat.name}
+            </Typography>
+            <Typography sx={{ color: "#b9a98b", fontSize: ".78rem" }}>
+              {threat.role}
+            </Typography>
+          </Box>
+        </Stack>
         <Stack direction="row" useFlexGap gap={0.6} sx={{ flexWrap: "wrap", alignItems: "stretch" }}>
           <Chip size="small" label={threat.role} />
           <Chip size="small" label={threat.stats} />
@@ -2481,6 +2985,14 @@ function RulesSection({
 }) {
   return (
     <Stack spacing={1.2}>
+      <SectionHeader
+        Icon={GiScrollQuill}
+        eyebrow="Regras de mesa"
+        title="Escala, movimentos personalizados e consequencias"
+        body="Use esta aba quando precisar ajustar dificuldade, improvisar resultado ou fechar ramificacoes provaveis."
+        accent="#7f6fd9"
+      />
+
       <ScaleTable
         baseBudget={adventure.baseDangerBudget}
         selectedPlayers={selectedPlayers}
@@ -2581,58 +3093,13 @@ function ScaleTable({
   );
 }
 
-function ScaleSummary({
-  adventure,
-  selectedPlayers,
-  scaleReserve,
-  simultaneous,
-}: {
-  adventure: AdventureGuide;
-  selectedPlayers: PlayerCount;
-  scaleReserve: string;
-  simultaneous: string;
-}) {
-  return (
-    <Paper
-      variant="outlined"
-      sx={{
-        borderColor: "rgba(242,199,108,.2)",
-        bgcolor: "rgba(197,155,75,.08)",
-        p: 1.4,
-      }}
-    >
-      <Stack spacing={1}>
-        <Stack direction="row" useFlexGap gap={0.8} sx={{ flexWrap: "wrap", alignItems: "stretch" }}>
-          <Chip label={`Selecionado: ${selectedPlayers} jogador${selectedPlayers > 1 ? "es" : ""}`} />
-          <Chip label={simultaneous} />
-          <Chip
-            label={`calculo: ${calculateDangerBudget(
-              adventure.baseDangerBudget,
-              selectedPlayers,
-            )} / ${adventure.baseDangerBudget}`}
-          />
-        </Stack>
-
-        <Typography sx={{ color: "#f7edd9", lineHeight: 1.6 }}>
-          {scaleReserve}
-        </Typography>
-
-        <Typography sx={{ color: "#b9a98b", fontSize: ".86rem", lineHeight: 1.55 }}>
-          Regra pratica: para 7 jogadores use tudo. A cada degrau abaixo, reduza
-          quantidade de inimigos, simultaneidade e dano ambiental antes de cortar
-          decisoes importantes. Acima de 7 nao e recomendado: divida objetivos
-          em duas frentes ou transforme parte do grupo em apoio fora de cena.
-        </Typography>
-      </Stack>
-    </Paper>
-  );
-}
-
 function MapCard({
   title,
+  Icon,
   children,
 }: {
   title: string;
+  Icon: IconType;
   children: ReactNode;
 }) {
   return (
@@ -2645,9 +3112,12 @@ function MapCard({
       }}
     >
       <Box sx={{ p: 1.2, borderBottom: "1px solid rgba(217,200,159,.12)" }}>
-        <Typography sx={{ color: "#c59b4b", fontWeight: 900 }}>
-          {title}
-        </Typography>
+        <Stack direction="row" spacing={0.8} sx={{ alignItems: "center" }}>
+          <Icon size={20} color="#c59b4b" />
+          <Typography sx={{ color: "#c59b4b", fontWeight: 900 }}>
+            {title}
+          </Typography>
+        </Stack>
       </Box>
       <Box
         sx={{
@@ -2817,17 +3287,37 @@ function QuickStart({ adventure }: { adventure: AdventureGuide }) {
     <Paper
       variant="outlined"
       sx={{
-        borderColor: `${adventure.accent}44`,
-        bgcolor: `${adventure.accent}12`,
-        p: 1.4,
+        borderColor: `${adventure.accent}55`,
+        bgcolor:
+          `linear-gradient(135deg, ${adventure.accent}18, rgba(0,0,0,.18)), rgba(255,255,255,.035)`,
+        p: { xs: 1.2, md: 1.4 },
       }}
     >
-      <Typography sx={{ color: adventure.accent, fontWeight: 900 }}>
-        Comeco da mesa
-      </Typography>
-      <Typography sx={{ color: "#f7edd9", mt: 0.8, lineHeight: 1.65 }}>
-        {adventure.start}
-      </Typography>
+      <Stack direction={{ xs: "column", sm: "row" }} spacing={1} sx={{ alignItems: "flex-start" }}>
+        <Box
+          sx={{
+            width: 46,
+            height: 46,
+            borderRadius: 2,
+            display: "grid",
+            placeItems: "center",
+            bgcolor: `${adventure.accent}24`,
+            color: adventure.accent,
+            border: `1px solid ${adventure.accent}55`,
+            flex: "0 0 auto",
+          }}
+        >
+          <GiCampfire size={26} />
+        </Box>
+        <Box>
+          <Typography sx={{ color: adventure.accent, fontWeight: 900 }}>
+            Comeco da mesa
+          </Typography>
+          <Typography sx={{ color: "#f7edd9", mt: 0.5, lineHeight: 1.65 }}>
+            {adventure.start}
+          </Typography>
+        </Box>
+      </Stack>
     </Paper>
   );
 }
@@ -2851,23 +3341,43 @@ function SceneCard({
     <Paper
       variant="outlined"
       sx={{
-        borderColor: "rgba(217,200,159,.14)",
-        bgcolor: "rgba(255,255,255,.04)",
+        borderColor: `${accent}33`,
+        bgcolor: "rgba(17,17,15,.74)",
+        boxShadow: `inset 4px 0 0 ${accent}66`,
         p: { xs: 1.2, md: 1.5 },
       }}
     >
       <Stack spacing={1.1}>
         <Stack direction="row" useFlexGap gap={0.7} sx={{ flexWrap: "wrap", alignItems: "stretch" }}>
-          <Chip label={`Cena ${index + 1}`} sx={{ bgcolor: `${accent}22` }} />
-          <Chip label={scene.location} />
-          <Chip label={`pressao ${scaledPressure}/${scene.pressure}`} />
+          <Chip icon={<GiCampfire size={15} />} label={`Cena ${index + 1}`} sx={{ bgcolor: `${accent}22` }} />
+          <Chip icon={<GiCastle size={15} />} label={scene.location} />
+          <Chip icon={<GiCrossedSwords size={15} />} label={`pressao ${scaledPressure}/${scene.pressure}`} />
         </Stack>
 
-        <Typography sx={{ color: accent, fontWeight: 900, fontSize: "1.05rem" }}>
-          {scene.title}
-        </Typography>
+        <Box>
+          <Typography sx={{ color: accent, fontWeight: 900, fontSize: "1.12rem" }}>
+            {scene.title}
+          </Typography>
+          <LinearProgress
+            variant="determinate"
+            value={(scaledPressure / scene.pressure) * 100}
+            sx={{
+              height: 5,
+              mt: 0.8,
+              bgcolor: "rgba(255,255,255,.07)",
+              ".MuiLinearProgress-bar": { bgcolor: accent },
+            }}
+          />
+        </Box>
 
-        <Typography sx={{ color: "#f7edd9", lineHeight: 1.65 }}>
+        <Typography
+          sx={{
+            color: "#f7edd9",
+            lineHeight: 1.68,
+            borderLeft: "1px solid rgba(217,200,159,.18)",
+            pl: 1.2,
+          }}
+        >
           {scene.readAloud}
         </Typography>
 
@@ -2939,13 +3449,29 @@ function InfoGrid({
       variant="outlined"
       sx={{
         borderColor: `${accent}33`,
-        bgcolor: "rgba(255,255,255,.035)",
+        bgcolor: "rgba(255,255,255,.032)",
         p: 1.3,
       }}
     >
-      <Typography sx={{ color: accent, fontWeight: 900, mb: 1 }}>
-        {title}
-      </Typography>
+      <Stack direction="row" spacing={0.8} sx={{ alignItems: "center", mb: 1 }}>
+        <Box
+          sx={{
+            width: 26,
+            height: 26,
+            borderRadius: 1.2,
+            display: "grid",
+            placeItems: "center",
+            bgcolor: `${accent}22`,
+            color: accent,
+            border: `1px solid ${accent}44`,
+          }}
+        >
+          <GiSpellBook size={16} />
+        </Box>
+        <Typography sx={{ color: accent, fontWeight: 900 }}>
+          {title}
+        </Typography>
+      </Stack>
       <Box
         sx={{
           display: "grid",
@@ -2953,15 +3479,34 @@ function InfoGrid({
           gap: 0.8,
         }}
       >
-        {items.map((item) => (
+        {items.map((item, index) => (
           <Box
             key={item}
             sx={{
-              borderLeft: `3px solid ${accent}`,
-              pl: 1,
+              display: "grid",
+              gridTemplateColumns: "28px minmax(0, 1fr)",
+              gap: 0.8,
+              border: "1px solid rgba(217,200,159,.1)",
+              bgcolor: "rgba(0,0,0,.18)",
+              p: 0.85,
               minWidth: 0,
             }}
           >
+            <Box
+              sx={{
+                width: 28,
+                height: 28,
+                borderRadius: "50%",
+                display: "grid",
+                placeItems: "center",
+                bgcolor: `${accent}24`,
+                color: accent,
+                fontSize: ".75rem",
+                fontWeight: 900,
+              }}
+            >
+              {index + 1}
+            </Box>
             <Typography sx={{ color: "#d7c59d", lineHeight: 1.55 }}>
               {item}
             </Typography>
