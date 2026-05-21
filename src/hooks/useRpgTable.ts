@@ -1,6 +1,10 @@
-import { useCallback, useMemo, useState, type Dispatch, type SetStateAction } from "react";
+import { useCallback, useEffect, useMemo, useState, type Dispatch, type SetStateAction } from "react";
 import { dwClasses, unselectedClass } from "../data/dwClasses";
 import { consumableItems, items } from "../data/items";
+import {
+  loadRpgTableSnapshot,
+  saveRpgTableSnapshot,
+} from "../services/rpgTableStorage";
 import {
   initialCharacter,
   type Character,
@@ -19,6 +23,69 @@ function createInitialTable() {
   // A mesa sempre nasce com 7 espacos, porque o mestre pode preparar fichas em
   // tempos diferentes e abrir cada perfil quando o jogador aparecer.
   return Array.from({ length: playerCount }, cloneInitialCharacter);
+}
+
+function normalizePlayerIndex(index?: number) {
+  if (typeof index !== "number") return 0;
+  return Math.max(0, Math.min(playerCount - 1, index));
+}
+
+function mergeStoredCharacter(fallback: Character, storedCharacter?: Character) {
+  if (!storedCharacter) return fallback;
+
+  return {
+    ...fallback,
+    ...storedCharacter,
+    hp: {
+      ...fallback.hp,
+      ...storedCharacter.hp,
+    },
+    attributes: {
+      ...fallback.attributes,
+      ...storedCharacter.attributes,
+    },
+    modifiers: {
+      ...fallback.modifiers,
+      ...storedCharacter.modifiers,
+      attributes: {
+        ...fallback.modifiers.attributes,
+        ...storedCharacter.modifiers?.attributes,
+      },
+    },
+    creationChoices: {
+      ...fallback.creationChoices,
+      ...storedCharacter.creationChoices,
+    },
+    consumables: {
+      ...fallback.consumables,
+      ...storedCharacter.consumables,
+    },
+    equipment: {
+      ...fallback.equipment,
+      ...storedCharacter.equipment,
+    },
+    availableItems: Array.isArray(storedCharacter.availableItems)
+      ? storedCharacter.availableItems
+      : fallback.availableItems,
+    selectedSkillIds: Array.isArray(storedCharacter.selectedSkillIds)
+      ? storedCharacter.selectedSkillIds
+      : fallback.selectedSkillIds,
+    preparedSpellIds: Array.isArray(storedCharacter.preparedSpellIds)
+      ? storedCharacter.preparedSpellIds
+      : fallback.preparedSpellIds,
+    exhaustedSpellIds: Array.isArray(storedCharacter.exhaustedSpellIds)
+      ? storedCharacter.exhaustedSpellIds
+      : fallback.exhaustedSpellIds,
+  };
+}
+
+function normalizeStoredTable(storedCharacters?: Character[]) {
+  const initialTable = createInitialTable();
+  if (!Array.isArray(storedCharacters)) return initialTable;
+
+  return initialTable.map((fallbackCharacter, index) =>
+    mergeStoredCharacter(fallbackCharacter, storedCharacters[index]),
+  );
 }
 
 function getMaxHpForCharacter(character: Character) {
@@ -56,8 +123,13 @@ function buildPlayerProfiles(characters: Character[]): PlayerProfileSummary[] {
 }
 
 export function useRpgTable() {
-  const [characters, setCharacters] = useState<Character[]>(createInitialTable);
-  const [selectedPlayerIndex, setSelectedPlayerIndex] = useState(0);
+  const [initialSnapshot] = useState(() => loadRpgTableSnapshot());
+  const [characters, setCharacters] = useState<Character[]>(() =>
+    normalizeStoredTable(initialSnapshot?.characters),
+  );
+  const [selectedPlayerIndex, setSelectedPlayerIndex] = useState(() =>
+    normalizePlayerIndex(initialSnapshot?.selectedPlayerIndex),
+  );
 
   const character = characters[selectedPlayerIndex] ?? characters[0];
   const playerProfiles = useMemo(
@@ -136,6 +208,13 @@ export function useRpgTable() {
       });
     });
   }, [selectedPlayerIndex]);
+
+  useEffect(() => {
+    saveRpgTableSnapshot({
+      characters,
+      selectedPlayerIndex,
+    });
+  }, [characters, selectedPlayerIndex]);
 
   return {
     character,

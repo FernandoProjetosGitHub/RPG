@@ -8,6 +8,7 @@ import {
   LinearProgress,
   Paper,
   Stack,
+  TextField,
   Typography,
 } from "@mui/material";
 import { useMemo, useState } from "react";
@@ -32,6 +33,13 @@ import { MapSvg } from "../../components/AdventureMapsDialog";
 import PublicPageShell from "../../components/public/PublicPageShell";
 import type { PublicView } from "../../components/public/PublicPageShell";
 import { adventureMaps, type AdventureMap } from "../../data/adventureMaps";
+import {
+  clearTableAccessCredentials,
+  createTableAccessCredentials,
+  loadTableAccessCredentials,
+  saveTableAccessCredentials,
+  type TableAccessCredentials,
+} from "../../services/tableAccess";
 import { getAdventureVisual } from "./data/adventureVisuals";
 
 import {
@@ -63,12 +71,30 @@ export default function Aventuras({
   const [selectedAdventureId, setSelectedAdventureId] = useState(adventures[0].id);
   const [selectedPlayers, setSelectedPlayers] = useState<PlayerCount>(7);
   const [activeSection, setActiveSection] = useState<AdventureSection>("resumo");
+  const [tableAccess, setTableAccess] = useState<TableAccessCredentials | null>(
+    () => loadTableAccessCredentials(),
+  );
   const selectedAdventure = getAdventureById(selectedAdventureId);
   const selectedBudget = calculateDangerBudget(
     selectedAdventure.baseDangerBudget,
     selectedPlayers,
   );
   const selectedVisual = getAdventureVisual(selectedAdventure.id);
+
+  function handleCreateTableAccess() {
+    const nextCredentials = createTableAccessCredentials({
+      adventureId: selectedAdventure.id,
+      adventureTitle: selectedAdventure.title,
+    });
+
+    saveTableAccessCredentials(nextCredentials);
+    setTableAccess(nextCredentials);
+  }
+
+  function handleClearTableAccess() {
+    clearTableAccessCredentials();
+    setTableAccess(null);
+  }
 
   return (
     <PublicPageShell active="aventuras" onNavigate={onNavigate}>
@@ -127,6 +153,12 @@ export default function Aventuras({
               onSelect={setSelectedPlayers}
               baseBudget={selectedAdventure.baseDangerBudget}
             />
+            <TableAccessPanel
+              credentials={tableAccess}
+              adventure={selectedAdventure}
+              onCreate={handleCreateTableAccess}
+              onClear={handleClearTableAccess}
+            />
             <SessionPulse
               adventure={selectedAdventure}
               selectedPlayers={selectedPlayers}
@@ -145,6 +177,88 @@ export default function Aventuras({
       </Stack>
       </Box>
     </PublicPageShell>
+  );
+}
+
+function TableAccessPanel({
+  credentials,
+  adventure,
+  onCreate,
+  onClear,
+}: {
+  credentials: TableAccessCredentials | null;
+  adventure: AdventureGuide;
+  onCreate: () => void;
+  onClear: () => void;
+}) {
+  const createdAt = credentials
+    ? new Intl.DateTimeFormat("pt-BR", {
+        dateStyle: "short",
+        timeStyle: "short",
+      }).format(new Date(credentials.createdAt))
+    : null;
+
+  return (
+    <Paper
+      variant="outlined"
+      sx={{
+        borderColor: credentials ? `${adventure.accent}66` : "rgba(217,200,159,.16)",
+        bgcolor: "rgba(8,8,7,.78)",
+        p: 1.2,
+      }}
+    >
+      <Stack spacing={1.1}>
+        <Stack direction="row" spacing={0.8} sx={{ alignItems: "center" }}>
+          <GiSecretBook size={22} color={adventure.accent} />
+          <Box>
+            <Typography sx={{ color: adventure.accent, fontWeight: 900 }}>
+              Acesso da mesa
+            </Typography>
+            <Typography sx={{ color: "#8f826c", fontSize: ".76rem" }}>
+              login e senha para sincronizacao
+            </Typography>
+          </Box>
+        </Stack>
+
+        {credentials ? (
+          <Stack spacing={0.9}>
+            <Chip
+              label={`Mesa: ${credentials.adventureTitle}`}
+              sx={{ bgcolor: `${adventure.accent}1f` }}
+            />
+            <TextField
+              label="Login"
+              size="small"
+              value={credentials.login}
+              InputProps={{ readOnly: true }}
+            />
+            <TextField
+              label="Senha"
+              size="small"
+              value={credentials.password}
+              InputProps={{ readOnly: true }}
+            />
+            <Typography sx={{ color: "#b9a98b", fontSize: ".78rem", lineHeight: 1.45 }}>
+              Criado em {createdAt}. Por enquanto fica salvo localmente; o schema
+              de banco ja foi preparado para transformar este acesso em sala online.
+            </Typography>
+            <Button variant="outlined" onClick={onClear}>
+              Remover acesso local
+            </Button>
+          </Stack>
+        ) : (
+          <Stack spacing={0.9}>
+            <Typography sx={{ color: "#d7c59d", fontSize: ".86rem", lineHeight: 1.55 }}>
+              Gere uma credencial da mesa para esta aventura. Ela sera usada na
+              proxima etapa para criar ou entrar na sala sincronizada na nuvem.
+            </Typography>
+            <Button variant="contained" onClick={onCreate}>
+              Criar login e senha
+            </Button>
+          </Stack>
+        )}
+      </Stack>
+    </Paper>
   );
 }
 
