@@ -1,4 +1,4 @@
-create extension if not exists pgcrypto;
+create extension if not exists pgcrypto with schema extensions;
 
 create table if not exists public.rpg_tables (
   id uuid primary key default gen_random_uuid(),
@@ -74,7 +74,7 @@ begin
   )
   values (
     lower(trim(p_login)),
-    crypt(p_password, gen_salt('bf')),
+    extensions.crypt(p_password, extensions.gen_salt('bf')),
     p_adventure_id,
     p_adventure_title,
     p_state
@@ -118,7 +118,7 @@ as $$
   from public.rpg_tables
   where
     rpg_tables.login = lower(trim(p_login))
-    and rpg_tables.password_hash = crypt(p_password, rpg_tables.password_hash)
+    and rpg_tables.password_hash = extensions.crypt(p_password, rpg_tables.password_hash)
   limit 1;
 $$;
 
@@ -145,7 +145,7 @@ begin
   set state = p_state
   where
     rpg_tables.login = lower(trim(p_login))
-    and rpg_tables.password_hash = crypt(p_password, rpg_tables.password_hash)
+    and rpg_tables.password_hash = extensions.crypt(p_password, rpg_tables.password_hash)
   returning
     rpg_tables.id,
     rpg_tables.login,
