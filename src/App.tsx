@@ -6,6 +6,7 @@ import ClassCatalogPage from "./pages/classCatalog/ClassCatalogPage";
 import LandingPage from "./pages/landingPage/LandingPage";
 import MapsPage from "./pages/maps/MapsPage";
 import MasterAppPage from "./pages/master/MasterAppPage";
+import { useSupabaseTableSync } from "./hooks/useSupabaseTableSync";
 import { useRpgTable } from "./hooks/useRpgTable";
 import type { PublicView } from "./components/public/PublicPageShell";
 
@@ -23,8 +24,15 @@ export default function App() {
     selectedPlayerIndex,
     setSelectedPlayerIndex,
     playerProfiles,
+    characters,
+    replaceTableState,
     applyConsumableToPlayer,
   } = useRpgTable();
+  const tableSync = useSupabaseTableSync({
+    characters,
+    selectedPlayerIndex,
+    replaceTableState,
+  });
 
   // As telas de ficha ocupam a tela inteira e mantem rolagem/menu proprios.
   // Por isso elas saem da moldura publica e recebem somente os dados da mesa.
@@ -87,7 +95,7 @@ export default function App() {
   }
 
   if (currentView === "aventuras") {
-    return <Aventuras onNavigate={setCurrentView} />;
+    return <Aventuras onNavigate={setCurrentView} tableSync={tableSync} />;
   }
 
   if (currentView === "apps") {

@@ -33,13 +33,8 @@ import { MapSvg } from "../../components/AdventureMapsDialog";
 import PublicPageShell from "../../components/public/PublicPageShell";
 import type { PublicView } from "../../components/public/PublicPageShell";
 import { adventureMaps, type AdventureMap } from "../../data/adventureMaps";
-import {
-  clearTableAccessCredentials,
-  createTableAccessCredentials,
-  loadTableAccessCredentials,
-  saveTableAccessCredentials,
-  type TableAccessCredentials,
-} from "../../services/tableAccess";
+import type { useSupabaseTableSync } from "../../hooks/useSupabaseTableSync";
+import type { TableAccessCredentials } from "../../services/tableAccess";
 import { getAdventureVisual } from "./data/adventureVisuals";
 
 import {
@@ -65,36 +60,20 @@ import type {
 
 export default function Aventuras({
   onNavigate,
+  tableSync,
 }: {
   onNavigate: (view: PublicView) => void;
+  tableSync: ReturnType<typeof useSupabaseTableSync>;
 }) {
   const [selectedAdventureId, setSelectedAdventureId] = useState(adventures[0].id);
   const [selectedPlayers, setSelectedPlayers] = useState<PlayerCount>(7);
   const [activeSection, setActiveSection] = useState<AdventureSection>("resumo");
-  const [tableAccess, setTableAccess] = useState<TableAccessCredentials | null>(
-    () => loadTableAccessCredentials(),
-  );
   const selectedAdventure = getAdventureById(selectedAdventureId);
   const selectedBudget = calculateDangerBudget(
     selectedAdventure.baseDangerBudget,
     selectedPlayers,
   );
   const selectedVisual = getAdventureVisual(selectedAdventure.id);
-
-  function handleCreateTableAccess() {
-    const nextCredentials = createTableAccessCredentials({
-      adventureId: selectedAdventure.id,
-      adventureTitle: selectedAdventure.title,
-    });
-
-    saveTableAccessCredentials(nextCredentials);
-    setTableAccess(nextCredentials);
-  }
-
-  function handleClearTableAccess() {
-    clearTableAccessCredentials();
-    setTableAccess(null);
-  }
 
   return (
     <PublicPageShell active="aventuras" onNavigate={onNavigate}>
@@ -154,10 +133,20 @@ export default function Aventuras({
               baseBudget={selectedAdventure.baseDangerBudget}
             />
             <TableAccessPanel
-              credentials={tableAccess}
+              credentials={tableSync.credentials}
               adventure={selectedAdventure}
-              onCreate={handleCreateTableAccess}
-              onClear={handleClearTableAccess}
+              error={tableSync.error}
+              isConfigured={tableSync.isConfigured}
+              lastSyncedAt={tableSync.lastSyncedAt}
+              status={tableSync.status}
+              onCreate={() =>
+                tableSync.createOnlineTable({
+                  id: selectedAdventure.id,
+                  title: selectedAdventure.title,
+                })
+              }
+              onJoin={tableSync.joinOnlineTable}
+              onClear={tableSync.disconnectOnlineTable}
             />
             <SessionPulse
               adventure={selectedAdventure}
@@ -183,20 +172,47 @@ export default function Aventuras({
 function TableAccessPanel({
   credentials,
   adventure,
+  error,
+  isConfigured,
+  lastSyncedAt,
+  status,
   onCreate,
+  onJoin,
   onClear,
 }: {
   credentials: TableAccessCredentials | null;
   adventure: AdventureGuide;
+  error: string | null;
+  isConfigured: boolean;
+  lastSyncedAt: string | null;
+  status: ReturnType<typeof useSupabaseTableSync>["status"];
   onCreate: () => void;
+  onJoin: (login: string, password: string) => void;
   onClear: () => void;
 }) {
+  const [login, setLogin] = useState("");
+  const [password, setPassword] = useState("");
+  const isBusy = status === "connecting" || status === "saving";
   const createdAt = credentials
     ? new Intl.DateTimeFormat("pt-BR", {
         dateStyle: "short",
         timeStyle: "short",
       }).format(new Date(credentials.createdAt))
     : null;
+  const syncedAt = lastSyncedAt
+    ? new Intl.DateTimeFormat("pt-BR", {
+        dateStyle: "short",
+        timeStyle: "medium",
+      }).format(new Date(lastSyncedAt))
+    : null;
+  const statusLabel: Record<typeof status, string> = {
+    local: "Local",
+    "config-missing": "Configurar Supabase",
+    connecting: "Conectando",
+    online: "Online",
+    saving: "Salvando",
+    error: "Atenção",
+  };
 
   return (
     <Paper
@@ -215,10 +231,26 @@ function TableAccessPanel({
               Acesso da mesa
             </Typography>
             <Typography sx={{ color: "#8f826c", fontSize: ".76rem" }}>
-              login e senha para sincronizacao
+              login e senha para jogar online
             </Typography>
           </Box>
         </Stack>
+
+        <Chip
+          label={statusLabel[status]}
+          sx={{
+            alignSelf: "flex-start",
+            bgcolor: status === "online" ? "rgba(95,127,79,.24)" : `${adventure.accent}1f`,
+          }}
+        />
+
+        {!isConfigured && (
+          <Alert severity="warning">
+            Configure `.env.local` com `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY`.
+          </Alert>
+        )}
+
+        {error && <Alert severity="error">{error}</Alert>}
 
         {credentials ? (
           <Stack spacing={0.9}>
@@ -239,21 +271,43 @@ function TableAccessPanel({
               InputProps={{ readOnly: true }}
             />
             <Typography sx={{ color: "#b9a98b", fontSize: ".78rem", lineHeight: 1.45 }}>
-              Criado em {createdAt}. Por enquanto fica salvo localmente; o schema
-              de banco ja foi preparado para transformar este acesso em sala online.
+              Criado em {createdAt}. {syncedAt ? `Ultima sincronizacao: ${syncedAt}.` : ""}
             </Typography>
             <Button variant="outlined" onClick={onClear}>
-              Remover acesso local
+              Sair da mesa online
             </Button>
           </Stack>
         ) : (
           <Stack spacing={0.9}>
             <Typography sx={{ color: "#d7c59d", fontSize: ".86rem", lineHeight: 1.55 }}>
-              Gere uma credencial da mesa para esta aventura. Ela sera usada na
-              proxima etapa para criar ou entrar na sala sincronizada na nuvem.
+              Crie uma sala online para esta aventura ou entre em uma mesa criada
+              pelo mestre. A senha fica hasheada no banco.
             </Typography>
-            <Button variant="contained" onClick={onCreate}>
-              Criar login e senha
+            <Button variant="contained" onClick={onCreate} disabled={!isConfigured || isBusy}>
+              Criar mesa online
+            </Button>
+            <Divider />
+            <TextField
+              label="Login da mesa"
+              size="small"
+              value={login}
+              onChange={(event) => setLogin(event.target.value)}
+              disabled={!isConfigured || isBusy}
+            />
+            <TextField
+              label="Senha"
+              size="small"
+              type="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              disabled={!isConfigured || isBusy}
+            />
+            <Button
+              variant="outlined"
+              disabled={!isConfigured || isBusy || !login.trim() || !password.trim()}
+              onClick={() => onJoin(login, password)}
+            >
+              Entrar na mesa
             </Button>
           </Stack>
         )}

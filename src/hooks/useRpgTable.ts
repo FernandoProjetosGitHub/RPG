@@ -5,6 +5,7 @@ import {
   loadRpgTableSnapshot,
   saveRpgTableSnapshot,
 } from "../services/rpgTableStorage";
+import type { CloudTableState } from "../services/cloudTablePlan";
 import {
   initialCharacter,
   type Character,
@@ -209,6 +210,11 @@ export function useRpgTable() {
     });
   }, [selectedPlayerIndex]);
 
+  const replaceTableState = useCallback((state: CloudTableState) => {
+    setCharacters(normalizeStoredTable(state.characters));
+    setSelectedPlayerIndex(normalizePlayerIndex(state.selectedPlayerIndex));
+  }, []);
+
   useEffect(() => {
     saveRpgTableSnapshot({
       characters,
@@ -220,6 +226,7 @@ export function useRpgTable() {
     character,
     characters,
     setCharacter,
+    replaceTableState,
     selectedPlayerIndex,
     setSelectedPlayerIndex,
     playerProfiles,

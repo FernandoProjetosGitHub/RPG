@@ -7,7 +7,8 @@ export type TableAccessCredentials = {
   adventureId: string;
   adventureTitle: string;
   createdAt: string;
-  syncMode: "local-ready";
+  lastSyncedAt?: string;
+  syncMode: "local-ready" | "supabase";
 };
 
 const syllables = [
@@ -73,6 +74,19 @@ export function loadTableAccessCredentials(): TableAccessCredentials | null {
 export function saveTableAccessCredentials(credentials: TableAccessCredentials) {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(storageKey, JSON.stringify(credentials));
+}
+
+export function mergeTableAccessCredentials(
+  currentCredentials: TableAccessCredentials,
+  updates: Partial<TableAccessCredentials>,
+): TableAccessCredentials {
+  const nextCredentials = {
+    ...currentCredentials,
+    ...updates,
+  };
+
+  saveTableAccessCredentials(nextCredentials);
+  return nextCredentials;
 }
 
 export function clearTableAccessCredentials() {
